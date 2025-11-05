@@ -1058,10 +1058,9 @@
 
         @media (max-width: 480px) {
             html { font-size: 14px; }
-            .header-actions { flex-direction: column; align-items: stretch; gap: 0.75rem; }
-            .auth-buttons, .user-actions { flex-direction: column; gap: 0.75rem; }
-            .btn-login, .btn-register { width: 100%; }
-            .theme-toggle { align-self: flex-end; }
+            .header-actions { gap: 0.5rem; }
+            .auth-buttons,
+            .user-actions { display: none; }
             .hero h1 { font-size: clamp(1.75rem, 8vw, 2.5rem); }
             .hero p { font-size: 1rem; }
             .filters .filter-chip { font-size: 0.95rem; padding: 0.6rem 1.25rem; }
