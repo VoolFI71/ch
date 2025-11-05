@@ -299,31 +299,61 @@
         }
 
         .theme-toggle {
-            background: var(--secondary);
-            border: 2px solid var(--border);
-            border-radius: 2rem;
-            padding: 0.25rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 3.5rem;
+            height: 3.5rem;
             display: flex;
-            gap: 0.25rem;
-        }
-
-        .theme-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 1.5rem;
-            background: transparent;
-            border: none;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
+            transition: all 0.3s;
+            color: var(--primary);
+            position: relative;
+            overflow: hidden;
         }
 
-        .theme-btn.active {
-            background: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
-        .dark .theme-btn.active {
-            background: var(--gray-800);
+        .theme-toggle:hover {
+            transform: rotate(20deg) scale(1.1);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .theme-toggle:hover::before {
+            opacity: 1;
+        }
+
+        .theme-toggle i {
+            position: relative;
+            z-index: 2;
+            font-size: 1.25rem;
+        }
+
+        .theme-toggle:hover i {
+            color: white;
+        }
+
+        body.dark .theme-toggle {
+            color: #c4b5fd;
+            border-color: #c4b5fd;
+        }
+
+        body.dark .theme-toggle:hover {
+            transform: rotate(20deg) scale(1.1);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        body.dark .theme-toggle:hover i {
+            color: white;
         }
 
         .logout-btn {
@@ -1191,10 +1221,9 @@
                     </button>
 
                     <!-- Theme Toggle -->
-                    <div class="theme-toggle">
-                        <button class="theme-btn active" id="lightBtn" onclick="setTheme('light')">☀️</button>
-                        <button class="theme-btn" id="darkBtn" onclick="setTheme('dark')">🌙</button>
-                    </div>
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                        <i class="fas fa-sun" id="themeIcon"></i>
+                    </button>
 
                     <!-- Logout -->
                     <button class="btn btn-outline logout-btn">

@@ -258,27 +258,61 @@
         }
         
         .theme-toggle {
-            width: 3rem;
-            height: 3rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 3.5rem;
+            height: 3.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 1rem;
-            border: 1px solid var(--border-light);
-            background: var(--card-light);
             cursor: pointer;
             transition: all 0.3s;
+            color: var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         
         .theme-toggle:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
+            transform: rotate(20deg) scale(1.1);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+        
+        .theme-toggle:hover::before {
+            opacity: 1;
+        }
+        
+        .theme-toggle i {
+            position: relative;
+            z-index: 2;
+            font-size: 1.25rem;
+        }
+        
+        .theme-toggle:hover i {
+            color: white;
         }
         
         body.dark .theme-toggle {
-            background: var(--card-dark);
-            border-color: var(--border-dark);
+            color: #c4b5fd;
+            border-color: #c4b5fd;
+        }
+        
+        body.dark .theme-toggle:hover {
+            transform: rotate(20deg) scale(1.1);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+        
+        body.dark .theme-toggle:hover i {
+            color: white;
         }
         
         /* Hero */
@@ -1323,7 +1357,7 @@
 
         .auth-buttons .btn-register:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
         }
 
         .auth-buttons .btn-register:hover::before {
