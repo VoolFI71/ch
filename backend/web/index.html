@@ -1901,6 +1901,278 @@
             .auth-buttons { display: none; }
             .nav-link::after { display: none; }
         }
+
+        .modal.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .auth-modal {
+            background: rgba(15, 23, 42, 0.78);
+            padding: 1rem;
+        }
+
+        .auth-modal::before {
+            display: none;
+        }
+
+        .auth-modal .modal-content {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: min(430px, calc(100vw - 2rem));
+            width: 100%;
+            box-shadow: 0 30px 70px rgba(15, 23, 42, 0.35);
+            border: 1px solid rgba(124, 58, 237, 0.14);
+            transform: translateY(24px);
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .auth-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        body.dark .auth-modal .modal-content {
+            background: linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(30, 41, 59, 0.94));
+            border-color: rgba(139, 92, 246, 0.25);
+            box-shadow: 0 28px 70px rgba(2, 6, 23, 0.6);
+        }
+
+        .auth-modal .modal-close {
+            background: rgba(148, 163, 184, 0.18);
+            border: none;
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1rem;
+            color: var(--text-light);
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            transition: all 0.2s ease;
+        }
+
+        body.dark .auth-modal .modal-close {
+            background: rgba(148, 163, 184, 0.12);
+            color: #e2e8f0;
+        }
+
+        .auth-modal .modal-close:hover {
+            background: rgba(59, 130, 246, 0.22);
+            color: #1e3a8a;
+            transform: translateY(-1px);
+        }
+
+        body.dark .auth-modal .modal-close:hover {
+            background: rgba(59, 130, 246, 0.32);
+            color: #dbeafe;
+        }
+
+        .auth-modal .modal-header {
+            padding: 0;
+            border: none;
+            background: transparent;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-modal .modal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(59, 130, 246, 0.12);
+            color: #2563eb;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        body.dark .auth-modal .modal-badge {
+            background: rgba(59, 130, 246, 0.18);
+            color: #93c5fd;
+        }
+
+        .auth-modal .modal-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
+        }
+
+        .auth-modal .modal-subtitle {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        body.dark .auth-modal .modal-subtitle {
+            color: rgba(203, 213, 225, 0.9);
+        }
+
+        .auth-modal .modal-benefits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .auth-modal .modal-benefit {
+            flex: 1 1 150px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            background: rgba(79, 70, 229, 0.08);
+            color: var(--muted);
+        }
+
+        body.dark .auth-modal .modal-benefit {
+            background: rgba(79, 70, 229, 0.18);
+            color: rgba(226, 232, 240, 0.9);
+        }
+
+        .auth-modal .modal-benefit i {
+            color: #6366f1;
+            font-size: 1rem;
+        }
+
+        body.dark .auth-modal .modal-benefit i {
+            color: #a5b4fc;
+        }
+
+        .auth-modal .modal-form {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .auth-modal .form-group {
+            display: grid;
+            gap: 0.6rem;
+        }
+
+        .auth-modal .form-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        body.dark .auth-modal .form-label {
+            color: #e2e8f0;
+        }
+
+        .auth-modal .form-label::after {
+            display: none;
+        }
+
+        .auth-modal .form-input {
+            width: 100%;
+            padding: 0.95rem 1.1rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        body.dark .auth-modal .form-input {
+            background: rgba(17, 24, 39, 0.95);
+            border-color: rgba(148, 163, 184, 0.28);
+            color: #f8fafc;
+        }
+
+        .auth-modal .form-input:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+        }
+
+        body.dark .auth-modal .form-input:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+        }
+
+        .auth-modal .form-extra {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--muted);
+            gap: 1rem;
+        }
+
+        .auth-modal .form-remember {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: inherit;
+        }
+
+        .auth-modal .form-remember input {
+            width: 1rem;
+            height: 1rem;
+            accent-color: #7c3aed;
+        }
+
+        .auth-modal .form-extra a {
+            color: #3b82f6;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-modal .modal-submit {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .auth-modal .modal-note {
+            margin-top: 1.25rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .auth-modal .modal-note i {
+            margin-right: 0.35rem;
+            color: #10b981;
+        }
+
+        .auth-modal .modal-switch {
+            margin-top: 1.75rem;
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .auth-modal .modal-switch a {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .auth-modal .modal-switch a:hover {
+            color: #4f46e5;
+        }
+
+        @media (max-width: 480px) {
+            .auth-modal .modal-content {
+                padding: 2.25rem 1.75rem;
+            }
+
+            .auth-modal .modal-benefits {
+                flex-direction: column;
+            }
+
+            .auth-modal .form-extra {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+        }
     </style>
 </head>
 
@@ -2791,108 +3063,113 @@
     </footer>
 
     <!-- Login Modal -->
-    <div class="modal" id="loginModal">
+    <div class="modal auth-modal" id="loginModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeLoginModal()">
+            <button class="modal-close" type="button" onclick="closeLoginModal()">
                 <i class="fas fa-times"></i>
             </button>
             <div class="modal-header">
-                <div class="modal-logo" style="margin-bottom: 1.5rem;">
-                    <div class="logo-icon" style="width: 4rem; height: 4rem; margin: 0 auto;">
-                        <div class="chess-pattern"></div>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
-                            <defs>
-                                <linearGradient id="modalCrown" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#ffd700"/>
-                                    <stop offset="50%" stop-color="#ffffff"/>
-                                    <stop offset="100%" stop-color="#ffd700"/>
-                                </linearGradient>
-                            </defs>
-                            <rect x="3" y="16" width="18" height="3" fill="url(#modalCrown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
-                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#modalCrown)" stroke="#fff" stroke-width="1"/>
-                            <circle cx="12" cy="9" r="1.2" fill="#e11d48" stroke="#fff" stroke-width="0.4"/>
-                        </svg>
-                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.25rem; right: 0.25rem; z-index: 3;">
-                            <path d="M6 1L2 6H4L3 9L7 4H5L6 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.6"/>
-                        </svg>
-                    </div>
-                </div>
-                <h3>Вход в PowerChess</h3>
-                <p>🎯 Добро пожаловать обратно в мир шахматного мастерства!</p>
+                <span class="modal-badge">
+                    <i class="fas fa-chess-knight"></i>
+                    PowerChess
+                </span>
+                <h3 class="modal-title">Войти в аккаунт</h3>
+                <p class="modal-subtitle">Продолжайте обучение и возвращайтесь к сохранённым курсам.</p>
             </div>
-            <form onsubmit="handleLogin(event)">
+            <div class="modal-benefits">
+                <div class="modal-benefit">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Персональные подборки курсов</span>
+                </div>
+                <div class="modal-benefit">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Защищённый доступ к вашему прогрессу</span>
+                </div>
+            </div>
+            <form class="modal-form" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" placeholder="your@email.com" required>
+                    <label class="form-label" for="loginEmail">Email</label>
+                    <input id="loginEmail" type="email" class="form-input" placeholder="name@email.ru" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Пароль</label>
-                    <input type="password" class="form-input" placeholder="••••••••" required>
+                    <label class="form-label" for="loginPassword">Пароль</label>
+                    <input id="loginPassword" type="password" class="form-input" placeholder="Введите пароль" required>
                 </div>
-                <button type="submit" class="btn btn-primary modal-btn" style="width: 100%; margin-bottom: 1rem; position: relative; overflow: hidden;">
-                    <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
-                    Войти в аккаунт
-                    <div class="btn-shine"></div>
+                <div class="form-extra">
+                    <label class="form-remember" for="loginRemember">
+                        <input type="checkbox" id="loginRemember">
+                        <span>Запомнить меня</span>
+                    </label>
+                    <a href="mailto:support@power-chess.ru">Забыли пароль?</a>
+                </div>
+                <button type="submit" class="btn btn-primary modal-submit">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Войти
                 </button>
             </form>
-            <div class="form-footer">
-                Нет аккаунта? <a href="#" onclick="closeLoginModal(); showRegisterModal();">Зарегистрироваться</a>
-            </div>
+            <p class="modal-switch">
+                Нет аккаунта?
+                <a href="#" onclick="closeLoginModal(); showRegisterModal(); return false;">Зарегистрироваться</a>
+            </p>
         </div>
     </div>
 
     <!-- Register Modal -->
-    <div class="modal" id="registerModal">
+    <div class="modal auth-modal" id="registerModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeRegisterModal()">
+            <button class="modal-close" type="button" onclick="closeRegisterModal()">
                 <i class="fas fa-times"></i>
             </button>
             <div class="modal-header">
-                <div class="modal-logo" style="margin-bottom: 1.5rem;">
-                    <div class="logo-icon" style="width: 4rem; height: 4rem; margin: 0 auto;">
-                        <div class="chess-pattern"></div>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
-                            <defs>
-                                <linearGradient id="modalCrown2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#ffd700"/>
-                                    <stop offset="50%" stop-color="#ffffff"/>
-                                    <stop offset="100%" stop-color="#ffd700"/>
-                                </linearGradient>
-                            </defs>
-                            <rect x="3" y="16" width="18" height="3" fill="url(#modalCrown2)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
-                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#modalCrown2)" stroke="#fff" stroke-width="1"/>
-                            <circle cx="12" cy="9" r="1.2" fill="#e11d48" stroke="#fff" stroke-width="0.4"/>
-                        </svg>
-                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.25rem; right: 0.25rem; z-index: 3;">
-                            <path d="M6 1L2 6H4L3 9L7 4H5L6 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.6"/>
-                        </svg>
-                    </div>
-                </div>
-                <h3>🚀 Присоединяйтесь к PowerChess!</h3>
-                <p>Откройте дверь в мир профессиональных шахмат и станьте мастером!</p>
+                <span class="modal-badge">
+                    <i class="fas fa-chess-knight"></i>
+                    PowerChess
+                </span>
+                <h3 class="modal-title">Создать аккаунт</h3>
+                <p class="modal-subtitle">Получите доступ к закрытым курсам и персональным рекомендациям.</p>
             </div>
-            <form onsubmit="handleRegister(event)">
+            <div class="modal-benefits">
+                <div class="modal-benefit">
+                    <i class="fas fa-gift"></i>
+                    <span>Три бесплатных урока после регистрации</span>
+                </div>
+                <div class="modal-benefit">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Интеллектуальный трек прогресса</span>
+                </div>
+            </div>
+            <form class="modal-form" onsubmit="handleRegister(event)">
                 <div class="form-group">
-                    <label class="form-label">Имя</label>
-                    <input type="text" class="form-input" placeholder="Ваше имя" required>
+                    <label class="form-label" for="registerName">Имя</label>
+                    <input id="registerName" type="text" class="form-input" placeholder="Ваше имя" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" placeholder="your@email.com" required>
+                    <label class="form-label" for="registerEmail">Email</label>
+                    <input id="registerEmail" type="email" class="form-input" placeholder="name@email.ru" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Пароль</label>
-                    <input type="password" class="form-input" placeholder="••••••••" required>
+                    <label class="form-label" for="registerPassword">Пароль</label>
+                    <input id="registerPassword" type="password" class="form-input" placeholder="Придумайте пароль" required>
                 </div>
-                <button type="submit" class="btn btn-success modal-btn" style="width: 100%; margin-bottom: 1rem; position: relative; overflow: hidden;">
-                    <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
-                    Присоединиться к сообществу
-                    <div class="btn-shine"></div>
+                <div class="form-extra">
+                    <label class="form-remember" for="registerUpdates">
+                        <input type="checkbox" id="registerUpdates" checked>
+                        <span>Получать подборку новых курсов</span>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-success modal-submit">
+                    <i class="fas fa-user-plus"></i>
+                    Создать аккаунт
                 </button>
             </form>
-            <div class="form-footer">
-                Уже есть аккаунт? <a href="#" onclick="closeRegisterModal(); showLoginModal();">Войти</a>
-            </div>
+            <p class="modal-note">
+                <i class="fas fa-lock"></i>
+                Мы бережно храним ваши данные и не передаём их третьим лицам.
+            </p>
+            <p class="modal-switch">
+                Уже есть аккаунт?
+                <a href="#" onclick="closeRegisterModal(); showLoginModal(); return false;">Войти</a>
+            </p>
         </div>
     </div>
 
