@@ -1420,27 +1420,6 @@
         </div>
     </div>
 
-    <!-- Purchase Modal -->
-    <div class="modal" id="purchaseModal">
-        <div class="modal-content" style="max-width: 480px;">
-            <div class="modal-header">
-                <button class="modal-close" onclick="closeModal('purchaseModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-                <h3>Оформление покупки</h3>
-                <p style="color: var(--muted); margin-top: 0.5rem;" id="purchaseCourseName"></p>
-            </div>
-            <div style="padding: 2rem 2.5rem; display: flex; gap: 1rem; justify-content: center;">
-                <button class="btn btn-primary" onclick="completePurchase()">
-                    <i class="fas fa-credit-card"></i> Оплатить
-                </button>
-                <button class="btn btn-outline" onclick="closeModal('purchaseModal')">
-                    Отмена
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Mock reviews data with more detailed reviews
         const reviewsData = {
@@ -1624,11 +1603,6 @@
         function buyCourse(courseId, courseName) {
             // сразу к оплате без дополнительных модалок
             checkoutAndRedirect(courseId);
-        }
-
-        function completePurchase() {
-            // резервный путь, если модалка всё же открыта
-            if (currentCourseId) checkoutAndRedirect(currentCourseId);
         }
 
         // Modal management
