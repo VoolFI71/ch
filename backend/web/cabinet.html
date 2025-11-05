@@ -205,16 +205,13 @@
         .logo-text h1 {
             font-size: 1.5rem;
             font-weight: 800;
-            background: linear-gradient(90deg, var(--purple-600), var(--indigo-600), var(--amber-500));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
         }
 
         .logo-text p {
-            font-size: 0.875rem;
             color: var(--muted-foreground);
-            margin-top: -2px;
+            margin-top: -0.25rem;
+            font-size: 0.85rem;
         }
 
         .header-actions {
@@ -1167,6 +1164,26 @@
          body.dark .nav-link:hover {
              color: #c4b5fd;
          }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 4s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .logo-text p {
+            color: var(--muted-foreground);
+            margin-top: -0.25rem;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -1191,7 +1208,7 @@
                         </svg>
                     </div>
                     <div class="logo-text">
-                        <h1>PowerChess</h1>
+                        <h1 class="gradient-text">PowerChess</h1>
                         <p>♔ Личный кабинет</p>
                     </div>
                 </a>
