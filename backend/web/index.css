@@ -149,4 +149,169 @@ body.dark .card { background: var(--card-dark); border-color: var(--border-dark)
 
 /* The remainder of styles are preserved from the original inline block. */
 
+/* ... existing larger-screen styles remain ... */
+
+/* ===== Mobile Adaptations ===== */
+@media (max-width: 1024px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .user-actions,
+    .auth-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    html { font-size: 15px; }
+
+    .container {
+        padding: 0 1rem;
+    }
+
+    .hero {
+        padding: 7rem 0 2.5rem;
+    }
+
+    .hero-content {
+        text-align: center;
+    }
+
+    .hero .badge {
+        margin: 0 auto 1.5rem;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.25rem, 6vw, 3rem);
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .hero .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero .btn + .btn {
+        margin-top: 0.75rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stats-card {
+        padding: 1.5rem;
+    }
+
+    .features-grid,
+    .course-grid,
+    .testimonials-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.5rem;
+    }
+
+    .timeline::before { left: 0.5rem; }
+
+    .timeline-item {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+        padding-left: 2.5rem;
+    }
+
+    .timeline-badge {
+        left: 0.5rem;
+        transform: none;
+    }
+
+    .pricing-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2rem;
+    }
+
+    .pricing-card.featured {
+        transform: none;
+    }
+
+    .academy-cta {
+        padding: 2rem 1.5rem;
+        text-align: center;
+    }
+
+    .academy-cta .btn {
+        width: 100%;
+    }
+
+    .footer-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2rem;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    html { font-size: 14px; }
+
+    .nav-link::after { display: none; }
+
+    .hero h1 {
+        font-size: clamp(2rem, 8vw, 2.5rem);
+    }
+
+    .stats-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+    }
+
+    .card {
+        padding: 1.5rem;
+    }
+
+    .testimonial-card {
+        padding: 1.5rem;
+    }
+
+    .mentor-card {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .mentor-avatar {
+        width: 120px;
+        height: 120px;
+    }
+
+    .cta-banner {
+        padding: 2rem;
+    }
+
+    .cta-banner .btn {
+        width: 100%;
+    }
+}
+
+/* The remainder of styles from the original inline block are preserved below */
+
 

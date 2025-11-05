@@ -932,41 +932,94 @@
             opacity: 0.3;
         }
         
+        @media (max-width: 1024px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .auth-buttons,
+            .user-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .hero {
+                padding: 7rem 0 2.5rem;
+            }
+
+            .hero .filters {
+                gap: 0.75rem;
+            }
+
+            .hero .filters .filter-chip {
+                padding: 0.65rem 1.5rem;
+            }
+
+            .courses-grid {
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            html { font-size: 15px; }
+            .header-content { gap: 1rem; }
+            .logo { gap: 0.75rem; }
+            .hero { padding: 6rem 0 2rem; }
+            .hero h1 { font-size: clamp(2rem, 6.5vw, 3rem); }
+            .hero-sub { font-size: 1.05rem; margin-bottom: 1.75rem; }
+            .filters { flex-direction: column; gap: 0.75rem; align-items: stretch; }
+            .filters .filter-chip { width: 100%; justify-content: center; }
+            .courses-grid { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+            .course-card { max-width: 100%; }
+            .course-card .course-body { padding: 1.5rem; }
+            .pricing-table { grid-template-columns: minmax(0, 1fr); }
+            .reviews-grid { grid-template-columns: minmax(0, 1fr); }
+            .reviews-nav { flex-wrap: wrap; justify-content: center; }
+            .mentor-card { flex-direction: column; align-items: flex-start; text-align: left; }
+            .mentor-avatar { width: 120px; height: 120px; margin-bottom: 1rem; }
+            .modal-content { border-radius: 1.75rem; }
+        }
+
         @media (max-width: 640px) {
-            .modal-content {
-                border-radius: 2rem;
-                max-height: 95vh;
-            }
-            
-            .modal-header {
-                padding: 2rem 1.5rem 1rem;
-            }
-            
-            .reviews-body {
-                padding: 1.5rem;
-            }
-            
-            .review-item {
-                padding: 1.5rem;
-            }
-            
-            .review-avatar {
-                width: 56px;
-                height: 56px;
-                font-size: 1.5rem;
-            }
-            
-            .course-card {
-                max-width: 350px;
-            }
-            
-            .course-image {
-                height: 200px;
-            }
-            
-            .course-image i {
-                font-size: 6rem;
-            }
+            .modal-content { border-radius: 1.5rem; max-height: 95vh; }
+            .modal-header { padding: 1.5rem; }
+            .modal-title { font-size: 1.5rem; }
+            .reviews-body { padding: 1.25rem; gap: 1rem; }
+            .review-item { padding: 1.25rem; }
+            .review-avatar { width: 56px; height: 56px; font-size: 1.5rem; }
+            .course-image { height: 200px; }
+            .course-image i { font-size: 6rem; }
+            .course-meta { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+            .price-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .price { font-size: 1.75rem; }
+            .controls select { width: 100%; }
+            .cta-banner { padding: 1.75rem; text-align: center; }
+            .cta-banner .btn { width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            html { font-size: 14px; }
+            .header-actions { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+            .auth-buttons, .user-actions { flex-direction: column; gap: 0.75rem; }
+            .btn-login, .btn-register { width: 100%; }
+            .theme-toggle { align-self: flex-end; }
+            .hero h1 { font-size: clamp(1.75rem, 8vw, 2.5rem); }
+            .hero p { font-size: 1rem; }
+            .filters .filter-chip { font-size: 0.95rem; padding: 0.6rem 1.25rem; }
+            .course-card { padding: 1.5rem; }
+            .course-body .rating-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .reviews-nav { width: 100%; }
+            .reviews-nav .filter-chip { flex: 1; text-align: center; }
+            .mentor-list { gap: 1.5rem; }
+            .mentor-card { padding: 1.5rem; }
+            .faq-item { padding: 1.5rem; }
         }
     </style>
     <script>

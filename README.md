@@ -37,10 +37,12 @@
 - `METRICS_ENABLED=true` — включает `/metrics`
 
 Для HTTPS (Let's Encrypt):
-- `LETSENCRYPT_DOMAIN` — основной домен (можно указать несколько через запятую)
-- `LETSENCRYPT_EXTRA_DOMAINS` — дополнительные домены через запятую (опционально)
-- `LETSENCRYPT_EMAIL` — email администратора для уведомлений Let's Encrypt
+- `LETSENCRYPT_DOMAIN=example.com` — основной домен (можно перечислить несколько через запятую)
+- `LETSENCRYPT_EXTRA_DOMAINS=www.example.com,app.example.com` — дополнительные домены через запятую (опционально)
+- `LETSENCRYPT_EMAIL=admin@example.com` — email администратора для уведомлений Let's Encrypt
 - `LETSENCRYPT_STAGING=1` — включите на тестовом запуске, чтобы не попасть под лимиты ACME
+- `PUBLIC_BASE_URL=https://your-domain` — публичный адрес, который отдаёт nginx (используется для формирования callback-URL)
+- `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` — параметры магазина в YooKassa
 
 Объектное хранилище (MinIO/S3):
 - `S3_ENDPOINT` (пример для локального MinIO: `http://minio:9000`)
@@ -142,6 +144,20 @@ uvicorn app.main:app --reload --app-dir backend
 3. Запустите проект (`docker compose up -d`). Сервис `api` автоматически регистрируется в `nginx-proxy` через переменные `VIRTUAL_HOST/LETSENCRYPT_HOST`, а `acme-companion` выпустит сертификаты и сохранит их в volume `nginx_certs`.
 4. Дополнительные настройки виртуальных хостов кладите в `nginx/vhost.d/<domain>`; статические страницы-заглушки — в `nginx/html`. Эти каталоги уже примонтированы в прокси.
 5. Продление сертификатов и контроль статуса выполняет `acme-companion`. Логи процесса доступны командой `docker compose logs acme-companion`.
+
+### YooKassa и вебхуки платежей
+
+Путь `POST /api/payments/webhook` обрабатывает уведомления YooKassa (оплата, отмена, возврат). Чтобы вебхуки доставлялись корректно:
+
+1. Задайте переменные окружения:
+   - `PUBLIC_BASE_URL=https://your-domain` — домен, на который смотрит `nginx-proxy` (например, `https://chess.example.com`).
+   - `YOOKASSA_SHOP_ID` и `YOOKASSA_SECRET_KEY` — идентификаторы вашего магазина.
+2. Перезапустите сервис (`docker compose up -d`), чтобы backend подхватил значения.
+3. В кабинете YooKassa задайте URL уведомлений: `https://your-domain/api/payments/webhook` (домен должен совпадать с `PUBLIC_BASE_URL`).
+4. Проверьте доступность адреса извне (порты 80/443 проксируются контейнером `nginx-proxy`).
+5. В логах backend-а (`docker compose logs api`) можно увидеть обработку входящих вебхуков; при успешной оплате заказ отмечается как `paid`, создаётся запись `Enrollment`.
+
+> На тестовом аккаунте удобнее использовать режим `PUBLIC_BASE_URL=https://<ngrok или tunneling>`, прокинув HTTPS прямо в контейнер `nginx-proxy`.
 
 ### Структура
 ```
