@@ -1882,6 +1882,16 @@
             .hero { padding: 7rem 0 3rem; }
             .btn { padding: 0.875rem 1.5rem; }
         }
+
+        @media (max-width: 1024px) {
+            .auth-buttons { display: none; }
+            .user-actions { display: flex; }
+        }
+
+        @media (max-width: 480px) {
+            .auth-buttons { display: none; }
+            .nav-link::after { display: none; }
+        }
     </style>
 </head>
 
