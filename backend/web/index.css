@@ -167,6 +167,10 @@ body.dark .card { background: var(--card-dark); border-color: var(--border-dark)
     .mobile-menu-btn {
         display: block;
     }
+
+    .mobile-menu {
+        display: block;
+    }
 }
 
 @media (max-width: 768px) {
@@ -267,6 +271,7 @@ body.dark .card { background: var(--card-dark); border-color: var(--border-dark)
 @media (max-width: 480px) {
     html { font-size: 14px; }
 
+    .mobile-menu { display: block; }
     .auth-buttons,
     .user-actions {
         display: none;
