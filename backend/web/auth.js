@@ -153,6 +153,11 @@
       mobileUserActions.style.display = isLoggedIn ? 'block' : 'none';
     }
 
+    const mobileAuthButtons = document.getElementById('mobileAuthButtons');
+    if (mobileAuthButtons) {
+      mobileAuthButtons.style.display = !isDesktop && !isLoggedIn ? 'flex' : 'none';
+    }
+
     document.querySelectorAll('.logout-btn').forEach((el) => {
       el.style.display = isLoggedIn ? '' : 'none';
     });
