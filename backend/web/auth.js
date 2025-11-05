@@ -129,14 +129,22 @@
     return btn;
   }
 
+  let lastAuthState = false;
+
   function updateAuthUI(isLoggedIn) {
+    lastAuthState = isLoggedIn;
+    const isDesktop = window.innerWidth >= 1024;
+
     const authButtons = document.getElementById('authButtons');
-    if (authButtons) authButtons.style.display = isLoggedIn ? 'none' : 'flex';
+    if (authButtons) {
+      if (isDesktop) authButtons.style.display = isLoggedIn ? 'none' : 'flex';
+      else authButtons.style.display = 'none';
+    }
 
     const userActions = document.getElementById('userActions');
     if (userActions) {
-      if (isLoggedIn) ensureLogoutButton(userActions);
-      userActions.style.display = isLoggedIn ? 'flex' : 'none';
+      if (isLoggedIn && isDesktop) ensureLogoutButton(userActions);
+      userActions.style.display = isLoggedIn && isDesktop ? 'flex' : 'none';
     }
 
     const mobileUserActions = document.getElementById('mobileUserActions');
@@ -158,6 +166,7 @@
       const user = await me();
       loggedIn = !!user;
     }
+    lastAuthState = loggedIn;
     updateAuthUI(loggedIn);
   }
 
@@ -246,6 +255,10 @@
   document.addEventListener('DOMContentLoaded', () => {
     initAuth();
     bindLogoutButtons();
+  });
+
+  window.addEventListener('resize', () => {
+    updateAuthUI(lastAuthState);
   });
 })();
 
