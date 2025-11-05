@@ -1175,7 +1175,7 @@
         <div class="container">
             <div class="header-content">
                 <!-- Logo -->
-                <div class="logo-section">
+                <a href="/" class="logo-section" style="text-decoration: none; color: inherit;">
                     <div class="logo">
                         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -1194,10 +1194,11 @@
                         <h1>PowerChess</h1>
                         <p>♔ Личный кабинет</p>
                     </div>
-                </div>
+                </a>
 
                 <!-- Navigation -->
                 <nav class="nav">
+                    <a href="/" class="nav-link">Главная</a>
                     <a href="/course" class="nav-link">Курсы</a>
                     <a href="/couch#coaches" class="nav-link">Тренера</a>
                     <a href="/#reviews" class="nav-link">Отзывы</a>
@@ -1699,18 +1700,6 @@
 11. Nc3 O-O 12. Re1 Bf6 13. Ne4 Qd8 14. Nxf6+ Qxf6 
 15. Qf3 Qxf3 16. gxf3 1-0`
         };
-
-        // Theme Management
-        function setTheme(theme) {
-            document.documentElement.className = theme === 'dark' ? 'dark' : '';
-            localStorage.setItem('theme', theme);
-            
-            document.getElementById('lightBtn').classList.toggle('active', theme === 'light');
-            document.getElementById('darkBtn').classList.toggle('active', theme === 'dark');
-        }
-
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        setTheme(savedTheme);
 
         // Greeting
         function updateGreeting() {
