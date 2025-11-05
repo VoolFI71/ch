@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♔</text></svg>" />
     <title>PowerChess - Личный кабинет Ultimate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -1084,6 +1085,27 @@
                 padding: 1rem;
             }
         }
+
+        .nav {
+             display: flex;
+             align-items: center;
+             gap: 1.5rem;
+         }
+
+        .nav .nav-link {
+            font-weight: 500;
+            color: var(--muted-foreground);
+            transition: color 0.2s ease;
+        }
+
+        .nav .nav-link:hover {
+            color: var(--foreground);
+        }
+
+        .nav .nav-link.active {
+            color: var(--foreground);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -1115,10 +1137,10 @@
 
                 <!-- Navigation -->
                 <nav class="nav">
-                    <a href="/" class="nav-link">Главная</a>
-                    <a href="/course" class="nav-link">Курсы</a>
-                    <a href="/couch#coaches" class="nav-link">Тренера</a>
-                    <a href="/spaced-repetition" class="nav-link">Повторения</a>
+                    <a href="/" class="nav-link nav-link-muted">Главная</a>
+                    <a href="/course" class="nav-link nav-link-muted">Курсы</a>
+                    <a href="/couch#coaches" class="nav-link nav-link-muted">Тренера</a>
+                    <a href="/spaced-repetition" class="nav-link nav-link-muted">Повторения</a>
                 </nav>
 
                 <!-- Header Actions -->
@@ -1150,9 +1172,9 @@
                     </div>
 
                     <!-- Logout -->
-                    <button class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Выход
+                    <button class="btn btn-outline logout-btn">
+                        <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
+                        Выйти
                     </button>
                 </div>
             </div>
