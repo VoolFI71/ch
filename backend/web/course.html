@@ -279,6 +279,7 @@
             visibility: hidden;
             transition: all 0.3s;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            z-index: 999;
         }
         
         body.dark .mobile-menu {
@@ -1650,15 +1651,34 @@
             showModal('registerModal');
         }
 
-        
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('menuIcon');
+            if (!menu) return;
+            const active = menu.classList.toggle('active');
+            if (icon) icon.className = active ? 'fas fa-times' : 'fas fa-bars';
+        }
 
-        
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('menuIcon');
+            if (menu) menu.classList.remove('active');
+            if (icon) icon.className = 'fas fa-bars';
+        }
 
-        // Close modal on backdrop click
+        // Close modal / mobile menu on backdrop click
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.classList.remove('active');
                 document.body.style.overflow = '';
+            }
+
+            const menu = document.getElementById('mobileMenu');
+            const trigger = document.querySelector('.mobile-menu-btn');
+            if (menu && menu.classList.contains('active')) {
+                if (!(menu.contains(e.target) || trigger && trigger.contains(e.target))) {
+                    closeMobileMenu();
+                }
             }
         });
 
@@ -1669,17 +1689,30 @@
                     modal.classList.remove('active');
                 });
                 document.body.style.overflow = '';
+                closeMobileMenu();
             }
         });
-
-        // Safe no-op for this page to avoid errors on logo click
-        function closeMobileMenu() {}
 
         // Initialize on load
         window.addEventListener('scroll', handleScroll, { passive: true });
         document.addEventListener('DOMContentLoaded', () => {
             loadTheme();
             applyLevelFilter('all');
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href && href.length > 1) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            closeMobileMenu();
+                        }
+                    }
+                });
+            });
+
             try {
                 const params = new URLSearchParams(window.location.search);
                 if (params.get('courseId')) {
@@ -1687,6 +1720,10 @@
                     if (catalog) catalog.style.display = 'none';
                 }
             } catch {}
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) closeMobileMenu();
         });
 
         // Include common auth functions
