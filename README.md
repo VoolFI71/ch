@@ -130,60 +130,18 @@ uvicorn app.main:app --reload --app-dir backend
 - Данные Grafana сохраняются в volume `grafana-data` (`/var/lib/grafana`), дашборды не пропадут между рестартами.
 - Для автоподгрузки дашбордов используйте папку `monitoring/grafana/provisioning/dashboards/` (провайдер настроен).
 
-### HTTPS (nginx + Let's Encrypt)
+### HTTPS (nginx-proxy + Let's Encrypt)
 
-В `docker-compose.yml` добавлен сервис `nginx`, который терминирует HTTPS и проксирует запросы в `api`. Сертификаты выдаёт Let's Encrypt через ACME (webroot).
+Трафик терминирует связка `nginx-proxy` + `acme-companion`, автоматически выпускающая и продлевающая сертификаты Let's Encrypt.
 
 1. В `.env` задайте:
-   - `LETSENCRYPT_DOMAIN=example.com` (можно перечислить несколько доменов через запятую);
-   - при необходимости `LETSENCRYPT_EXTRA_DOMAINS=www.example.com,app.example.com`;
-   - `LETSENCRYPT_EMAIL=admin@example.com`;
-   - `LETSENCRYPT_STAGING=1` на тестовом прогоне (чтобы не упереться в квоты).
-2. Убедитесь, что DNS домена смотрит на сервер, где стартует docker-compose (порты 80/443 должны быть доступны снаружи).
-3. Подготовьте каталоги и временный сертификат (последовательно выполните команды; вместо `example.com` подставьте ваш основной домен):
-   ```bash
-   # создаём директорию для ACME-челленджей
-   docker compose run --rm --entrypoint "" certbot sh -c "mkdir -p /var/www/certbot"
-
-   # загружаем рекомендуемые TLS-параметры (выполняется один раз)
-   docker compose run --rm --entrypoint "" certbot sh -c "set -eu; \
-     mkdir -p /etc/letsencrypt; \
-     [ -f /etc/letsencrypt/options-ssl-nginx.conf ] || wget -q https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/_internal/options-ssl-nginx.conf -O /etc/letsencrypt/options-ssl-nginx.conf; \
-     [ -f /etc/letsencrypt/ssl-dhparams.pem ] || wget -q https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/_internal/ssl-dhparams.pem -O /etc/letsencrypt/ssl-dhparams.pem"
-
-   # создаём временный (dummy) сертификат для запуска nginx
-   docker compose run --rm --entrypoint "" certbot sh -c "set -eu; \
-     DOMAIN=example.com; \
-     mkdir -p /etc/letsencrypt/live/$DOMAIN; \
-     openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
-       -keyout /etc/letsencrypt/live/$DOMAIN/privkey.pem \
-       -out /etc/letsencrypt/live/$DOMAIN/fullchain.pem \
-       -subj '/CN=localhost' >/dev/null 2>&1"
-
-   # запускаем nginx с заглушечным сертификатом
-   docker compose up -d nginx
-   ```
-4. Запрашиваем реальный сертификат (перечислите все домены, которые должны быть в сертификате):
-   ```bash
-   docker compose run --rm certbot certonly \
-     --webroot -w /var/www/certbot \
-     --staging \
-     -d example.com -d www.example.com \
-     --email admin@example.com \
-     --agree-tos --no-eff-email
-
-   # перезагружаем nginx, чтобы он подхватил свежий сертификат
-   docker compose exec nginx nginx -t
-   docker compose exec nginx nginx -s reload
-   ```
-   Уберите флаг `--staging`, когда будете запрашивать боевой сертификат.
-5. После успешной проверки удалите временный сертификат (необязательно: Certbot перепишет файлы) и следите, чтобы `LETSENCRYPT_STAGING=0` был задан в `.env`.
-6. Для продления можно добавить cron-задачу, например:
-   ```bash
-   0 3 * * * cd /path/to/project && docker compose run --rm certbot renew --webroot -w /var/www/certbot && docker compose exec nginx nginx -s reload
-   ```
-
-Все сертификаты и ключи живут в volume `letsencrypt`, ACME-челленджи — в `certbot-www`.
+   - `LETSENCRYPT_DOMAIN=example.com` — основной домен (можно перечислить несколько через запятую);
+   - `LETSENCRYPT_EXTRA_DOMAINS=www.example.com,app.example.com` — дополнительные алиасы (опционально);
+   - `LETSENCRYPT_EMAIL=admin@example.com` — почта администратора для уведомлений.
+2. Убедитесь, что DNS всех доменов указывает на сервер с Docker и открыты порты 80/443.
+3. Запустите проект (`docker compose up -d`). Сервис `api` автоматически регистрируется в `nginx-proxy` через переменные `VIRTUAL_HOST/LETSENCRYPT_HOST`, а `acme-companion` выпустит сертификаты и сохранит их в volume `nginx_certs`.
+4. Дополнительные настройки виртуальных хостов кладите в `nginx/vhost.d/<domain>`; статические страницы-заглушки — в `nginx/html`. Эти каталоги уже примонтированы в прокси.
+5. Продление сертификатов и контроль статуса выполняет `acme-companion`. Логи процесса доступны командой `docker compose logs acme-companion`.
 
 ### Структура
 ```
