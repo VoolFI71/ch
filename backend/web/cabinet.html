@@ -1087,25 +1087,56 @@
         }
 
         .nav {
-             display: flex;
+             display: none;
              align-items: center;
-             gap: 1.5rem;
+             gap: 0.5rem;
          }
 
-        .nav .nav-link {
-            font-weight: 500;
-            color: var(--muted-foreground);
-            transition: color 0.2s ease;
-        }
+         @media (min-width: 1024px) {
+             .nav { display: flex; }
+         }
 
-        .nav .nav-link:hover {
-            color: var(--foreground);
-        }
+         .nav-link {
+             color: inherit;
+             text-decoration: none;
+             font-weight: 600;
+             padding: 0.75rem 1.5rem;
+             border-radius: 1rem;
+             transition: all 0.3s;
+             position: relative;
+             background: transparent;
+         }
 
-        .nav .nav-link.active {
-            color: var(--foreground);
-            font-weight: 600;
-        }
+         .nav-link:hover {
+             color: var(--primary);
+             background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+             transform: translateY(-2px);
+         }
+
+         .nav-link::after {
+             content: '';
+             position: absolute;
+             bottom: 0.25rem;
+             left: 50%;
+             width: 0;
+             height: 3px;
+             background: linear-gradient(90deg, #7c3aed, #3b82f6);
+             border-radius: 999px;
+             transform: translateX(-50%);
+             transition: width 0.3s ease;
+         }
+
+         .nav-link:hover::after {
+             width: 65%;
+         }
+
+         body.dark .nav-link {
+             color: var(--muted-foreground);
+         }
+
+         body.dark .nav-link:hover {
+             color: #c4b5fd;
+         }
     </style>
 </head>
 <body>
@@ -1137,10 +1168,13 @@
 
                 <!-- Navigation -->
                 <nav class="nav">
-                    <a href="/" class="nav-link nav-link-muted">Главная</a>
-                    <a href="/course" class="nav-link nav-link-muted">Курсы</a>
-                    <a href="/couch#coaches" class="nav-link nav-link-muted">Тренера</a>
-                    <a href="/spaced-repetition" class="nav-link nav-link-muted">Повторения</a>
+                    <a href="/course" class="nav-link">Курсы</a>
+                    <a href="/couch#coaches" class="nav-link">Тренера</a>
+                    <a href="/#reviews" class="nav-link">Отзывы</a>
+                    <a href="/#tournaments" class="nav-link">
+                        Турниры
+                        <span class="badge badge-primary" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.65rem;">Новое</span>
+                    </a>
                 </nav>
 
                 <!-- Header Actions -->
@@ -1160,15 +1194,6 @@
                     <div class="theme-toggle">
                         <button class="theme-btn active" id="lightBtn" onclick="setTheme('light')">☀️</button>
                         <button class="theme-btn" id="darkBtn" onclick="setTheme('dark')">🌙</button>
-                    </div>
-
-                    <!-- User Profile -->
-                    <div class="user-profile">
-                        <div class="user-avatar">ГМ</div>
-                        <div class="user-info">
-                            <h3>Гроссмейстер</h3>
-                            <p>Рейтинг: 1650</p>
-                        </div>
                     </div>
 
                     <!-- Logout -->
