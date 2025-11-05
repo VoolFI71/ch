@@ -135,7 +135,7 @@ uvicorn app.main:app --reload --app-dir backend
 Трафик терминирует связка `nginx-proxy` + `acme-companion`, автоматически выпускающая и продлевающая сертификаты Let's Encrypt.
 
 1. В `.env` задайте:
-   - `LETSENCRYPT_DOMAIN=example.com` — основной домен (можно перечислить несколько через запятую);
+   - `LETSENCRYPT_DOMAIN=example.com` — основной домен; при необходимости перечислите дополнительные алиасы через запятую (`example.com,www.example.com`);
    - `LETSENCRYPT_EXTRA_DOMAINS=www.example.com,app.example.com` — дополнительные алиасы (опционально);
    - `LETSENCRYPT_EMAIL=admin@example.com` — почта администратора для уведомлений.
 2. Убедитесь, что DNS всех доменов указывает на сервер с Docker и открыты порты 80/443.
