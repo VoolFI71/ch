@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerChess - Система повторений</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Common Navigation Styles -->
+    <link rel="stylesheet" href="navigation.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #fafafa;
+            --foreground: #0a0a0a;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --purple-600: #7c3aed;
+            --purple-700: #6d28d9;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --indigo-500: #6366f1;
+            --indigo-600: #4f46e5;
+            --green-500: #10b981;
+            --green-600: #059669;
+            --amber-500: #f59e0b;
+            --amber-600: #d97706;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
+            --muted-foreground: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            background: var(--background);
+            color: var(--foreground);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Chess Pattern Background */
+        .chess-pattern-bg {
+            position: fixed;
+            inset: 0;
+            opacity: 0.05;
+            z-index: 0;
+            background-image: 
+                linear-gradient(45deg, rgba(255, 215, 0, 0.08) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255, 215, 0, 0.08) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255, 215, 0, 0.08) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255, 215, 0, 0.08) 75%);
+            background-size: 60px 60px;
+            background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid transparent;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.98)),
+                linear-gradient(90deg, #7c3aed, #3b82f6, #10b981, #f59e0b);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+        }
+
+        .header-title h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-title p {
+            color: var(--muted-foreground);
+            font-size: 0.95rem;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .stat-badge {
+            padding: 0.75rem 1.25rem;
+            border-radius: 1rem;
+            border: 2px solid;
+        }
+
+        .stat-badge.green {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .stat-badge.amber {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.1rem;
+        }
+
+        .stat-value.green { color: var(--green-500); }
+        .stat-value.amber { color: var(--amber-500); }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            font-weight: 600;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            border: 2px solid rgba(124, 58, 237, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--purple-600);
+        }
+
+        /* Mode Selection Grid */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .mode-card {
+            text-align: left;
+            padding: 1.5rem;
+            background: white;
+            color: var(--foreground);
+            border: 2px solid var(--border);
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .mode-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-card.active {
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+            transform: scale(1.02);
+        }
+
+        .mode-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .mode-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .mode-card.active .mode-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-card:not(.active) .mode-icon {
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .mode-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .mode-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            opacity: 0.95;
+        }
+
+        .mode-card:not(.active) .mode-description {
+            opacity: 0.7;
+        }
+
+        /* Engine Levels */
+        .engine-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .engine-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--amber-500);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .engine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .engine-btn {
+            padding: 1rem;
+            background: #f8fafc;
+            color: var(--foreground);
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .engine-btn.active {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Layout Grid */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        /* Board Section */
+        .board-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .board-controls {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .size-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--purple-600);
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .slider-container {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--purple-600), var(--blue-500));
+            border-radius: 1rem;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 3px solid var(--purple-600);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 3px solid var(--purple-600);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+        }
+
+        .size-display {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            min-width: 70px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        /* Chess Board Container */
+        .board-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 1rem 0;
+        }
+
+        .board-wrapper {
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .board-glow {
+            position: absolute;
+            inset: -2.5rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.15));
+            border-radius: 3rem;
+            filter: blur(40px);
+            opacity: 0.5;
+            z-index: -1;
+        }
+
+        .board-with-coords {
+            position: relative;
+            padding-left: 2.5rem;
+            padding-bottom: 2.5rem;
+        }
+
+        /* Coordinates */
+        .ranks {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 2.5rem;
+            width: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .files {
+            position: absolute;
+            bottom: 0;
+            left: 2.5rem;
+            right: 0;
+            height: 2rem;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .coord {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--purple-600);
+            user-select: none;
+        }
+
+        /* Board Frame */
+        .board-frame {
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f08 100%);
+            padding: 0.75rem;
+            border-radius: 1rem;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            width: 100%;
+            aspect-ratio: 1 / 1;
+        }
+
+        /* Board Grid */
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Square */
+        .square {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+        }
+
+        .square.light {
+            background: linear-gradient(135deg, #f0d9b5 0%, #ece4cf 100%);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), inset 0 -1px 2px rgba(0,0,0,0.1);
+        }
+
+        .square.dark {
+            background: linear-gradient(135deg, #b58863 0%, #a57c52 100%);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px rgba(0,0,0,0.3);
+        }
+
+        .square:hover {
+            filter: brightness(1.12);
+        }
+
+        .square.selected {
+            border: 3px solid #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), inset 0 2px 4px rgba(255,255,255,0.2);
+            z-index: 10;
+        }
+
+        .square.highlighted {
+            border: 3px solid #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), inset 0 2px 4px rgba(255,255,255,0.2);
+            z-index: 10;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Chess Pieces - УЛУЧШЕННЫЙ ДИЗАЙН */
+        .piece {
+            line-height: 1;
+            user-select: none;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Белые фигуры - яркий белый с сильными тенями */
+        .piece.white {
+            color: #FFFFFF;
+            filter: 
+                drop-shadow(0 4px 8px rgba(0,0,0,0.95))
+                drop-shadow(0 2px 4px rgba(0,0,0,0.9))
+                drop-shadow(0 1px 2px rgba(0,0,0,0.95))
+                drop-shadow(0 0 3px rgba(255,255,255,0.3));
+            text-shadow: 
+                0 1px 2px rgba(0,0,0,0.9),
+                0 -1px 1px rgba(255,255,255,0.2);
+        }
+
+        /* Черные фигуры - глубокий черный с контрастными тенями */
+        .piece.black {
+            color: #0a0a0a;
+            filter: 
+                drop-shadow(0 4px 8px rgba(255,255,255,0.9))
+                drop-shadow(0 2px 4px rgba(255,255,255,0.7))
+                drop-shadow(0 1px 2px rgba(0,0,0,0.5))
+                drop-shadow(0 0 2px rgba(0,0,0,0.8));
+            text-shadow: 
+                0 1px 2px rgba(255,255,255,0.5),
+                0 -1px 1px rgba(0,0,0,0.3);
+        }
+
+        .square.selected .piece,
+        .square.highlighted .piece {
+            transform: scale(1.08);
+        }
+
+        /* Highlight overlay */
+        .highlight-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .square.selected .highlight-overlay {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .square.highlighted .highlight-overlay {
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        /* Navigation */
+        .nav-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-left {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .nav-btn.purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .nav-btn.indigo {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-btn.green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-btn.amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .nav-btn.gray {
+            background: #e2e8f0;
+            color: var(--foreground);
+            box-shadow: none;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .move-counter {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border-radius: 1rem;
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .move-counter-label {
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        .move-counter-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Notation */
+        .notation-section {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 2;
+            color: var(--foreground);
+            background: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--border);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .move-item {
+            display: inline-block;
+            margin-right: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .move-number {
+            font-weight: 800;
+            color: var(--purple-600);
+        }
+
+        .move {
+            cursor: pointer;
+            background: transparent;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.35rem;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .move:hover {
+            background: rgba(124, 58, 237, 0.15);
+        }
+
+        .move.active {
+            background: rgba(124, 58, 237, 0.25);
+        }
+
+        /* Sidebar */
+        .sidebar-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .tip-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .tip-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.5rem;
+        }
+
+        .tip-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--purple-600);
+        }
+
+        .tip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--muted-foreground);
+        }
+
+        .tip-item {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tip-arrow {
+            color: var(--purple-600);
+            font-weight: 700;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid;
+        }
+
+        .stat-card.green-stat {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .stat-card.blue-stat {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-card.amber-stat {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .stat-card-label {
+            font-size: 0.85rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .stat-card-value.green { color: var(--green-500); }
+        .stat-card-value.blue { color: var(--blue-500); }
+        .stat-card-value.amber { color: var(--amber-500); }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 1rem;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 1rem;
+            transition: width 0.3s ease;
+        }
+
+        /* Actions */
+        .actions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: white;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .action-btn.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: #f8fafc;
+            color: var(--foreground);
+            border: 2px solid var(--border);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .action-btn.secondary:hover {
+            background: #f1f5f9;
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-stats {
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            .nav-section {
+                flex-direction: column;
+            }
+
+            .mode-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .engine-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Chess Pattern Background -->
+    <div class="chess-pattern-bg"></div>
+
+    <!-- Main Navigation Header -->
+    <header class="main-header" style="position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(124, 58, 237, 0.1);">
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo -->
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <div class="chess-pattern"></div>
+                    </div>
+                    <div class="logo-text">
+                        <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
+                        <div style="font-size: 0.75rem; color: var(--muted-foreground); margin-top: -0.25rem;">♔ Шахматная академия</div>
+                    </div>
+                </a>
+
+                <!-- Navigation -->
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="course.html" class="nav-link">Курсы</a>
+                    <a href="couch.html#coaches" class="nav-link">Тренера</a>
+                    <a href="#reviews" class="nav-link">Отзывы</a>
+                    <a href="#tournaments" class="nav-link">Турниры</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="header-actions">
+                    <!-- User Actions -->
+                    <div class="user-actions" id="userActions" style="display: none;">
+                        <a href="cabinet.html" class="btn btn-outline">
+                            <i class="fas fa-user"></i> Кабинет
+                        </a>
+                    </div>
+
+                    <!-- Auth Buttons -->
+                    <div class="auth-buttons" id="authButtons">
+                        <button class="btn-login" onclick="showLoginModal()">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </button>
+                        <button class="btn-register" onclick="showRegisterModal()">
+                            <i class="fas fa-user-plus"></i> Регистрация
+                        </button>
+                    </div>
+
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                        <i class="fas fa-sun" id="themeIcon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Spaced Repetition Specific Header -->
+    <header class="spaced-header">
+        <div class="header-content">
+            <div class="header-left">
+                <button class="btn btn-primary" onclick="window.history.back()">
+                    <i class="fas fa-home"></i>
+                    Личный кабинет
+                </button>
+                <div class="header-title">
+                    <h1>Система повторений</h1>
+                    <p>Интервальное повторение вариантов • PowerChess</p>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-badge green">
+                    <div class="stat-value green">87%</div>
+                    <div class="stat-label">Точность</div>
+                </div>
+                <div class="stat-badge amber">
+                    <div class="stat-value amber">12</div>
+                    <div class="stat-label">Дней серии</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Mode Selection -->
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-graduation-cap" style="font-size: 1.5rem;"></i>
+                Выберите режим тренировки
+            </h3>
+            <div class="mode-grid" id="modeGrid"></div>
+            <div class="engine-section" id="engineSection" style="display: none;">
+                <h4 class="engine-title">
+                    <i class="fas fa-microchip"></i>
+                    Уровень движка Stockfish
+                </h4>
+                <div class="engine-grid" id="engineGrid"></div>
+            </div>
+        </div>
+
+        <div class="layout-grid">
+            <!-- Left: Board and Controls -->
+            <div>
+                <!-- Board -->
+                <div class="card board-section">
+                    <div class="board-controls">
+                        <div class="size-label">
+                            <i class="fas fa-compress-alt" style="font-size: 1.1rem;"></i>
+                            <span>Размер:</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="boardSizeSlider" min="50" max="95" value="85" step="5">
+                        </div>
+                        <div class="size-display" id="sizeDisplay">85%</div>
+                        <i class="fas fa-expand-alt" style="font-size: 1.1rem; color: var(--purple-600);"></i>
+                    </div>
+
+                    <div class="board-container">
+                        <div class="board-wrapper" id="boardWrapper">
+                            <div class="board-glow"></div>
+                            <div class="board-with-coords">
+                                <div class="ranks" id="ranks"></div>
+                                <div class="files" id="files"></div>
+                                <div class="board-frame">
+                                    <div class="board-grid" id="boardGrid"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="card">
+                    <div class="nav-section">
+                        <div class="nav-left">
+                            <button class="nav-btn purple" onclick="resetBoard()">
+                                <i class="fas fa-redo-alt"></i>
+                                Сброс
+                            </button>
+                            <button class="nav-btn indigo" onclick="flipBoard()">
+                                <i class="fas fa-exchange-alt"></i>
+                                Повернуть
+                            </button>
+                            <button class="nav-btn green" onclick="togglePlay()" id="playBtn">
+                                <i class="fas fa-play"></i>
+                                Играть
+                            </button>
+                        </div>
+                        <div class="nav-right">
+                            <button class="nav-btn amber" onclick="firstMove()" id="firstBtn">
+                                <i class="fas fa-step-backward"></i>
+                            </button>
+                            <button class="nav-btn amber" onclick="prevMove()" id="prevBtn">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="move-counter">
+                                <div class="move-counter-label">ХОД</div>
+                                <div class="move-counter-value" id="moveCounter">0 / 20</div>
+                            </div>
+                            <button class="nav-btn amber" onclick="nextMove()" id="nextBtn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <button class="nav-btn amber" onclick="lastMove()" id="lastBtn">
+                                <i class="fas fa-step-forward"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notation -->
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 1.1rem;">
+                        <i class="fas fa-file-alt"></i>
+                        Нотация партии
+                    </h3>
+                    <div class="notation-section" id="notation"></div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div>
+                <!-- Tips -->
+                <div class="sidebar-card">
+                    <div class="tip-header">
+                        <div class="tip-icon">💡</div>
+                        <div>
+                            <h4 class="tip-title">Советы</h4>
+                        </div>
+                    </div>
+                    <div class="tip-list">
+                        <div class="tip-item">
+                            <span class="tip-arrow">→</span>
+                            <span><strong>Ходы:</strong> Кликайте фигуру → целевое поле</span>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-arrow">→</span>
+                            <span><strong>Навигация:</strong> ◀ ▶ или клик по нотации</span>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-arrow">→</span>
+                            <span><strong>Размер:</strong> Настройте слайдером (50-95%)</span>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-arrow">→</span>
+                            <span><strong>Импорт:</strong> Загружайте свои PGN файлы</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 1.1rem;">
+                        <i class="fas fa-chart-line"></i>
+                        Статистика
+                    </h3>
+                    <div class="stats-grid">
+                        <div class="stat-card green-stat">
+                            <div class="stat-card-label">Правильных ходов</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span class="stat-card-value green">15/17</span>
+                                <span class="stat-card-value green" style="font-size: 1.5rem;">88%</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 88%;"></div>
+                            </div>
+                        </div>
+                        <div class="stat-card blue-stat">
+                            <div class="stat-card-label">Время на партию</div>
+                            <div class="stat-card-value blue">5:32</div>
+                        </div>
+                        <div class="stat-card amber-stat">
+                            <div class="stat-card-label">Повторений сегодня</div>
+                            <div class="stat-card-value amber">3</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 1.1rem;">
+                        <i class="fas fa-bolt"></i>
+                        Быстрые действия
+                    </h3>
+                    <input type="file" id="pgnInput" accept=".pgn" style="display: none;">
+                    <div class="actions-list">
+                        <button class="action-btn primary" onclick="document.getElementById('pgnInput').click()">
+                            <i class="fas fa-upload"></i>
+                            Импортировать PGN
+                        </button>
+                        <button class="action-btn success" onclick="exportPGN()">
+                            <i class="fas fa-download"></i>
+                            Скачать PGN
+                        </button>
+                        <button class="action-btn secondary">
+                            <i class="fas fa-share-alt"></i>
+                            Поделиться
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const PIECES = {
+            'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+            'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
+        };
+
+        const MODES = [
+            {
+                id: 'guided',
+                name: 'Показ варианта',
+                description: 'Система демонстрирует вариант, затем вы повторяете',
+                icon: 'fa-play-circle',
+                gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)'
+            },
+            {
+                id: 'hard',
+                name: 'Жесткое повторение',
+                description: 'Играйте варианты без подсказок',
+                icon: 'fa-bolt',
+                gradient: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            },
+            {
+                id: 'analysis',
+                name: 'Режим анализа',
+                description: 'Свободное исследование позиции',
+                icon: 'fa-brain',
+                gradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)'
+            },
+            {
+                id: 'practice',
+                name: 'Наигрыш против компьютера',
+                description: 'Практика против Stockfish',
+                icon: 'fa-chess',
+                gradient: 'linear-gradient(135deg, #f59e0b, #d97706)'
+            },
+            {
+                id: 'multiplayer',
+                name: 'Вызов пользователя',
+                description: 'Социальное обучение с другими',
+                icon: 'fa-users',
+                gradient: 'linear-gradient(135deg, #10b981, #059669)'
+            },
+            {
+                id: 'view',
+                name: 'Режим просмотра',
+                description: 'Спокойный просмотр вариантов',
+                icon: 'fa-eye',
+                gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)'
+            }
+        ];
+
+        const ENGINE_LEVELS = [
+            { id: '1800', name: 'Начинающий', rating: '1800', icon: 'fa-seedling' },
+            { id: '2200', name: 'Средний', rating: '2200', icon: 'fa-chess-pawn' },
+            { id: '2600', name: 'Мастер', rating: '2600', icon: 'fa-chess-knight' },
+            { id: '3000', name: 'ГМ', rating: '3000', icon: 'fa-chess-queen' },
+            { id: '3500', name: 'Супер ГМ', rating: '3500', icon: 'fa-crown' }
+        ];
+
+        let SAMPLE_MOVES = [
+            { moveNumber: 1, white: 'e4', black: 'd5' },
+            { moveNumber: 2, white: 'Nf3', black: 'Nc6' },
+            { moveNumber: 3, white: 'Bb5', black: 'a6' },
+            { moveNumber: 4, white: 'Ba4', black: 'Nf6' },
+            { moveNumber: 5, white: 'O-O', black: 'Be7' },
+            { moveNumber: 6, white: 'd3', black: 'b5' },
+            { moveNumber: 7, white: 'Bb3', black: 'd6' },
+            { moveNumber: 8, white: 'c3', black: 'O-O' },
+            { moveNumber: 9, white: 'h3', black: 'Na5' },
+            { moveNumber: 10, white: 'Bc2', black: 'c5' }
+        ];
+
+        const STARTING_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+
+        let board = [];
+        let isFlipped = false;
+        let currentMoveIndex = 0;
+        let selectedSquare = null;
+        let highlightedSquares = [];
+        let isPlaying = false;
+        let playInterval = null;
+        let selectedMode = MODES[0];
+        let selectedEngine = ENGINE_LEVELS[1];
+        let boardSize = 85;
+
+        // Initialize
+        function init() {
+            board = parseFEN(STARTING_POSITION);
+            renderModes();
+            renderEngines();
+            renderBoard();
+            renderNotation();
+            updateMoveCounter();
+            
+            // Board size slider
+            const slider = document.getElementById('boardSizeSlider');
+            slider.addEventListener('input', (e) => {
+                boardSize = parseInt(e.target.value);
+                document.getElementById('sizeDisplay').textContent = boardSize + '%';
+                document.getElementById('boardWrapper').style.width = boardSize + '%';
+                updatePieceSize();
+            });
+
+            // PGN Import
+            document.getElementById('pgnInput').addEventListener('change', handlePGNImport);
+        }
+
+        function parseFEN(fen) {
+            const rows = fen.split('/');
+            return rows.map(row => {
+                const squares = [];
+                for (const char of row) {
+                    if (char >= '1' && char <= '8') {
+                        squares.push(...Array(parseInt(char)).fill(''));
+                    } else {
+                        squares.push(char);
+                    }
+                }
+                return squares;
+            });
+        }
+
+        function renderModes() {
+            const grid = document.getElementById('modeGrid');
+            grid.innerHTML = MODES.map(mode => `
+                <div class="mode-card ${mode.id === selectedMode.id ? 'active' : ''}" 
+                     style="${mode.id === selectedMode.id ? `background: ${mode.gradient};` : ''}"
+                     onclick="selectMode('${mode.id}')">
+                    <div class="mode-header">
+                        <div class="mode-icon">
+                            <i class="fas ${mode.icon}"></i>
+                        </div>
+                        <span class="mode-name">${mode.name}</span>
+                    </div>
+                    <p class="mode-description">${mode.description}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderEngines() {
+            const grid = document.getElementById('engineGrid');
+            grid.innerHTML = ENGINE_LEVELS.map(level => `
+                <button class="engine-btn ${level.id === selectedEngine.id ? 'active' : ''}"
+                        onclick="selectEngine('${level.id}')">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas ${level.icon}"></i>
+                        <span>${level.name}</span>
+                    </div>
+                    <span style="font-size: 0.9rem; opacity: 0.9;">${level.rating}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectMode(id) {
+            selectedMode = MODES.find(m => m.id === id);
+            renderModes();
+            document.getElementById('engineSection').style.display = id === 'practice' ? 'block' : 'none';
+        }
+
+        function selectEngine(id) {
+            selectedEngine = ENGINE_LEVELS.find(e => e.id === id);
+            renderEngines();
+        }
+
+        function renderBoard() {
+            const displayBoard = isFlipped 
+                ? board.slice().reverse().map(row => row.slice().reverse())
+                : board;
+            
+            const files = isFlipped ? ['h','g','f','e','d','c','b','a'] : ['a','b','c','d','e','f','g','h'];
+            const ranks = isFlipped ? ['1','2','3','4','5','6','7','8'] : ['8','7','6','5','4','3','2','1'];
+
+            // Render coordinates
+            document.getElementById('ranks').innerHTML = ranks.map(r => 
+                `<div class="coord">${r}</div>`
+            ).join('');
+            
+            document.getElementById('files').innerHTML = files.map(f => 
+                `<div class="coord">${f}</div>`
+            ).join('');
+
+            // Render board
+            const grid = document.getElementById('boardGrid');
+            grid.innerHTML = '';
+
+            displayBoard.forEach((row, rowIdx) => {
+                row.forEach((piece, colIdx) => {
+                    const isLight = (rowIdx + colIdx) % 2 === 0;
+                    const isSelected = selectedSquare && selectedSquare[0] === rowIdx && selectedSquare[1] === colIdx;
+                    const isHighlighted = highlightedSquares.some(([r, c]) => r === rowIdx && c === colIdx);
+
+                    const square = document.createElement('div');
+                    square.className = `square ${isLight ? 'light' : 'dark'} ${isSelected ? 'selected' : ''} ${isHighlighted ? 'highlighted' : ''}`;
+                    square.onclick = () => handleSquareClick(rowIdx, colIdx);
+
+                    if (piece) {
+                        const pieceEl = document.createElement('div');
+                        pieceEl.className = `piece ${piece === piece.toUpperCase() ? 'white' : 'black'}`;
+                        pieceEl.textContent = PIECES[piece];
+                        pieceEl.style.fontSize = `max(${boardSize * 0.35}px, 28px)`;
+                        square.appendChild(pieceEl);
+                    }
+
+                    if (isSelected || isHighlighted) {
+                        const overlay = document.createElement('div');
+                        overlay.className = 'highlight-overlay';
+                        square.appendChild(overlay);
+                    }
+
+                    grid.appendChild(square);
+                });
+            });
+        }
+
+        function updatePieceSize() {
+            document.querySelectorAll('.piece').forEach(piece => {
+                piece.style.fontSize = `max(${boardSize * 0.35}px, 28px)`;
+            });
+        }
+
+        function handleSquareClick(row, col) {
+            if (selectedSquare) {
+                highlightedSquares = [[row, col]];
+                selectedSquare = null;
+                renderBoard();
+                setTimeout(() => {
+                    highlightedSquares = [];
+                    renderBoard();
+                }, 1500);
+            } else if (board[row][col]) {
+                selectedSquare = [row, col];
+                renderBoard();
+            }
+        }
+
+        function renderNotation() {
+            const notation = document.getElementById('notation');
+            notation.innerHTML = SAMPLE_MOVES.map((move, idx) => `
+                <span class="move-item">
+                    <span class="move-number">${move.moveNumber}.</span>
+                    <span class="move ${currentMoveIndex === (move.moveNumber - 1) * 2 ? 'active' : ''}" 
+                          onclick="setMoveIndex(${(move.moveNumber - 1) * 2})">${move.white}</span>
+                    ${move.black ? `<span class="move ${currentMoveIndex === (move.moveNumber - 1) * 2 + 1 ? 'active' : ''}" 
+                          onclick="setMoveIndex(${(move.moveNumber - 1) * 2 + 1})">${move.black}</span>` : ''}
+                </span>
+            `).join('');
+        }
+
+        function updateMoveCounter() {
+            const total = SAMPLE_MOVES.length * 2;
+            document.getElementById('moveCounter').textContent = `${currentMoveIndex} / ${total}`;
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const total = SAMPLE_MOVES.length * 2;
+            document.getElementById('firstBtn').disabled = currentMoveIndex === 0;
+            document.getElementById('prevBtn').disabled = currentMoveIndex === 0;
+            document.getElementById('nextBtn').disabled = currentMoveIndex === total - 1;
+            document.getElementById('lastBtn').disabled = currentMoveIndex === total - 1;
+        }
+
+        function setMoveIndex(index) {
+            currentMoveIndex = index;
+            updateMoveCounter();
+            renderNotation();
+        }
+
+        function resetBoard() {
+            currentMoveIndex = 0;
+            updateMoveCounter();
+            renderNotation();
+        }
+
+        function flipBoard() {
+            isFlipped = !isFlipped;
+            renderBoard();
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('playBtn');
+            
+            if (isPlaying) {
+                btn.innerHTML = '<i class="fas fa-pause"></i> Пауза';
+                playInterval = setInterval(() => {
+                    const total = SAMPLE_MOVES.length * 2;
+                    if (currentMoveIndex >= total - 1) {
+                        togglePlay();
+                    } else {
+                        nextMove();
+                    }
+                }, 1200);
+            } else {
+                btn.innerHTML = '<i class="fas fa-play"></i> Играть';
+                clearInterval(playInterval);
+            }
+        }
+
+        function firstMove() {
+            currentMoveIndex = 0;
+            updateMoveCounter();
+            renderNotation();
+        }
+
+        function prevMove() {
+            if (currentMoveIndex > 0) {
+                currentMoveIndex--;
+                updateMoveCounter();
+                renderNotation();
+            }
+        }
+
+        function nextMove() {
+            const total = SAMPLE_MOVES.length * 2;
+            if (currentMoveIndex < total - 1) {
+                currentMoveIndex++;
+                updateMoveCounter();
+                renderNotation();
+            }
+        }
+
+        function lastMove() {
+            const total = SAMPLE_MOVES.length * 2;
+            currentMoveIndex = total - 1;
+            updateMoveCounter();
+            renderNotation();
+        }
+
+        function handlePGNImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                parsePGN(content);
+            };
+            reader.readAsText(file);
+        }
+
+        function parsePGN(pgn) {
+            const movePattern = /\d+\.\s*([a-hNBRQKO\-x+=]+)\s+([a-hNBRQKO\-x+=]+)?/g;
+            const matches = [...pgn.matchAll(movePattern)];
+            
+            const parsedMoves = matches.map((match, idx) => ({
+                moveNumber: idx + 1,
+                white: match[1],
+                black: match[2] || ''
+            })).filter(move => move.white);
+
+            if (parsedMoves.length > 0) {
+                SAMPLE_MOVES = parsedMoves;
+                currentMoveIndex = 0;
+                renderNotation();
+                updateMoveCounter();
+            }
+        }
+
+        function exportPGN() {
+            let pgn = `[Event "PowerChess Training"]\n`;
+            pgn += `[Site "PowerChess Platform"]\n`;
+            pgn += `[Date "${new Date().toISOString().split('T')[0]}"]\n`;
+            pgn += `[White "Player"]\n`;
+            pgn += `[Black "Opponent"]\n`;
+            pgn += `[Result "*"]\n\n`;
+
+            SAMPLE_MOVES.forEach((move) => {
+                pgn += `${move.moveNumber}. ${move.white} ${move.black} `;
+            });
+
+            const blob = new Blob([pgn], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `powerchess-game-${Date.now()}.pgn`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize on load
+        init();
+
+        // Include common auth functions
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+        });
+    </script>
+
+    <!-- Common Auth Script -->
+    <script src="auth.js"></script>
+</body>
+</html>

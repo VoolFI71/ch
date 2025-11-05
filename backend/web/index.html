@@ -1,0 +1,3101 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerChess - Шахматная академия нового поколения</title>
+    
+    <meta name="description" content="PowerChess - революционная AI-платформа для изучения шахмат. 10,000+ учеников, 50+ курсов, 20+ тренеров. Мастер-классы от гроссмейстеров.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Common Navigation Styles -->
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="index.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♔</text></svg>">
+    
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --secondary: #3b82f6;
+            --accent: #10b981;
+            --gold: #fbbf24;
+            --dark-wood: #3e2723;
+            --light-wood: #795548;
+            --board-light: #f0d9b5;
+            --board-dark: #b58863;
+            --bg-light: #fafafa;
+            --bg-dark: #0f0f23;
+            --card-light: #ffffff;
+            --card-dark: #1e1e3f;
+            --text-light: #0a0a0a;
+            --text-dark: #f8fafc;
+            --border-light: #e2e8f0;
+            --border-dark: #334155;
+            --muted: #64748b;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+        h2 { font-size: clamp(2rem, 4vw, 3rem); }
+        h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+        h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+
+        /* ===== UTILITIES ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .container { padding: 0 2rem; }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 4s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .card {
+            background: var(--card-light);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            border: 1px solid var(--border-light);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark .card {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.3);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+        }
+
+        /* ===== FLOATING CHESS PIECES ===== */
+        .floating-chess {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.15;
+            animation: float 8s ease-in-out infinite;
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+        }
+
+        .floating-chess:nth-child(1) { animation-delay: 0s; top: 10%; left: 5%; }
+        .floating-chess:nth-child(2) { animation-delay: 2s; top: 60%; right: 10%; }
+        .floating-chess:nth-child(3) { animation-delay: 4s; top: 80%; left: 15%; }
+        .floating-chess:nth-child(4) { animation-delay: 6s; top: 30%; right: 20%; }
+
+        /* ===== ENHANCED HEADER ===== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid transparent;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.98)), 
+                              linear-gradient(90deg, #7c3aed, #3b82f6, #10b981, #f59e0b);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .header {
+            background: rgba(15, 15, 35, 0.98);
+            background-image: linear-gradient(rgba(15, 15, 35, 0.98), rgba(15, 15, 35, 0.98)), 
+                              linear-gradient(90deg, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+        }
+
+        .header.scrolled {
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.15);
+            border-bottom-color: rgba(124, 58, 237, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 5.5rem;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #1f2937, #000000);
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(255, 215, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 215, 0, 0.4);
+            animation: logoGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.2); }
+        }
+
+        .chess-pattern {
+            position: absolute;
+            inset: 0;
+            opacity: 0.2;
+            background: 
+                linear-gradient(45deg, #ffffff 25%, transparent 25%),
+                linear-gradient(-45deg, #ffffff 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ffffff 75%),
+                linear-gradient(-45deg, transparent 75%, #ffffff 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+        }
+
+        .logo-sparkle {
+            position: absolute;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        .logo-sparkle:nth-child(1) { top: 0.5rem; left: 0.5rem; animation-delay: 0s; }
+        .logo-sparkle:nth-child(2) { top: 0.5rem; right: 0.5rem; animation-delay: 0.5s; }
+        .logo-sparkle:nth-child(3) { bottom: 0.5rem; left: 0.5rem; animation-delay: 1s; }
+        .logo-sparkle:nth-child(4) { bottom: 0.5rem; right: 0.5rem; animation-delay: 1.5s; }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+
+        .nav {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .nav { display: flex; }
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s;
+            position: relative;
+            background: transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            transform: translateY(-2px);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0.25rem;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6);
+            border-radius: 2px;
+            transition: all 0.3s;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 60%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .auth-buttons {
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        @media (min-width: 1024px) {
+            .auth-buttons { display: flex; }
+            .user-actions { display: flex; }
+        }
+
+        .btn-login {
+            padding: 0.75rem 1.75rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: left 0.3s;
+            z-index: -1;
+        }
+
+        .btn-login:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-login:hover::before {
+            left: 0;
+        }
+
+        .btn-register {
+            padding: 0.75rem 1.75rem;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
+        }
+
+        .btn-secondary {
+            padding: 0.75rem 1.75rem;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary:hover::before {
+            left: 100%;
+        }
+
+        .theme-toggle {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 3.5rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(20deg) scale(1.1);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .theme-toggle:hover::before {
+            opacity: 1;
+        }
+
+        .theme-toggle i {
+            position: relative;
+            z-index: 2;
+            font-size: 1.25rem;
+        }
+
+        .theme-toggle:hover i {
+            color: white;
+        }
+
+        .mobile-menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .mobile-menu-btn { display: none; }
+        }
+
+        .mobile-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-light);
+            border-top: 2px solid var(--primary);
+            padding: 2rem;
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark .mobile-menu {
+            background: var(--card-dark);
+        }
+
+        .mobile-menu.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ===== MODALS ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(59, 130, 246, 0.8), rgba(16, 185, 129, 0.7));
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.1), transparent 70%);
+            animation: modalGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes modalGlow {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border-radius: 2.5rem;
+            padding: 3rem 2.5rem;
+            max-width: min(480px, calc(100vw - 2rem));
+            width: calc(100% - 2rem);
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+            box-shadow:
+                0 35px 60px rgba(0, 0, 0, 0.3),
+                0 0 100px rgba(124, 58, 237, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        body.dark .modal-content {
+            background: linear-gradient(135deg, #1e1e3f, #0f0f23);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                padding: 2.5rem 2rem;
+                max-width: calc(100vw - 1rem);
+                width: calc(100vw - 1rem);
+                border-radius: 2rem;
+            }
+        }
+
+        @media (max-height: 700px) {
+            .modal-content {
+                max-height: calc(100vh - 2rem);
+                padding: 2.5rem 2rem;
+            }
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6, #10b981, #f59e0b);
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: linear-gradient(135deg, #ff4757, #ff3838);
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            font-size: 1.2rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 8px 25px rgba(255, 71, 87, 0.5);
+            background: linear-gradient(135deg, #ff3838, #ff4757);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .modal-header h3 {
+            font-size: 2.25rem;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .modal-header p {
+            color: var(--muted);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .form-label::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6);
+            border-radius: 1px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1.25rem 1.5rem;
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            border-radius: 1.25rem;
+            font-size: 1.1rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-light);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-input::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        body.dark .form-input {
+            background: rgba(30, 30, 63, 0.9);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow:
+                0 0 0 4px rgba(124, 58, 237, 0.15),
+                0 8px 25px rgba(124, 58, 237, 0.2);
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+
+        body.dark .form-input:focus {
+            background: rgba(30, 30, 63, 1);
+            border-color: #8b5cf6;
+            box-shadow:
+                0 0 0 4px rgba(139, 92, 246, 0.15),
+                0 8px 25px rgba(139, 92, 246, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .form-input:focus::placeholder {
+            color: rgba(124, 58, 237, 0.6);
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .form-footer a {
+            color: #7c3aed;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .form-footer a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6);
+            transition: width 0.3s;
+        }
+
+        .form-footer a:hover {
+            color: #3b82f6;
+        }
+
+        .form-footer a:hover::after {
+            width: 100%;
+        }
+
+        .modal-btn {
+            font-size: 1.1rem !important;
+            padding: 1.5rem 2rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        .btn-shine {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: -100%; }
+        }
+
+        .modal-logo {
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        .chess-board {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 2rem;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            border: 3px solid #8b4513;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .chess-square {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .chess-square.light {
+            background: #f0d9b5;
+        }
+
+        .chess-square.dark {
+            background: #b58863;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            padding: 10rem 0 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+        }
+
+        .hero-bg-gradient {
+            position: absolute;
+            top: 20%;
+            left: 10%;
+            width: 30rem;
+            height: 30rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.15));
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+
+        .hero-bg-gradient:nth-child(2) {
+            top: auto;
+            bottom: 10%;
+            left: auto;
+            right: 10%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(16, 185, 129, 0.15));
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        @media (min-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem 1rem;
+            border-radius: 1.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(124, 58, 237, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        body.dark .stat-card {
+            background: rgba(30, 30, 63, 0.8);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.4);
+        }
+
+        .stat-icon {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        /* ===== PLATFORM FEATURES ===== */
+        .platform-board {
+            aspect-ratio: 1;
+            border-radius: 2rem;
+            background: linear-gradient(135deg, #f3e8ff, #ddd6fe);
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.2);
+        }
+
+        body.dark .platform-board {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding: 2rem;
+            height: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem 1rem;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        body.dark .feature-item {
+            background: rgba(30, 30, 63, 0.95);
+        }
+
+        .feature-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.3);
+        }
+
+        .feature-icon {
+            width: 3rem;
+            height: 3rem;
+            margin: 0 auto 0.75rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .corner-badge {
+            position: absolute;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .corner-badge:hover {
+            transform: scale(1.15) rotate(0deg) !important;
+        }
+
+        .corner-badge i {
+            font-size: 1.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .corner-badge span {
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* ===== FREE COURSE SECTION ===== */
+        .free-course-section {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, #faf5ff, #ede9fe);
+        }
+
+        body.dark .free-course-section {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(59, 130, 246, 0.05));
+        }
+
+        .course-card-header {
+            text-align: center;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1.5rem 1.5rem 0 0;
+        }
+
+        .course-icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .course-icon {
+            width: 5rem;
+            height: 5rem;
+            background: linear-gradient(135deg, #ef4444, #f97316, #fbbf24);
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .course-emoji {
+            font-size: 3rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .collapsible-content.active {
+            max-height: 3000px;
+        }
+
+        .course-includes-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        @media (min-width: 768px) {
+            .course-includes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .course-include-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(124, 58, 237, 0.05);
+            border-radius: 1rem;
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            transition: all 0.3s;
+        }
+
+        .course-include-item:hover {
+            background: rgba(124, 58, 237, 0.1);
+            transform: translateX(5px);
+        }
+
+        .course-include-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* ===== PREMIUM COURSES WITH CIVILIZED COVERS ===== */
+        .courses-section {
+            padding: 6rem 0;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .courses-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .course-card {
+            background: var(--card-light);
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 2px solid var(--border-light);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        body.dark .course-card {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+
+        .course-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(124, 58, 237, 0.4);
+        }
+
+        .course-image {
+            width: 100%;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Civilized Course Covers */
+        .course-cover-basic {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.3), transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(59, 130, 246, 0.3), transparent 50%),
+                linear-gradient(135deg, #7c3aed, #3b82f6);
+            position: relative;
+        }
+
+        .course-cover-basic::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            background-size: 200% 200%;
+            animation: shimmer 3s infinite;
+        }
+
+        .course-cover-tactical {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.3), transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(5, 150, 105, 0.3), transparent 50%),
+                linear-gradient(135deg, #10b981, #059669);
+            position: relative;
+        }
+
+        .course-cover-tactical::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.05) 10px, rgba(255, 255, 255, 0.05) 20px);
+        }
+
+        .course-cover-master {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(245, 158, 11, 0.3), transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(220, 38, 38, 0.3), transparent 50%),
+                linear-gradient(135deg, #f59e0b, #dc2626);
+            position: relative;
+        }
+
+        .course-cover-master::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.2), transparent 70%);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .course-image::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .course-card:hover .course-image::after {
+            opacity: 1;
+        }
+
+        .course-image i {
+            font-size: 7rem;
+            color: white;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+        }
+
+        .course-card:hover .course-image i {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .course-level-badge {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            color: white;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            z-index: 3;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .course-body {
+            padding: 2rem;
+        }
+
+        .course-price {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-light);
+        }
+
+        body.dark .course-price {
+            border-color: var(--border-dark);
+        }
+
+        .price-tag {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ===== ENHANCED ABOUT SECTION ===== */
+        .about-section {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, #fafafa, #f5f3ff);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark .about-section {
+            background: linear-gradient(135deg, #0f0f23, #1e1b4b);
+        }
+
+        .about-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.1), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1), transparent 50%);
+            pointer-events: none;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        @media (min-width: 1024px) {
+            .about-grid {
+                grid-template-columns: 1.2fr 0.8fr;
+            }
+        }
+
+        .about-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .about-feature {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            transition: all 0.3s;
+            border: 2px solid rgba(124, 58, 237, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark .about-feature {
+            background: rgba(30, 30, 63, 0.8);
+        }
+
+        .about-feature::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(124, 58, 237, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+
+        .about-feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.2);
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+
+        .about-feature:hover::before {
+            animation: shimmerMove 1s;
+        }
+
+        @keyframes shimmerMove {
+            from { transform: translateX(-100%) rotate(45deg); }
+            to { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .about-feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .about-visual {
+            position: relative;
+        }
+
+        .about-image {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            border-radius: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.3);
+        }
+
+        .about-image i {
+            font-size: 10rem;
+            color: white;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        .about-image .chess-pattern {
+            opacity: 0.15;
+        }
+
+        .about-decorations {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .about-float-icon {
+            position: absolute;
+            font-size: 2rem;
+            color: white;
+            opacity: 0.3;
+            animation: aboutFloat 4s ease-in-out infinite;
+        }
+
+        .about-float-icon:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .about-float-icon:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            animation-delay: 1s;
+        }
+
+        .about-float-icon:nth-child(3) {
+            bottom: 20%;
+            left: 15%;
+            animation-delay: 2s;
+        }
+
+        .about-float-icon:nth-child(4) {
+            bottom: 15%;
+            right: 10%;
+            animation-delay: 3s;
+        }
+
+        @keyframes aboutFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        /* ===== REVIEWS SECTION ===== */
+        .reviews-section {
+            padding: 6rem 0;
+        }
+
+        .review-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            border: 2px solid var(--border-light);
+            background: var(--card-light);
+            color: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        body.dark .filter-btn {
+            border-color: var(--border-dark);
+            background: var(--card-dark);
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.2);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .reviews-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .review-card {
+            background: var(--card-light);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            border: 2px solid var(--border-light);
+            transition: all 0.3s;
+            display: none;
+        }
+
+        .review-card.show {
+            display: block;
+        }
+
+        body.dark .review-card {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+
+        .review-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.3);
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .review-avatar {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 1.25rem;
+        }
+
+        .review-course-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        /* ===== CONSULTATION SECTION ===== */
+        .consultation-section {
+            padding: 6rem 0;
+        }
+
+        .cta-card {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            padding: 4rem;
+            border-radius: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">♔</text></svg>') repeat;
+            background-size: 100px 100px;
+            opacity: 0.1;
+            animation: float 20s linear infinite;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===== ENHANCED FOOTER ===== */
+        .footer {
+            background: linear-gradient(135deg, var(--dark-wood), var(--light-wood));
+            position: relative;
+            overflow: hidden;
+            margin-top: 4rem;
+            padding: 0;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(45deg, var(--board-light) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--board-light) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--board-light) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--board-light) 75%);
+            background-size: 60px 60px;
+            background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+            opacity: 0.05;
+        }
+
+        .footer-top {
+            background: linear-gradient(180deg, rgba(0,0,0,0.3), transparent);
+            padding: 1rem 0;
+            border-bottom: 3px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .footer-ornament {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+
+        .footer-ornament span {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .footer-ornament span:nth-child(1) { animation-delay: 0s; }
+        .footer-ornament span:nth-child(2) { animation-delay: 0.5s; }
+        .footer-ornament span:nth-child(3) { animation-delay: 1s; }
+        .footer-ornament span:nth-child(4) { animation-delay: 1.5s; }
+        .footer-ornament span:nth-child(5) { animation-delay: 2s; }
+        .footer-ornament span:nth-child(6) { animation-delay: 2.5s; }
+
+        .footer-content {
+            position: relative;
+            z-index: 2;
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .footer-grid {
+                grid-template-columns: 2fr 1fr 1fr 1fr;
+            }
+        }
+
+        .footer-brand {
+            max-width: 400px;
+        }
+
+        .footer-brand h3 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-section h4 {
+            color: #ffd700;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .footer-links a:hover {
+            color: #ffd700;
+            padding-left: 0.5rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            width: 3.5rem;
+            height: 3.5rem;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: var(--dark-wood);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+            font-size: 1.25rem;
+        }
+
+        .social-link:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+            background: linear-gradient(135deg, #ffed4e, #ffd700);
+        }
+
+        .footer-bottom {
+            border-top: 2px solid rgba(255, 215, 0, 0.2);
+            padding: 2rem 0;
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+        }
+
+        .footer-bottom-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .footer-bottom-content {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+
+        .footer-badges {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-badge {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 2rem;
+            color: #ffd700;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .chess-piece-decoration {
+            position: absolute;
+            font-size: 10rem;
+            opacity: 0.03;
+            pointer-events: none;
+        }
+
+        .chess-piece-decoration:nth-child(1) { top: 10%; left: 5%; }
+        .chess-piece-decoration:nth-child(2) { top: 50%; right: 10%; }
+        .chess-piece-decoration:nth-child(3) { bottom: 10%; left: 15%; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            html { font-size: 14px; }
+            h1 { font-size: 2rem; }
+            .header-content { height: 4.5rem; }
+            .logo-icon { width: 3rem; height: 3rem; }
+            .hero { padding: 7rem 0 3rem; }
+            .btn { padding: 0.875rem 1.5rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Elements -->
+    <div style="position: fixed; inset: 0; z-index: 0;">
+        <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(124, 58, 237, 0.03), rgba(59, 130, 246, 0.03));"></div>
+        <div class="floating-chess">♛</div>
+        <div class="floating-chess">♜</div>
+        <div class="floating-chess">♔</div>
+        <div class="floating-chess">♞</div>
+    </div>
+
+    <!-- Enhanced Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo -->
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <div class="chess-pattern"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+                            <defs>
+                                <linearGradient id="crown" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd700" />
+                                    <stop offset="50%" stop-color="#ffffff" />
+                                    <stop offset="100%" stop-color="#ffd700" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="3" y="16" width="18" height="3" fill="url(#crown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#crown)" stroke="#fff" stroke-width="1"/>
+                            <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
+                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.25rem; right: 0.25rem; z-index: 3;">
+                            <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.8"/>
+                        </svg>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
+                        <div style="font-size: 0.75rem; color: var(--muted); margin-top: -0.25rem;">♔ Шахматная академия</div>
+                    </div>
+                </a>
+
+                <!-- Navigation -->
+                <nav class="nav">
+                    <a href="course.html" class="nav-link">Курсы</a>
+                    <a href="couch.html#coaches" class="nav-link">Тренера</a>
+                    <a href="#reviews" class="nav-link">Отзывы</a>
+                    <a href="#tournaments" class="nav-link">
+                        Турниры
+                        <span class="badge badge-primary" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.65rem;">Новое</span>
+                    </a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="header-actions">
+                    <!-- User Actions (Desktop) -->
+                    <div class="user-actions" id="userActions" style="display: none;">
+                        <a href="cabinet.html" class="btn btn-outline">
+                            <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                            Кабинет
+                        </a>
+                    </div>
+
+                    <!-- Auth Buttons (Desktop) -->
+                    <div class="auth-buttons" id="authButtons">
+                        <button class="btn-login" onclick="showLoginModal()">
+                            <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                            Войти
+                        </button>
+                        <button class="btn-register" onclick="showRegisterModal()">
+                            <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                            Регистрация
+                        </button>
+                    </div>
+
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                        <i class="fas fa-sun" id="themeIcon"></i>
+                    </button>
+                    
+                    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars" id="menuIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div class="mobile-menu" id="mobileMenu">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="course.html" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Курсы</a>
+                    <a href="couch.html#coaches" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Тренера</a>
+                    <a href="#reviews" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Отзывы</a>
+                    <a href="#tournaments" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Турниры</a>
+                    <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
+
+                    <!-- Mobile User Actions -->
+                    <div class="mobile-user-actions" id="mobileUserActions" style="display: none;">
+                        <a href="cabinet.html" class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeMobileMenu()">
+                            <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                            Личный кабинет
+                        </a>
+                        <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
+                    </div>
+
+                    <button class="btn-login" style="width: 100%; justify-content: center;" onclick="showLoginModal(); closeMobileMenu();">Войти</button>
+                    <button class="btn-register" style="width: 100%; justify-content: center;" onclick="showRegisterModal(); closeMobileMenu();">Регистрация</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main style="position: relative; z-index: 10;">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-bg">
+                <div class="hero-bg-gradient"></div>
+                <div class="hero-bg-gradient"></div>
+            </div>
+
+            <div class="container">
+                <div class="hero-content">
+                    <!-- Left Content -->
+                    <div>
+                        <div class="badge badge-primary" style="margin-bottom: 2rem;">
+                            🚀 Новая эра шахматного обучения
+                        </div>
+                        <h1 style="margin-bottom: 1.5rem;">
+                            Мастерство в <span class="gradient-text">шахматах</span> начинается здесь
+                        </h1>
+                        <p style="font-size: 1.25rem; color: var(--muted); max-width: 600px; margin-bottom: 2.5rem;">
+                            Присоединяйтесь к революции в шахматном обучении! Наша AI-платформа поможет вам стать мастером быстрее.
+                        </p>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem;">
+                            <a href="#start" class="btn btn-primary btn-lg">
+                                🎯 Начать обучение
+                            </a>
+                            <a href="#demo" class="btn btn-outline btn-lg">
+                                📺 Смотреть демо
+                            </a>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6);">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-value">10,000+</div>
+                                <div class="stat-label">Активных учеников</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="stat-value">50+</div>
+                                <div class="stat-label">Премиум курсов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <div class="stat-value">20+</div>
+                                <div class="stat-label">Эксперт-тренеров</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                                <div class="stat-value">500+</div>
+                                <div class="stat-label">Видео уроков</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Content - Platform Board -->
+                    <div style="position: relative;">
+                        <div class="platform-board">
+                            <div class="features-grid">
+                                <div class="feature-item">
+                                    <div class="feature-icon"><i class="fas fa-brain" style="color: #3b82f6;"></i></div>
+                                    <div style="font-weight: 600; font-size: 0.875rem;">AI Анализ</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Умный помощник</div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon"><i class="fas fa-chart-line" style="color: #10b981;"></i></div>
+                                    <div style="font-weight: 600; font-size: 0.875rem;">Статистика</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Ваш прогресс</div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon"><i class="fas fa-user-graduate" style="color: #f59e0b;"></i></div>
+                                    <div style="font-weight: 600; font-size: 0.875rem;">Обучение</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Личный подход</div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon"><i class="fas fa-bolt" style="color: #ec4899;"></i></div>
+                                    <div style="font-weight: 600; font-size: 0.875rem;">Быстрое</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Развитие</div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon"><i class="fas fa-trophy" style="color: #8b5cf6;"></i></div>
+                                    <div style="font-weight: 600; font-size: 0.875rem;">Турниры</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Соревнуйтесь</div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon"><i class="fas fa-users" style="color: #06b6d4;"></i></div>
+                                    <div style="font-weight: 600; font-size: 0.875rem;">Комьюнити</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Общайтесь</div>
+                                </div>
+                            </div>
+
+                            <!-- Corner Badges -->
+                            <div class="corner-badge" style="background: linear-gradient(135deg, #f59e0b, #dc2626); top: -0.75rem; right: -0.75rem; transform: rotate(12deg);">
+                                <i class="fas fa-bolt"></i>
+                                <span>AI</span>
+                            </div>
+                            <div class="corner-badge" style="background: linear-gradient(135deg, #10b981, #059669); bottom: -0.75rem; left: -0.75rem; transform: rotate(-12deg);">
+                                <i class="fas fa-trophy"></i>
+                                <span>WIN</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Free Course Section -->
+        <section id="courses" class="free-course-section">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 4rem;">
+                    <div class="badge" style="background: linear-gradient(135deg, #ef4444, #f97316); color: white; margin-bottom: 1.5rem;">
+                        БЕСПЛАТНЫЙ КУРС
+                    </div>
+                    <h2 class="gradient-text" style="margin-bottom: 1rem;">Опровержение дебюта Гроба</h2>
+                    <p style="font-size: 1.125rem; color: var(--muted); max-width: 700px; margin: 0 auto;">
+                        Изучите, как правильно отвечать на один из самых провокационных дебютов в шахматах
+                    </p>
+                </div>
+
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <div class="course-card-header">
+                            <div class="course-icon-wrapper">
+                                <div class="course-icon">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                    </svg>
+                                </div>
+                                <div class="course-emoji">⚰️</div>
+                            </div>
+                            <h3 style="font-size: 2rem; margin-bottom: 0.5rem; color: white;">Дебют Гроба (1.g4)</h3>
+                            <p style="opacity: 0.9;">Превратите слабость противника в вашу силу</p>
+                        </div>
+
+                        <div style="padding: 2.5rem;">
+                            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 2rem;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div style="font-size: 2.5rem;">⚡</div>
+                                    <div>
+                                        <h4>Что включено в курс</h4>
+                                        <p style="color: var(--muted); font-size: 0.875rem;">Всё необходимое для победы</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline" onclick="toggleCollapsible('courseContent')">
+                                    <span id="toggleText">Показать всё</span>
+                                    <i class="fas fa-chevron-down" id="toggleIcon" style="transition: transform 0.3s;"></i>
+                                </button>
+                            </div>
+
+                            <div class="collapsible-content" id="courseContent">
+                                <div class="course-includes-grid">
+                                    <div class="course-include-item">
+                                        <div class="course-include-icon">
+                                            <i class="fas fa-video"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">Видеоролики HD</h4>
+                                            <p style="color: var(--muted); font-size: 0.875rem;">Подробный разбор всех вариантов</p>
+                                            <div class="badge" style="background: var(--secondary); color: var(--text-light); margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem;">8 уроков</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="course-include-item">
+                                        <div class="course-include-icon">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">PGN файлы</h4>
+                                            <p style="color: var(--muted); font-size: 0.875rem;">Готовые партии для изучения</p>
+                                            <div class="badge" style="background: var(--secondary); color: var(--text-light); margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem;">50+ партий</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="course-include-item">
+                                        <div class="course-include-icon">
+                                            <i class="fas fa-trophy"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">Тематический турнир</h4>
+                                            <p style="color: var(--muted); font-size: 0.875rem;">Эксклюзивный турнир с призами</p>
+                                            <div class="badge" style="background: var(--secondary); color: var(--text-light); margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem;">10,000₽</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="course-include-item">
+                                        <div class="course-include-icon">
+                                            <i class="fas fa-puzzle-piece"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">Интерактивные задачи</h4>
+                                            <p style="color: var(--muted); font-size: 0.875rem;">Тактические тесты и упражнения</p>
+                                            <div class="badge" style="background: var(--secondary); color: var(--text-light); margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem;">25 задач</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="course-include-item">
+                                        <div class="course-include-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">Сообщество экспертов</h4>
+                                            <p style="color: var(--muted); font-size: 0.875rem;">Доступ к закрытому чату</p>
+                                            <div class="badge" style="background: var(--secondary); color: var(--text-light); margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem;">Telegram</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="course-include-item">
+                                        <div class="course-include-icon">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">Персональная статистика</h4>
+                                            <p style="color: var(--muted); font-size: 0.875rem;">Отслеживание прогресса</p>
+                                            <div class="badge" style="background: var(--secondary); color: var(--text-light); margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.75rem;">Аналитика</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 2.5rem; padding: 2rem; background: linear-gradient(135deg, #dcfce7, #d1fae5); border-radius: 1.5rem; border: 2px solid #86efac;">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2rem;">
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <div style="font-size: 3rem;">🎁</div>
+                                        <div>
+                                            <h4 style="color: #166534; font-size: 1.25rem; margin-bottom: 0.25rem;">Полностью бесплатно</h4>
+                                            <p style="color: #16a34a; font-size: 1.125rem;">
+                                                Стоимость: <span style="text-decoration: line-through;">2,990₽</span> → <strong>0₽</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success btn-lg" data-free-course="grob">
+                                        Получить бесплатно
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Premium Courses Section with Civilized Covers -->
+        <section class="courses-section">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 4rem;">
+                    <h2 class="gradient-text" style="margin-bottom: 1rem;">Премиум курсы</h2>
+                    <p style="font-size: 1.125rem; color: var(--muted);">
+                        Профессиональное обучение от мастеров и гроссмейстеров
+                    </p>
+                </div>
+
+                <div class="courses-grid">
+                    <!-- Course 1 -->
+                    <div class="course-card" data-course="basic">
+                        <div class="course-image course-cover-basic">
+                            <div class="course-level-badge">⭐ Начальный</div>
+                            <i class="fas fa-chess-pawn"></i>
+                        </div>
+                        <div class="course-body">
+                            <h3 style="margin-bottom: 0.75rem;">Основы шахмат</h3>
+                            <p style="color: var(--muted); margin-bottom: 1.5rem;">
+                                Полный курс для начинающих с изучением правил, основных принципов и простейших тактик. Идеален для старта.
+                            </p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                                <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: var(--primary);">
+                                    <i class="fas fa-video" style="margin-right: 0.25rem;"></i> 40 уроков
+                                </span>
+                                <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: var(--primary);">
+                                    <i class="fas fa-clock" style="margin-right: 0.25rem;"></i> 20 часов
+                                </span>
+                                <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: var(--primary);">
+                                    <i class="fas fa-certificate" style="margin-right: 0.25rem;"></i> Сертификат
+                                </span>
+                            </div>
+                            <div class="course-price">
+                                <div class="price-tag">2,990₽</div>
+                                <button class="btn btn-primary" onclick="showPurchaseModal()">Купить курс</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Course 2 -->
+                    <div class="course-card" data-course="tactical">
+                        <div class="course-image course-cover-tactical">
+                            <div class="course-level-badge">⭐⭐ Средний</div>
+                            <i class="fas fa-chess-knight"></i>
+                        </div>
+                        <div class="course-body">
+                            <h3 style="margin-bottom: 0.75rem;">Тактическое мастерство</h3>
+                            <p style="color: var(--muted); margin-bottom: 1.5rem;">
+                                Углубленное изучение шахматной тактики: комбинации, жертвы, расчет вариантов. Для опытных игроков.
+                            </p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                    <i class="fas fa-video" style="margin-right: 0.25rem;"></i> 60 уроков
+                                </span>
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                    <i class="fas fa-clock" style="margin-right: 0.25rem;"></i> 35 часов
+                                </span>
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                    <i class="fas fa-trophy" style="margin-right: 0.25rem;"></i> Турнир
+                                </span>
+                            </div>
+                            <div class="course-price">
+                                <div class="price-tag">4,990₽</div>
+                                <button class="btn btn-primary" onclick="showPurchaseModal()">Купить курс</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Course 3 -->
+                    <div class="course-card" data-course="master">
+                        <div class="course-image course-cover-master">
+                            <div class="course-level-badge">⭐⭐⭐ Эксперт</div>
+                            <i class="fas fa-chess-king"></i>
+                        </div>
+                        <div class="course-body">
+                            <h3 style="margin-bottom: 0.75rem;">Мастер-класс от ГМ</h3>
+                            <p style="color: var(--muted); margin-bottom: 1.5rem;">
+                                Эксклюзивные лекции от гроссмейстеров с разбором партий мирового уровня. Только для серьёзных шахматистов.
+                            </p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                                <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                    <i class="fas fa-video" style="margin-right: 0.25rem;"></i> 80 уроков
+                                </span>
+                                <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                    <i class="fas fa-clock" style="margin-right: 0.25rem;"></i> 50 часов
+                                </span>
+                                <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                    <i class="fas fa-crown" style="margin-right: 0.25rem;"></i> VIP доступ
+                                </span>
+                            </div>
+                            <div class="course-price">
+                                <div class="price-tag">9,990₽</div>
+                                <button class="btn btn-primary" onclick="showPurchaseModal()">Купить курс</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Success Metrics -->
+        <section style="padding: 6rem 0; background: linear-gradient(135deg, #faf5ff, #f3e8ff);">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 4rem;">
+                    <h2 class="gradient-text" style="margin-bottom: 1rem;">Результаты говорят сами за себя</h2>
+                    <p style="font-size: 1.125rem; color: var(--muted);">Статистика успеха наших учеников</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-value">89%</div>
+                        <div class="stat-label">Повысили рейтинг</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <div class="stat-value">247</div>
+                        <div class="stat-label">Получили разряды</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-value">156</div>
+                        <div class="stat-label">Выиграли турниры</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-value">4.9</div>
+                        <div class="stat-label">Средняя оценка</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Enhanced About Section -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 4rem; position: relative; z-index: 2;">
+                    <h2 class="gradient-text" style="margin-bottom: 1rem;">О PowerChess</h2>
+                    <p style="font-size: 1.125rem; color: var(--muted); max-width: 800px; margin: 0 auto;">
+                        Revolutionize шахматное образование с помощью передовых технологий и классической мудрости
+                    </p>
+                </div>
+
+                <div class="about-grid">
+                    <div style="position: relative; z-index: 2;">
+                        <h3 style="font-size: 2.5rem; margin-bottom: 1.5rem; line-height: 1.2;">
+                            Наша миссия - 
+                            <span class="gradient-text">изменить мир шахмат</span>
+                        </h3>
+                        <p style="color: var(--muted); font-size: 1.125rem; margin-bottom: 2rem; line-height: 1.8;">
+                            PowerChess создана для того, чтобы сделать изучение шахмат доступным, увлекательным и эффективным 
+                            для игроков любого уровня. Мы используем искусственный интеллект и современные методики обучения, 
+                            чтобы каждый мог достичь мастерства быстрее.
+                        </p>
+
+                        <div class="about-features">
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🧠</div>
+                                <h4 style="margin-bottom: 0.75rem; font-size: 1.125rem;">AI-анализ</h4>
+                                <p style="color: var(--muted); font-size: 0.875rem; line-height: 1.6;">
+                                    Персональные рекомендации на основе ваших партий с глубоким анализом
+                                </p>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">👨‍🏫</div>
+                                <h4 style="margin-bottom: 0.75rem; font-size: 1.125rem;">Эксперты</h4>
+                                <p style="color: var(--muted); font-size: 0.875rem; line-height: 1.6;">
+                                    Тренеры с международными титулами и многолетним опытом
+                                </p>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">📱</div>
+                                <h4 style="margin-bottom: 0.75rem; font-size: 1.125rem;">Мобильность</h4>
+                                <p style="color: var(--muted); font-size: 0.875rem; line-height: 1.6;">
+                                    Учитесь где угодно и когда угодно с любого устройства
+                                </p>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🏆</div>
+                                <h4 style="margin-bottom: 0.75rem; font-size: 1.125rem;">Турниры</h4>
+                                <p style="color: var(--muted); font-size: 0.875rem; line-height: 1.6;">
+                                    Регулярные соревнования с денежными призами
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="about-visual">
+                        <div class="about-image">
+                            <div class="chess-pattern"></div>
+                            <i class="fas fa-chess-board"></i>
+                            <div class="about-decorations">
+                                <div class="about-float-icon">♔</div>
+                                <div class="about-float-icon">♛</div>
+                                <div class="about-float-icon">♜</div>
+                                <div class="about-float-icon">♞</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div id="tournaments"></div>
+        <!-- Enhanced Reviews Section -->
+        <section id="reviews" class="reviews-section">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h2 class="gradient-text" style="margin-bottom: 1rem;">Отзывы учеников</h2>
+                    <p style="font-size: 1.125rem; color: var(--muted);">Что говорят о нас наши студенты</p>
+                </div>
+
+                <!-- Review Filters -->
+                <div class="review-filters">
+                    <button class="filter-btn active" onclick="filterReviews('all')">
+                        <i class="fas fa-th" style="margin-right: 0.5rem;"></i>
+                        Все отзывы
+                    </button>
+                    <button class="filter-btn" onclick="filterReviews('basic')">
+                        <i class="fas fa-chess-pawn" style="margin-right: 0.5rem;"></i>
+                        Основы шахмат
+                    </button>
+                    <button class="filter-btn" onclick="filterReviews('tactical')">
+                        <i class="fas fa-chess-knight" style="margin-right: 0.5rem;"></i>
+                        Тактическое мастерство
+                    </button>
+                    <button class="filter-btn" onclick="filterReviews('master')">
+                        <i class="fas fa-chess-king" style="margin-right: 0.5rem;"></i>
+                        Мастер-класс
+                    </button>
+                </div>
+
+                <div class="reviews-grid">
+                    <!-- Basic Course Reviews -->
+                    <div class="review-card show" data-course="basic">
+                        <div class="review-header">
+                            <div class="review-avatar" style="background: linear-gradient(135deg, #7c3aed, #3b82f6);">А</div>
+                            <div>
+                                <h4>Алексей Петров</h4>
+                                <div class="rating-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted); line-height: 1.7;">
+                            "Отличная платформа! За 3 месяца поднял свой рейтинг на 300 пунктов. 
+                            AI-анализ партий помогает найти слабые места."
+                        </p>
+                        <div class="review-course-tag" style="background: rgba(124, 58, 237, 0.1); color: var(--primary);">
+                            <i class="fas fa-chess-pawn" style="margin-right: 0.25rem;"></i>
+                            Основы шахмат
+                        </div>
+                    </div>
+
+                    <div class="review-card show" data-course="tactical">
+                        <div class="review-header">
+                            <div class="review-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">М</div>
+                            <div>
+                                <h4>Мария Сидорова</h4>
+                                <div class="rating-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted); line-height: 1.7;">
+                            "Начинала с нуля, теперь играю в турнирах! Курсы структурированы идеально, 
+                            а тренеры объясняют очень доступно."
+                        </p>
+                        <div class="review-course-tag" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                            <i class="fas fa-chess-knight" style="margin-right: 0.25rem;"></i>
+                            Тактическое мастерство
+                        </div>
+                    </div>
+
+                    <div class="review-card show" data-course="master">
+                        <div class="review-header">
+                            <div class="review-avatar" style="background: linear-gradient(135deg, #f59e0b, #dc2626);">И</div>
+                            <div>
+                                <h4>Игорь Волков</h4>
+                                <div class="rating-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted); line-height: 1.7;">
+                            "Мастер-классы от гроссмейстеров - это нечто! Получил КМС благодаря 
+                            знаниям, полученным на PowerChess."
+                        </p>
+                        <div class="review-course-tag" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                            <i class="fas fa-chess-king" style="margin-right: 0.25rem;"></i>
+                            Мастер-класс от ГМ
+                        </div>
+                    </div>
+
+                    <div class="review-card show" data-course="basic">
+                        <div class="review-header">
+                            <div class="review-avatar" style="background: linear-gradient(135deg, #ec4899, #be185d);">Е</div>
+                            <div>
+                                <h4>Елена Кузнецова</h4>
+                                <div class="rating-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted); line-height: 1.7;">
+                            "Замечательный курс для начинающих! Все объясняется просто и понятно. 
+                            Уже через месяц начала выигрывать партии."
+                        </p>
+                        <div class="review-course-tag" style="background: rgba(124, 58, 237, 0.1); color: var(--primary);">
+                            <i class="fas fa-chess-pawn" style="margin-right: 0.25rem;"></i>
+                            Основы шахмат
+                        </div>
+                    </div>
+
+                    <div class="review-card show" data-course="tactical">
+                        <div class="review-header">
+                            <div class="review-avatar" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">Д</div>
+                            <div>
+                                <h4>Дмитрий Соколов</h4>
+                                <div class="rating-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted); line-height: 1.7;">
+                            "Курс тактики просто шикарен! Теперь вижу комбинации, которые раньше пропускал. 
+                            Рейтинг вырос на 400 пунктов!"
+                        </p>
+                        <div class="review-course-tag" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                            <i class="fas fa-chess-knight" style="margin-right: 0.25rem;"></i>
+                            Тактическое мастерство
+                        </div>
+                    </div>
+
+                    <div class="review-card show" data-course="master">
+                        <div class="review-header">
+                            <div class="review-avatar" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">В</div>
+                            <div>
+                                <h4>Виктория Морозова</h4>
+                                <div class="rating-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--muted); line-height: 1.7;">
+                            "Мастер-класс превзошел все ожидания! Разборы партий от ГМ - это бесценный опыт. 
+                            Выполнила норму мастера!"
+                        </p>
+                        <div class="review-course-tag" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                            <i class="fas fa-chess-king" style="margin-right: 0.25rem;"></i>
+                            Мастер-класс от ГМ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consultation Section -->
+        <section class="consultation-section">
+            <div class="container">
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <div class="cta-card">
+                        <div class="cta-content">
+                            <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; color: white;">
+                                Готовы начать свой путь к мастерству?
+                            </h2>
+                            <p style="font-size: 1.25rem; margin-bottom: 2.5rem; opacity: 0.95;">
+                                Получите персональную консультацию от наших экспертов и выберите оптимальную программу обучения
+                            </p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+                                <button class="btn" style="background: white; color: var(--primary); font-size: 1.125rem; padding: 1.25rem 2.5rem; border: none;" onclick="showRegisterModal()">
+                                    📞 Бесплатная консультация
+                                </button>
+                                <a href="#trial" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white; font-size: 1.125rem; padding: 1.25rem 2.5rem;">
+                                    🎯 Пробный урок
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Enhanced Footer -->
+    <footer class="footer">
+        <!-- Chess Decorations -->
+        <div class="chess-piece-decoration">♔</div>
+        <div class="chess-piece-decoration">♛</div>
+        <div class="chess-piece-decoration">♜</div>
+
+        <!-- Footer Top Ornament -->
+        <div class="footer-top">
+            <div class="footer-ornament">
+                <span>♔</span>
+                <span>♕</span>
+                <span>♖</span>
+                <span>♗</span>
+                <span>♘</span>
+                <span>♙</span>
+            </div>
+        </div>
+
+        <!-- Footer Content -->
+        <div class="footer-content">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Brand -->
+                    <div class="footer-brand">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div class="logo-icon" style="width: 3.5rem; height: 3.5rem;">
+                                <div class="chess-pattern"></div>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+                                    <defs>
+                                        <linearGradient id="footerCrown" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#ffd700"/>
+                                            <stop offset="50%" stop-color="#ffffff"/>
+                                            <stop offset="100%" stop-color="#ffd700"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <rect x="3" y="16" width="18" height="3" fill="url(#footerCrown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                                    <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#footerCrown)" stroke="#fff" stroke-width="1"/>
+                                    <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
+                                </svg>
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.2rem; right: 0.2rem; z-index: 3;">
+                                    <path d="M6 1L2 6H4L3 9L7 4H5L6 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.6"/>
+                                </svg>
+                                <div class="logo-sparkle" style="top: 0.4rem; left: 0.4rem; width: 0.4rem; height: 0.4rem;"></div>
+                                <div class="logo-sparkle" style="top: 0.4rem; right: 0.4rem; width: 0.4rem; height: 0.4rem;"></div>
+                                <div class="logo-sparkle" style="bottom: 0.4rem; left: 0.4rem; width: 0.4rem; height: 0.4rem;"></div>
+                                <div class="logo-sparkle" style="bottom: 0.4rem; right: 0.4rem; width: 0.4rem; height: 0.4rem;"></div>
+                            </div>
+                        </div>
+                        <h3>PowerChess</h3>
+                        <p>
+                            Революционная AI-платформа для изучения шахмат. Станьте мастером быстрее с PowerChess! 
+                            Объединяем классическую шахматную мудрость с современными технологиями.
+                        </p>
+                        <div class="social-links">
+                            <a href="#" class="social-link" title="Telegram">
+                                <i class="fab fa-telegram"></i>
+                            </a>
+                            <a href="#" class="social-link" title="YouTube">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                            <a href="#" class="social-link" title="VK">
+                                <i class="fab fa-vk"></i>
+                            </a>
+                            <a href="#" class="social-link" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Links Column 1 -->
+                    <div class="footer-section">
+                        <h4>Обучение</h4>
+                        <ul class="footer-links">
+                            <li><a href="course.html">♟ Курсы</a></li>
+                            <li><a href="#free">♟ Бесплатные уроки</a></li>
+                            <li><a href="#masterclass">♟ Мастер-классы</a></li>
+                            <li><a href="#ai-analysis">♟ AI-анализ</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Links Column 2 -->
+                    <div class="footer-section">
+                        <h4>Сообщество</h4>
+                        <ul class="footer-links">
+                            <li><a href="#tournaments">♟ Турниры</a></li>
+                            <li><a href="#forum">♟ Форум</a></li>
+                            <li><a href="#rating">♟ Рейтинг</a></li>
+                            <li><a href="#coaches">♟ Тренеры</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Links Column 3 -->
+                    <div class="footer-section">
+                        <h4>Поддержка</h4>
+                        <ul class="footer-links">
+                            <li><a href="#help">♟ Справка</a></li>
+                            <li><a href="#contact">♟ Контакты</a></li>
+                            <li><a href="#privacy">♟ Конфиденциальность</a></li>
+                            <li><a href="#terms">♟ Условия</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom-content">
+                    <div class="footer-copyright">
+                        &copy; 2024 PowerChess. Все права защищены. Создано с ♔ для шахматистов.
+                    </div>
+                    <div class="footer-badges">
+                        <div class="footer-badge">
+                            <i class="fas fa-shield-alt" style="margin-right: 0.25rem;"></i>
+                            Безопасная оплата
+                        </div>
+                        <div class="footer-badge">
+                            <i class="fas fa-certificate" style="margin-right: 0.25rem;"></i>
+                            Сертифицированные курсы
+                        </div>
+                        <div class="footer-badge">
+                            <i class="fas fa-award" style="margin-right: 0.25rem;"></i>
+                            Эксперты с титулами
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeLoginModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-logo" style="margin-bottom: 1.5rem;">
+                    <div class="logo-icon" style="width: 4rem; height: 4rem; margin: 0 auto;">
+                        <div class="chess-pattern"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+                            <defs>
+                                <linearGradient id="modalCrown" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd700"/>
+                                    <stop offset="50%" stop-color="#ffffff"/>
+                                    <stop offset="100%" stop-color="#ffd700"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="3" y="16" width="18" height="3" fill="url(#modalCrown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#modalCrown)" stroke="#fff" stroke-width="1"/>
+                            <circle cx="12" cy="9" r="1.2" fill="#e11d48" stroke="#fff" stroke-width="0.4"/>
+                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.25rem; right: 0.25rem; z-index: 3;">
+                            <path d="M6 1L2 6H4L3 9L7 4H5L6 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+                <h3>Вход в PowerChess</h3>
+                <p>🎯 Добро пожаловать обратно в мир шахматного мастерства!</p>
+            </div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary modal-btn" style="width: 100%; margin-bottom: 1rem; position: relative; overflow: hidden;">
+                    <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                    Войти в аккаунт
+                    <div class="btn-shine"></div>
+                </button>
+            </form>
+            <div class="form-footer">
+                Нет аккаунта? <a href="#" onclick="closeLoginModal(); showRegisterModal();">Зарегистрироваться</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeRegisterModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-logo" style="margin-bottom: 1.5rem;">
+                    <div class="logo-icon" style="width: 4rem; height: 4rem; margin: 0 auto;">
+                        <div class="chess-pattern"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+                            <defs>
+                                <linearGradient id="modalCrown2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd700"/>
+                                    <stop offset="50%" stop-color="#ffffff"/>
+                                    <stop offset="100%" stop-color="#ffd700"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="3" y="16" width="18" height="3" fill="url(#modalCrown2)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#modalCrown2)" stroke="#fff" stroke-width="1"/>
+                            <circle cx="12" cy="9" r="1.2" fill="#e11d48" stroke="#fff" stroke-width="0.4"/>
+                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.25rem; right: 0.25rem; z-index: 3;">
+                            <path d="M6 1L2 6H4L3 9L7 4H5L6 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+                <h3>🚀 Присоединяйтесь к PowerChess!</h3>
+                <p>Откройте дверь в мир профессиональных шахмат и станьте мастером!</p>
+            </div>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Имя</label>
+                    <input type="text" class="form-input" placeholder="Ваше имя" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-success modal-btn" style="width: 100%; margin-bottom: 1rem; position: relative; overflow: hidden;">
+                    <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                    Присоединиться к сообществу
+                    <div class="btn-shine"></div>
+                </button>
+            </form>
+            <div class="form-footer">
+                Уже есть аккаунт? <a href="#" onclick="closeRegisterModal(); showLoginModal();">Войти</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Modal -->
+    <div class="modal" id="purchaseModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePurchaseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 style="font-size: 2rem; margin-bottom: 2rem;">Оформление покупки</h3>
+            <div class="chess-board" id="chessBoard"></div>
+            <p style="color: var(--muted); margin-bottom: 2rem; font-size: 1.125rem;">
+                Ход белых... Обдумывание лучшего решения...
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button class="btn btn-primary" onclick="completePurchase()">
+                    Завершить покупку
+                </button>
+                <button class="btn btn-outline" onclick="closePurchaseModal()">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Moved to index.js
+        let isDarkTheme = false;
+
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+            document.body.classList.toggle('dark', isDarkTheme);
+            document.getElementById('themeIcon').className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
+            localStorage.setItem('powerchess-theme', isDarkTheme ? 'dark' : 'light');
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('powerchess-theme');
+            if (savedTheme === 'dark') {
+                isDarkTheme = true;
+                document.body.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+            }
+        }
+
+        // Mobile Menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('menuIcon');
+            menu.classList.toggle('active');
+            icon.className = menu.classList.contains('active') ? 'fas fa-times' : 'fas fa-bars';
+        }
+
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('menuIcon');
+            menu.classList.remove('active');
+            icon.className = 'fas fa-bars';
+        }
+
+        // Header Scroll Effect
+        function handleScroll() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }
+
+        // Collapsible
+        function toggleCollapsible(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('toggleIcon');
+            const text = document.getElementById('toggleText');
+            
+            content.classList.toggle('active');
+            
+            if (content.classList.contains('active')) {
+                icon.style.transform = 'rotate(180deg)';
+                text.textContent = 'Скрыть детали';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+                text.textContent = 'Показать всё';
+            }
+        }
+
+        // Review Filters
+        function filterReviews(course) {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const reviewCards = document.querySelectorAll('.review-card');
+            
+            // Update active button
+            filterBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.filter-btn').classList.add('active');
+            
+            // Filter reviews
+            reviewCards.forEach(card => {
+                if (course === 'all' || card.dataset.course === course) {
+                    card.classList.add('show');
+                } else {
+                    card.classList.remove('show');
+                }
+            });
+        }
+
+        // Chess Board
+        function createChessBoard() {
+            const board = document.getElementById('chessBoard');
+            board.innerHTML = '';
+
+            const initialPosition = [
+                ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
+                ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+                ['', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', ''],
+                ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
+                ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']
+            ];
+
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `chess-square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.innerHTML = initialPosition[row][col];
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        // Modal Functions - Login
+        function showLoginModal() {
+            const modal = document.getElementById('loginModal');
+            modal.classList.add('active');
+        }
+
+        function closeLoginModal() {
+            const modal = document.getElementById('loginModal');
+            modal.classList.remove('active');
+        }
+
+        
+
+        // Modal Functions - Register
+        function showRegisterModal() {
+            const modal = document.getElementById('registerModal');
+            modal.classList.add('active');
+        }
+
+        function closeRegisterModal() {
+            const modal = document.getElementById('registerModal');
+            modal.classList.remove('active');
+        }
+
+        
+
+        // Modal Functions - Purchase
+        function showPurchaseModal() {
+            const modal = document.getElementById('purchaseModal');
+            modal.classList.add('active');
+            createChessBoard();
+        }
+
+        function closePurchaseModal() {
+            const modal = document.getElementById('purchaseModal');
+            modal.classList.remove('active');
+        }
+
+        function completePurchase() {
+            alert('🎉 Поздравляем! Покупка успешно завершена. Добро пожаловать в PowerChess!');
+            closePurchaseModal();
+        }
+
+        // Close modals on outside click
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && href !== '#login' && href !== '#start') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        closeMobileMenu();
+                    }
+                }
+            });
+        });
+
+        // Event Listeners
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                closeMobileMenu();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {});
+
+        
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLoginModal();
+                closeRegisterModal();
+                closePurchaseModal();
+                closeMobileMenu();
+            }
+        });
+
+        // Include common auth functions
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+        });
+    </script>
+
+    <!-- Page Script -->
+    <script src="index.js"></script>
+    <!-- Common Auth Script -->
+    <script src="auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+/* Common Navigation Styles for PowerChess */
+
+.main-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.main-header .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+    .main-header .container { padding: 0 2rem; }
+}
+
+.main-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+/* Logo Styles */
+.main-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+}
+
+.main-header .logo-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #1f2937 0%, #000 100%);
+    border: 3px solid rgba(255, 215, 0, 0.4);
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+}
+
+.main-header .chess-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(45deg, rgba(255, 215, 0, 0.2) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 215, 0, 0.2) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 215, 0, 0.2) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 215, 0, 0.2) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.main-header .gradient-text {
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradientShift 4s ease infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Navigation Styles */
+.main-header .nav {
+    display: flex;
+    gap: 2rem;
+}
+
+.main-header .nav-link {
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+}
+
+.main-header .nav-link:hover {
+    color: #8b5cf6;
+}
+
+.main-header .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    transition: width 0.3s;
+}
+
+.main-header .nav-link:hover::after {
+    width: 100%;
+}
+
+/* Header Actions */
+.main-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.main-header .user-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.main-header .auth-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Button Styles */
+.main-header .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: none;
+    font-size: 0.875rem;
+}
+
+.main-header .btn-outline {
+    background: transparent;
+    color: #8b5cf6;
+    border: 2px solid #8b5cf6;
+}
+
+.main-header .btn-outline:hover {
+    background: #8b5cf6;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.main-header .btn-secondary {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+}
+
+.main-header .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+}
+
+.main-header .btn-login {
+    background: transparent;
+    color: #8b5cf6;
+    border: 2px solid #8b5cf6;
+}
+
+.main-header .btn-login:hover {
+    background: #8b5cf6;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.main-header .btn-register {
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    color: white;
+    border: none;
+}
+
+.main-header .btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+}
+
+/* Theme Toggle */
+.main-header .theme-toggle {
+    background: rgba(124, 58, 237, 0.1);
+    border: 2px solid #8b5cf6;
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #8b5cf6;
+}
+
+.main-header .theme-toggle:hover {
+    transform: scale(1.1);
+    background: rgba(124, 58, 237, 0.2);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .main-header .nav {
+        display: none;
+    }
+
+    .main-header .header-actions {
+        gap: 0.5rem;
+    }
+
+    .main-header .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+    }
+
+    .main-header .theme-toggle {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
+/* Dark theme support */
+body.dark .main-header {
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+body.dark .main-header .nav-link {
+    color: #94a3b8;
+}
+
+body.dark .main-header .nav-link:hover {
+    color: #c4b5fd;
+}
+
+body.dark .main-header .theme-toggle {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: #c4b5fd;
+    color: #c4b5fd;
+}
+
+body.dark .main-header .theme-toggle:hover {
+    background: rgba(139, 92, 246, 0.2);
+}

@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerChess — Тренеры</title>
+    
+    <meta name="description" content="Найдите своего идеального шахматного тренера в PowerChess">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Common Navigation Styles -->
+    <link rel="stylesheet" href="navigation.css">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♔</text></svg>">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --secondary: #3b82f6;
+            --accent: #10b981;
+            --gold: #fbbf24;
+            --dark-wood: #3e2723;
+            --light-wood: #795548;
+            --bg-light: #fafafa;
+            --bg-dark: #0f0f23;
+            --card-light: #ffffff;
+            --card-dark: #1e1e3f;
+            --text-light: #0a0a0a;
+            --text-dark: #f8fafc;
+            --border-light: #e2e8f0;
+            --border-dark: #334155;
+            --muted: #64748b;
+        }
+        
+        html { font-size: 16px; scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        body.dark { background: var(--bg-dark); color: var(--text-dark); }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+        
+        h1 { font-size: clamp(2rem, 4vw, 3.25rem); }
+        h2 { font-size: clamp(1.5rem, 3.5vw, 2.5rem); }
+        h3 { font-size: clamp(1.25rem, 3vw, 1.75rem); }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 1rem; }
+        @media (min-width: 768px) { .container { padding: 0 2rem; } }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 4s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes logoGlow {
+            0%, 100% {
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
+                            0 0 30px rgba(255, 215, 0, 0.3),
+                            inset 0 2px 0 rgba(255, 255, 255, 0.1);
+            }
+            50% {
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4),
+                            0 0 40px rgba(255, 215, 0, 0.5),
+                            inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            }
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+        
+        .logo-sparkle {
+            position: absolute;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        
+        .logo-sparkle:nth-child(1) { top: 0.5rem; left: 0.5rem; animation-delay: 0s; }
+        .logo-sparkle:nth-child(2) { top: 0.5rem; right: 0.5rem; animation-delay: 0.5s; }
+        .logo-sparkle:nth-child(3) { bottom: 0.5rem; left: 0.5rem; animation-delay: 1s; }
+        .logo-sparkle:nth-child(4) { bottom: 0.5rem; right: 0.5rem; animation-delay: 1.5s; }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid transparent;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.98)),
+                              linear-gradient(90deg, #7c3aed, #3b82f6, #10b981, #f59e0b);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+        
+        body.dark .header {
+            background: rgba(15, 15, 35, 0.98);
+            background-image: linear-gradient(rgba(15, 15, 35, 0.98), rgba(15, 15, 35, 0.98)),
+                              linear-gradient(90deg, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+        }
+        
+        .header.scrolled {
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.15);
+            border-bottom-color: rgba(124, 58, 237, 0.2);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 5.5rem;
+            gap: 2rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s;
+        }
+        
+        .logo-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #1f2937, #000);
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
+                        0 0 30px rgba(255, 215, 0, 0.3),
+                        inset 0 2px 0 rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 215, 0, 0.4);
+            animation: logoGlow 3s ease-in-out infinite;
+        }
+        
+        .chess-pattern {
+            position: absolute;
+            inset: 0;
+            opacity: 0.2;
+            background: linear-gradient(45deg, #fff 25%, transparent 25%),
+                        linear-gradient(-45deg, #fff 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #fff 75%),
+                        linear-gradient(-45deg, transparent 75%, #fff 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+        }
+        
+        .nav {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        @media (min-width: 1024px) {
+            .nav { display: flex; }
+        }
+        
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            transform: translateY(-2px);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .theme-toggle {
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            border: 1px solid var(--border-light);
+            background: var(--card-light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        
+        body.dark .theme-toggle {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+        
+        /* Hero */
+        .hero {
+            padding: 9rem 0 4rem;
+            position: relative;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(59, 130, 246, 0.05));
+        }
+        
+        .hero-content {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .hero-sub {
+            color: var(--muted);
+            margin-top: 0.5rem;
+            font-size: 1.25rem;
+        }
+        
+        /* Search and Filters */
+        .search-section {
+            background: var(--card-light);
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 2px solid rgba(124, 58, 237, 0.15);
+            margin-bottom: 3rem;
+        }
+        
+        body.dark .search-section {
+            background: var(--card-dark);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+        
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 1rem 1.5rem;
+            padding-left: 3.5rem;
+            border: 2px solid var(--border-light);
+            border-radius: 1.5rem;
+            font-size: 1rem;
+            background: var(--bg-light);
+            transition: all 0.3s;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 1rem center;
+            background-size: 1.5rem;
+        }
+        
+        body.dark .search-input {
+            background-color: var(--bg-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .filter-label {
+            font-weight: 700;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+        
+        .filter-chip {
+            padding: 0.75rem 1.5rem;
+            border-radius: 999px;
+            border: 2px solid var(--border-light);
+            background: var(--card-light);
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+        }
+        
+        body.dark .filter-chip {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+        
+        .filter-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(124, 58, 237, 0.15);
+        }
+        
+        .filter-chip.active {
+            color: #fff;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            border-color: transparent;
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+        }
+        
+        .sort-select {
+            padding: 0.75rem 1.5rem;
+            border-radius: 1.5rem;
+            border: 2px solid var(--border-light);
+            background: var(--card-light);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 3rem;
+        }
+        
+        body.dark .sort-select {
+            background-color: var(--card-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        
+        .sort-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+        
+        /* Coaches Grid */
+        .coaches-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        @media (min-width: 768px) {
+            .coaches-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .coaches-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        
+        /* Coach Card */
+        .coach-card {
+            background: var(--card-light);
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 2px solid rgba(124, 58, 237, 0.15);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        
+        body.dark .coach-card {
+            background: var(--card-dark);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+        
+        .coach-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6, #10b981);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .coach-card:hover::before {
+            opacity: 1;
+        }
+        
+        .coach-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(124, 58, 237, 0.2);
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+        
+        .coach-header {
+            position: relative;
+            height: 200px;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            overflow: hidden;
+        }
+        
+        .coach-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .coach-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .coach-avatar-wrapper {
+            position: absolute;
+            bottom: -3rem;
+            left: 2rem;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid var(--card-light);
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        body.dark .coach-avatar-wrapper {
+            border-color: var(--card-dark);
+        }
+        
+        .coach-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            font-weight: 800;
+        }
+        
+        .coach-body {
+            padding: 4rem 2rem 2rem;
+        }
+        
+        .coach-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+            color: var(--text-light);
+        }
+        
+        body.dark .coach-name {
+            color: var(--text-dark);
+        }
+        
+        .coach-title {
+            color: var(--muted);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .coach-rating {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 1rem;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .rating-stars {
+            color: #f59e0b;
+            font-size: 1.25rem;
+        }
+        
+        .rating-info {
+            flex: 1;
+        }
+        
+        .rating-value {
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: #f59e0b;
+        }
+        
+        .rating-count {
+            font-size: 0.875rem;
+            color: var(--muted);
+        }
+        
+        .coach-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(124, 58, 237, 0.05);
+            border-radius: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+        
+        .coach-specialties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .specialty-tag {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .expand-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            border-radius: 1rem;
+            color: var(--primary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .expand-btn:hover {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: #fff;
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+        
+        .coach-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        .coach-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .coach-card.expanded .coach-details {
+            max-height: 2000px;
+        }
+        
+        .details-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .courses-list {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .course-item {
+            padding: 1rem;
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            transition: all 0.3s;
+        }
+        
+        body.dark .course-item {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+        }
+        
+        .course-item:hover {
+            border-color: rgba(124, 58, 237, 0.3);
+            transform: translateX(4px);
+        }
+        
+        .course-item-title {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .course-item-desc {
+            font-size: 0.875rem;
+            color: var(--muted);
+        }
+        
+        .achievements-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .achievement-item {
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .achievement-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .achievement-text {
+            font-weight: 600;
+        }
+        
+        .students-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+        
+        .student-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+        }
+        
+        body.dark .student-item {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+        }
+        
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .student-info {
+            flex: 1;
+        }
+        
+        .student-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        
+        .student-rating {
+            font-size: 0.875rem;
+            color: var(--muted);
+        }
+        
+        .coach-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .coach-actions .btn {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+        
+        /* Reviews Button */
+        .reviews-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            border-radius: 1rem;
+            color: #10b981;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .reviews-btn:hover {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Reviews Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background: var(--card-light);
+            border-radius: 2rem;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        body.dark .modal-content {
+            background: var(--card-dark);
+        }
+        
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-header {
+            padding: 2rem;
+            border-bottom: 2px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(59, 130, 246, 0.05));
+        }
+        
+        body.dark .modal-header {
+            border-bottom-color: var(--border-dark);
+        }
+        
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .modal-close {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4757, #ff3838);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4);
+        }
+        
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .reviews-summary {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1));
+            border-radius: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .summary-rating {
+            text-align: center;
+        }
+        
+        .summary-value {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #f59e0b;
+            line-height: 1;
+        }
+        
+        .summary-stars {
+            color: #f59e0b;
+            font-size: 1.5rem;
+            margin: 0.5rem 0;
+        }
+        
+        .summary-count {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+        
+        .summary-bars {
+            flex: 1;
+        }
+        
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .bar-label {
+            font-weight: 700;
+            min-width: 60px;
+            color: #f59e0b;
+        }
+        
+        .bar-container {
+            flex: 1;
+            height: 10px;
+            background: var(--border-light);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        
+        body.dark .bar-container {
+            background: var(--border-dark);
+        }
+        
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            border-radius: 1rem;
+            transition: width 0.5s ease;
+        }
+        
+        .bar-count {
+            min-width: 40px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--muted);
+        }
+        
+        .reviews-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .review-item {
+            background: var(--bg-light);
+            border: 2px solid var(--border-light);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+        
+        body.dark .review-item {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+        }
+        
+        .review-item:hover {
+            border-color: rgba(124, 58, 237, 0.3);
+            transform: translateX(4px);
+        }
+        
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .review-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .review-info {
+            flex: 1;
+        }
+        
+        .review-name {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .review-stars {
+            color: #f59e0b;
+            font-size: 1rem;
+        }
+        
+        .review-date {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+        
+        .review-text {
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+        
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--dark-wood), var(--light-wood));
+            position: relative;
+            overflow: hidden;
+            margin-top: 4rem;
+            padding: 0;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(45deg, #f0d9b5 25%, transparent 25%),
+                linear-gradient(-45deg, #f0d9b5 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #f0d9b5 75%),
+                linear-gradient(-45deg, transparent 75%, #f0d9b5 75%);
+            background-size: 60px 60px;
+            background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+            opacity: 0.05;
+        }
+
+        .footer-top {
+            background: linear-gradient(180deg, rgba(0,0,0,0.3), transparent);
+            padding: 1rem 0;
+            border-bottom: 3px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .footer-ornament {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .footer-ornament span {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .footer-ornament span:nth-child(1) { animation-delay: 0s; }
+        .footer-ornament span:nth-child(2) { animation-delay: 0.5s; }
+        .footer-ornament span:nth-child(3) { animation-delay: 1s; }
+        .footer-ornament span:nth-child(4) { animation-delay: 1.5s; }
+        .footer-ornament span:nth-child(5) { animation-delay: 2s; }
+        .footer-ornament span:nth-child(6) { animation-delay: 2.5s; }
+
+        .footer-content {
+            position: relative;
+            z-index: 2;
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .footer-grid {
+                grid-template-columns: 2fr 1fr 1fr 1fr;
+            }
+        }
+
+        .footer-brand h3 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-section h4 {
+            color: #ffd700;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .footer-links a:hover {
+            color: #ffd700;
+            padding-left: 0.5rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            width: 3.5rem;
+            height: 3.5rem;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: var(--dark-wood);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+            font-size: 1.25rem;
+        }
+
+        .social-link:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .footer-bottom {
+            border-top: 2px solid rgba(255, 215, 0, 0.2);
+            padding: 2rem 0;
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+        }
+
+        .footer-bottom-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .footer-bottom-content {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .coach-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .search-bar {
+                flex-direction: column;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Auth Buttons Styles - Override general .btn styles */
+        .auth-buttons .btn-login {
+            padding: 0.75rem 1.75rem;
+            background: transparent;
+            border: 2px solid #8b5cf6;
+            color: #8b5cf6;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auth-buttons .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: #8b5cf6;
+            transition: left 0.3s;
+            z-index: -1;
+        }
+
+        .auth-buttons .btn-login:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .auth-buttons .btn-login:hover::before {
+            left: 0;
+        }
+
+        .auth-buttons .btn-register {
+            padding: 0.75rem 1.75rem;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auth-buttons .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .auth-buttons .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .auth-buttons .btn-register:hover::before {
+            left: 100%;
+        }
+
+        /* Mobile responsive for auth buttons */
+        @media (max-width: 768px) {
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .auth-buttons .btn-login,
+            .auth-buttons .btn-register {
+                width: 100%;
+                justify-content: center;
+                padding: 0.75rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <div class="chess-pattern"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+                            <defs>
+                                <linearGradient id="crownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd700"/>
+                                    <stop offset="50%" stop-color="#ffffff"/>
+                                    <stop offset="100%" stop-color="#ffd700"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="3" y="16" width="18" height="3" fill="url(#crownGrad)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#crownGrad)" stroke="#fff" stroke-width="1"/>
+                            <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
+                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.25rem; right: 0.25rem; z-index: 3;">
+                            <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.8"/>
+                        </svg>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
+                        <div style="font-size: 0.75rem; color: var(--muted); margin-top: -0.25rem;">♔ Шахматная академия</div>
+                    </div>
+                </a>
+
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="course.html" class="nav-link">Курсы</a>
+                    <a href="#coaches" class="nav-link">Тренера</a>
+                    <a href="index.html#reviews" class="nav-link">Отзывы</a>
+                    <a href="index.html#tournaments" class="nav-link">Турниры</a>
+                </nav>
+
+                <div class="header-actions">
+                    <!-- User Actions -->
+                    <div class="user-actions" id="userActions" style="display: none;">
+                        <a href="cabinet.html" class="btn btn-outline">
+                            <i class="fas fa-user"></i> Кабинет
+                        </a>
+                    </div>
+
+                    <!-- Auth Buttons -->
+                    <div class="auth-buttons" id="authButtons">
+                        <button class="btn-login" onclick="showLoginModal()">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </button>
+                        <button class="btn-register" onclick="showRegisterModal()">
+                            <i class="fas fa-user-plus"></i> Регистрация
+                        </button>
+                    </div>
+
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                        <i class="fas fa-sun" id="themeIcon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="gradient-text">Найдите своего идеального тренера</h1>
+                    <p class="hero-sub">Профессиональные шахматисты с титулами ФИДЕ готовы помочь вам расти</p>
+                </div>
+
+                <!-- Search and Filters -->
+                <div class="search-section">
+                    <div class="search-bar">
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            placeholder="Поиск тренера по имени или специализации..." 
+                            id="searchInput"
+                            onkeyup="filterCoaches()"
+                        >
+                        <select class="sort-select" id="sortSelect" onchange="sortCoaches()">
+                            <option value="rating">По рейтингу ФИДЕ</option>
+                            <option value="reviews">По отзывам</option>
+                            <option value="students">По ученикам</option>
+                            <option value="name">По имени</option>
+                        </select>
+                    </div>
+
+                    <div class="filters">
+                        <span class="filter-label">Уровень:</span>
+                        <button class="filter-chip active" data-filter="all" onclick="applyFilter('all', this)">
+                            Все тренеры
+                        </button>
+                        <button class="filter-chip" data-filter="gm" onclick="applyFilter('gm', this)">
+                            <i class="fas fa-crown"></i> Гроссмейстеры
+                        </button>
+                        <button class="filter-chip" data-filter="im" onclick="applyFilter('im', this)">
+                            <i class="fas fa-star"></i> Международные мастера
+                        </button>
+                        <button class="filter-chip" data-filter="fm" onclick="applyFilter('fm', this)">
+                            <i class="fas fa-medal"></i> ФИДЕ мастера
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Coaches Grid -->
+        <section id="coaches" class="container">
+            <div class="coaches-grid" id="coachesGrid">
+                <!-- Coach 1 -->
+                <article class="coach-card" data-rating="2650" data-title="gm" data-reviews="98">
+                    <div class="coach-header">
+                        <div class="coach-cover" style="background: linear-gradient(135deg, #7c3aed, #3b82f6, #10b981); display: flex; align-items: center; justify-content: center; font-size: 5rem; color: white; opacity: 0.3;">♔</div>
+                        <div class="coach-badge">
+                            <i class="fas fa-crown"></i>
+                            GM 2650
+                        </div>
+                        <div class="coach-avatar-wrapper">
+                            <div class="coach-avatar">ГМ</div>
+                        </div>
+                    </div>
+                    <div class="coach-body">
+                        <h3 class="coach-name">Павел Смирнов</h3>
+                        <p class="coach-title">Гроссмейстер, победитель чемпионата России</p>
+                        
+                        <div class="coach-rating" onclick="openReviews('Павел Смирнов', 1)">
+                            <div class="rating-stars">★★★★★</div>
+                            <div class="rating-info">
+                                <div class="rating-value">4.9</div>
+                                <div class="rating-count">98 отзывов</div>
+                            </div>
+                            <i class="fas fa-arrow-right" style="margin-left: auto; color: #f59e0b;"></i>
+                        </div>
+
+                        <div class="coach-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">15</span>
+                                <div class="stat-label">Лет опыта</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">250+</span>
+                                <div class="stat-label">Учеников</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">12</span>
+                                <div class="stat-label">Курсов</div>
+                            </div>
+                        </div>
+
+                        <div class="coach-specialties">
+                            <span class="specialty-tag">Дебюты</span>
+                            <span class="specialty-tag">Стратегия</span>
+                            <span class="specialty-tag">Эндшпиль</span>
+                        </div>
+
+                        <button class="expand-btn" onclick="toggleCoach(this)">
+                            <span>Подробнее о тренере</span>
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </button>
+
+                        <div class="coach-details">
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    Курсы тренера
+                                </h4>
+                                <div class="courses-list">
+                                    <div class="course-item">
+                                        <div class="course-item-title">Дебютная подготовка против AI</div>
+                                        <div class="course-item-desc">Глубокие идеи, анализ, новинки</div>
+                                    </div>
+                                    <div class="course-item">
+                                        <div class="course-item-title">Стратегия миттельшпиля</div>
+                                        <div class="course-item-desc">Планирование и позиционная игра</div>
+                                    </div>
+                                    <div class="course-item">
+                                        <div class="course-item-title">Эндшпиль для продвинутых</div>
+                                        <div class="course-item-desc">Сложные окончания и техника</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-trophy"></i>
+                                    Достижения
+                                </h4>
+                                <div class="achievements-grid">
+                                    <div class="achievement-item">
+                                        <div class="achievement-icon">🏆</div>
+                                        <div class="achievement-text">Чемпион России 2019</div>
+                                    </div>
+                                    <div class="achievement-item">
+                                        <div class="achievement-icon">🥇</div>
+                                        <div class="achievement-text">Победитель Кубка Европы 2020</div>
+                                    </div>
+                                    <div class="achievement-item">
+                                        <div class="achievement-icon">⭐</div>
+                                        <div class="achievement-text">Рейтинг ФИДЕ 2650</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-users"></i>
+                                    Известные ученики
+                                </h4>
+                                <div class="students-list">
+                                    <div class="student-item">
+                                        <div class="student-avatar">АК</div>
+                                        <div class="student-info">
+                                            <div class="student-name">Алексей Ковалёв</div>
+                                            <div class="student-rating">Мастер ФИДЕ, рейтинг 2380</div>
+                                        </div>
+                                    </div>
+                                    <div class="student-item">
+                                        <div class="student-avatar">МП</div>
+                                        <div class="student-info">
+                                            <div class="student-name">Мария Петрова</div>
+                                            <div class="student-rating">КМС, рейтинг 2150</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="reviews-btn" onclick="openReviews('Павел Смирнов', 1)">
+                            <i class="fas fa-comments"></i>
+                            <span>Читать отзывы учеников</span>
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
+
+                        <div class="coach-actions">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-video"></i>
+                                Записаться на урок
+                            </button>
+                            <button class="btn btn-outline">
+                                <i class="fas fa-envelope"></i>
+                                Написать
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Coach 2 -->
+                <article class="coach-card" data-rating="2520" data-title="im" data-reviews="76">
+                    <div class="coach-header">
+                        <div class="coach-cover" style="background: linear-gradient(135deg, #10b981, #059669, #047857); display: flex; align-items: center; justify-content: center; font-size: 5rem; color: white; opacity: 0.3;">♛</div>
+                        <div class="coach-badge">
+                            <i class="fas fa-star"></i>
+                            IM 2520
+                        </div>
+                        <div class="coach-avatar-wrapper">
+                            <div class="coach-avatar">АО</div>
+                        </div>
+                    </div>
+                    <div class="coach-body">
+                        <h3 class="coach-name">Анна Орлова</h3>
+                        <p class="coach-title">Международный мастер, специалист по тактике</p>
+                        
+                        <div class="coach-rating" onclick="openReviews('Анна Орлова', 2)">
+                            <div class="rating-stars">★★★★★</div>
+                            <div class="rating-info">
+                                <div class="rating-value">4.8</div>
+                                <div class="rating-count">76 отзывов</div>
+                            </div>
+                            <i class="fas fa-arrow-right" style="margin-left: auto; color: #f59e0b;"></i>
+                        </div>
+
+                        <div class="coach-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">10</span>
+                                <div class="stat-label">Лет опыта</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">180+</span>
+                                <div class="stat-label">Учеников</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">8</span>
+                                <div class="stat-label">Курсов</div>
+                            </div>
+                        </div>
+
+                        <div class="coach-specialties">
+                            <span class="specialty-tag">Тактика</span>
+                            <span class="specialty-tag">Комбинации</span>
+                            <span class="specialty-tag">Атака</span>
+                        </div>
+
+                        <button class="expand-btn" onclick="toggleCoach(this)">
+                            <span>Подробнее о тренере</span>
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </button>
+
+                        <div class="coach-details">
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    Курсы тренера
+                                </h4>
+                                <div class="courses-list">
+                                    <div class="course-item">
+                                        <div class="course-item-title">Тактика и средняя игра</div>
+                                        <div class="course-item-desc">Комбинации, расчёт вариантов</div>
+                                    </div>
+                                    <div class="course-item">
+                                        <div class="course-item-title">Атакующие схемы</div>
+                                        <div class="course-item-desc">Как создавать и проводить атаку</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-trophy"></i>
+                                    Достижения
+                                </h4>
+                                <div class="achievements-grid">
+                                    <div class="achievement-item">
+                                        <div class="achievement-icon">🏆</div>
+                                        <div class="achievement-text">Чемпионка Европы среди женщин 2021</div>
+                                    </div>
+                                    <div class="achievement-item">
+                                        <div class="achievement-icon">⭐</div>
+                                        <div class="achievement-text">Рейтинг ФИДЕ 2520</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-users"></i>
+                                    Известные ученики
+                                </h4>
+                                <div class="students-list">
+                                    <div class="student-item">
+                                        <div class="student-avatar">ДМ</div>
+                                        <div class="student-info">
+                                            <div class="student-name">Денис Морозов</div>
+                                            <div class="student-rating">КМС, рейтинг 2200</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="reviews-btn" onclick="openReviews('Анна Орлова', 2)">
+                            <i class="fas fa-comments"></i>
+                            <span>Читать отзывы учеников</span>
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
+
+                        <div class="coach-actions">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-video"></i>
+                                Записаться на урок
+                            </button>
+                            <button class="btn btn-outline">
+                                <i class="fas fa-envelope"></i>
+                                Написать
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Coach 3 -->
+                <article class="coach-card" data-rating="2380" data-title="fm" data-reviews="54">
+                    <div class="coach-header">
+                        <div class="coach-cover" style="background: linear-gradient(135deg, #f59e0b, #d97706, #dc2626); display: flex; align-items: center; justify-content: center; font-size: 5rem; color: white; opacity: 0.3;">♞</div>
+                        <div class="coach-badge">
+                            <i class="fas fa-medal"></i>
+                            FM 2380
+                        </div>
+                        <div class="coach-avatar-wrapper">
+                            <div class="coach-avatar">ИП</div>
+                        </div>
+                    </div>
+                    <div class="coach-body">
+                        <h3 class="coach-name">Илья Петров</h3>
+                        <p class="coach-title">ФИДЕ мастер, эксперт по обучению начинающих</p>
+                        
+                        <div class="coach-rating" onclick="openReviews('Илья Петров', 3)">
+                            <div class="rating-stars">★★★★★</div>
+                            <div class="rating-info">
+                                <div class="rating-value">5.0</div>
+                                <div class="rating-count">54 отзыва</div>
+                            </div>
+                            <i class="fas fa-arrow-right" style="margin-left: auto; color: #f59e0b;"></i>
+                        </div>
+
+                        <div class="coach-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">8</span>
+                                <div class="stat-label">Лет опыта</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">320+</span>
+                                <div class="stat-label">Учеников</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">6</span>
+                                <div class="stat-label">Курсов</div>
+                            </div>
+                        </div>
+
+                        <div class="coach-specialties">
+                            <span class="specialty-tag">Начинающие</span>
+                            <span class="specialty-tag">Основы</span>
+                            <span class="specialty-tag">Детские группы</span>
+                        </div>
+
+                        <button class="expand-btn" onclick="toggleCoach(this)">
+                            <span>Подробнее о тренере</span>
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </button>
+
+                        <div class="coach-details">
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    Курсы тренера
+                                </h4>
+                                <div class="courses-list">
+                                    <div class="course-item">
+                                        <div class="course-item-title">Основы шахмат и первые победы</div>
+                                        <div class="course-item-desc">С нуля до уверенной игры</div>
+                                    </div>
+                                    <div class="course-item">
+                                        <div class="course-item-title">Шахматы для детей</div>
+                                        <div class="course-item-desc">Весёлое обучение для самых маленьких</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-trophy"></i>
+                                    Достижения
+                                </h4>
+                                <div class="achievements-grid">
+                                    <div class="achievement-item">
+                                        <div class="achievement-icon">🏆</div>
+                                        <div class="achievement-text">Лучший детский тренер 2022</div>
+                                    </div>
+                                    <div class="achievement-item">
+                                        <div class="achievement-icon">⭐</div>
+                                        <div class="achievement-text">Рейтинг ФИДЕ 2380</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-users"></i>
+                                    Известные ученики
+                                </h4>
+                                <div class="students-list">
+                                    <div class="student-item">
+                                        <div class="student-avatar">СИ</div>
+                                        <div class="student-info">
+                                            <div class="student-name">Светлана Иванова</div>
+                                            <div class="student-rating">1 разряд, рейтинг 1950</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="reviews-btn" onclick="openReviews('Илья Петров', 3)">
+                            <i class="fas fa-comments"></i>
+                            <span>Читать отзывы учеников</span>
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
+
+                        <div class="coach-actions">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-video"></i>
+                                Записаться на урок
+                            </button>
+                            <button class="btn btn-outline">
+                                <i class="fas fa-envelope"></i>
+                                Написать
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- Reviews Modal -->
+    <div class="modal" id="reviewsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Отзывы о тренере</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="reviews-summary">
+                    <div class="summary-rating">
+                        <div class="summary-value" id="summaryValue">4.9</div>
+                        <div class="summary-stars">★★★★★</div>
+                        <div class="summary-count" id="summaryCount">98 отзывов</div>
+                    </div>
+                    <div class="summary-bars">
+                        <div class="bar-item">
+                            <div class="bar-label">5 ★</div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: 85%;"></div>
+                            </div>
+                            <div class="bar-count">83</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">4 ★</div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: 10%;"></div>
+                            </div>
+                            <div class="bar-count">10</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">3 ★</div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: 3%;"></div>
+                            </div>
+                            <div class="bar-count">3</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">2 ★</div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: 2%;"></div>
+                            </div>
+                            <div class="bar-count">2</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">1 ★</div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="bar-count">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reviews-list" id="reviewsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-ornament">
+                <span>♔</span>
+                <span>♕</span>
+                <span>♖</span>
+                <span>♗</span>
+                <span>♘</span>
+                <span>♙</span>
+            </div>
+        </div>
+
+        <div class="footer-content">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <h3>PowerChess</h3>
+                        <p>
+                            Революционная AI-платформа для изучения шахмат. Станьте мастером быстрее с PowerChess! 
+                            Объединяем классическую шахматную мудрость с современными технологиями.
+                        </p>
+                        <div class="social-links">
+                            <a href="#" class="social-link" title="Telegram">
+                                <i class="fab fa-telegram"></i>
+                            </a>
+                            <a href="#" class="social-link" title="YouTube">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                            <a href="#" class="social-link" title="VK">
+                                <i class="fab fa-vk"></i>
+                            </a>
+                            <a href="#" class="social-link" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4>Обучение</h4>
+                        <ul class="footer-links">
+                            <li><a href="course.html">♟ Курсы</a></li>
+                            <li><a href="#">♟ Бесплатные уроки</a></li>
+                            <li><a href="#">♟ Мастер-классы</a></li>
+                            <li><a href="#">♟ AI-анализ</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4>Сообщество</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">♟ Турниры</a></li>
+                            <li><a href="#">♟ Форум</a></li>
+                            <li><a href="#">♟ Рейтинг</a></li>
+                            <li><a href="#coaches">♟ Тренеры</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4>Поддержка</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">♟ Справка</a></li>
+                            <li><a href="#">♟ Контакты</a></li>
+                            <li><a href="#">♟ Конфиденциальность</a></li>
+                            <li><a href="#">♟ Условия</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom-content">
+                    <div class="footer-copyright">
+                        &copy; 2024 PowerChess. Все права защищены. Создано с ♔ для шахматистов.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mock reviews data
+        const reviewsData = {
+            1: [
+                { name: 'Алексей Ковалёв', stars: 5, text: 'Павел - феноменальный тренер! Его объяснения дебютов настолько глубоки, что я начал понимать шахматы на совершенно новом уровне. За полгода занятий мой рейтинг вырос на 200 пунктов!', date: '20 января 2024' },
+                { name: 'Мария Петрова', stars: 5, text: 'Лучший тренер, с которым я работала! Индивидуальный подход, внимание к деталям, глубокий анализ моих партий. Рекомендую всем, кто хочет серьёзно расти в шахматах.', date: '15 января 2024' },
+                { name: 'Дмитрий Соколов', stars: 4, text: 'Отличные уроки по стратегии. Павел умеет объяснить сложные концепции простым языком. Единственный минус - высокая цена, но качество того стоит.', date: '10 января 2024' },
+                { name: 'Елена Новикова', stars: 5, text: 'Профессионал высочайшего уровня! Занимаюсь уже год, прогресс очевиден. Особенно ценю разборы моих партий - всегда нахожу что-то новое.', date: '5 января 2024' },
+                { name: 'Игорь Васильев', stars: 5, text: 'Павел помог мне подготовиться к важному турниру. Его советы по дебютам оказались бесценными - выиграл турнир! Спасибо!', date: '28 декабря 2023' }
+            ],
+            2: [
+                { name: 'Денис Морозов', stars: 5, text: 'Анна - гений тактики! Её курс полностью изменил моё понимание комбинаций. Теперь вижу тактические удары там, где раньше их не замечал.', date: '18 января 2024' },
+                { name: 'Ольга Смирнова', stars: 5, text: 'Занимаюсь с Анной уже 8 месяцев. Мой рейтинг вырос с 1800 до 2200! Она умеет мотивировать и находить индивидуальный подход.', date: '12 января 2024' },
+                { name: 'Сергей Попов', stars: 4, text: 'Хороший тренер, много тактических упражнений. Иногда не хватает материала по позиционной игре, но в целом очень доволен.', date: '8 января 2024' },
+                { name: 'Наталья Кузнецова', stars: 5, text: 'Анна - лучшая! Её энтузиазм заразителен, а объяснения кристально ясны. Рекомендую всем, кто хочет усилить тактику.', date: '2 января 2024' }
+            ],
+            3: [
+                { name: 'Светлана Иванова', stars: 5, text: 'Илья - идеальный тренер для начинающих! Терпеливый, внимательный, умеет объяснить любую концепцию. За 3 месяца я с нуля дошла до 1-го разряда!', date: '22 января 2024' },
+                { name: 'Максим Волков', stars: 5, text: 'Мой сын (9 лет) в восторге от занятий! Илья умеет заинтересовать детей шахматами, делает уроки весёлыми и познавательными.', date: '16 января 2024' },
+                { name: 'Артём Лебедев', stars: 5, text: 'Лучший тренер для новичков! Все объясняет с нуля, терпеливо отвечает на любые вопросы. Чувствую реальный прогресс!', date: '10 января 2024' },
+                { name: 'Виктория Морозова', stars: 5, text: 'Илья помог мне полюбить шахматы! Раньше они казались скучными, но его энтузиазм и интересные задачи всё изменили.', date: '5 января 2024' }
+            ]
+        };
+
+        // Theme
+        let isDark = false;
+        function toggleTheme() {
+            isDark = !isDark;
+            document.body.classList.toggle('dark', isDark);
+            document.getElementById('themeIcon').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            isDark = true;
+            document.body.classList.add('dark');
+            document.getElementById('themeIcon').className = 'fas fa-moon';
+        }
+
+        // Header scroll
+        function handleScroll() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }
+
+        // Toggle coach details
+        function toggleCoach(btn) {
+            const card = btn.closest('.coach-card');
+            card.classList.toggle('expanded');
+        }
+
+        // Filter coaches
+        let currentFilter = 'all';
+        function applyFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterCoaches();
+        }
+
+        function filterCoaches() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.coach-card');
+            
+            cards.forEach(card => {
+                const title = card.dataset.title;
+                const name = card.querySelector('.coach-name').textContent.toLowerCase();
+                const specialties = Array.from(card.querySelectorAll('.specialty-tag')).map(t => t.textContent.toLowerCase()).join(' ');
+                
+                const matchesFilter = currentFilter === 'all' || title === currentFilter;
+                const matchesSearch = name.includes(searchTerm) || specialties.includes(searchTerm);
+                
+                card.style.display = (matchesFilter && matchesSearch) ? '' : 'none';
+            });
+        }
+
+        // Sort coaches
+        function sortCoaches() {
+            const sortBy = document.getElementById('sortSelect').value;
+            const grid = document.getElementById('coachesGrid');
+            const cards = Array.from(grid.querySelectorAll('.coach-card'));
+            
+            cards.sort((a, b) => {
+                if (sortBy === 'rating') {
+                    return parseInt(b.dataset.rating) - parseInt(a.dataset.rating);
+                } else if (sortBy === 'reviews') {
+                    return parseInt(b.dataset.reviews) - parseInt(a.dataset.reviews);
+                } else if (sortBy === 'students') {
+                    const aStudents = parseInt(a.querySelector('.stat-item:nth-child(2) .stat-value').textContent);
+                    const bStudents = parseInt(b.querySelector('.stat-item:nth-child(2) .stat-value').textContent);
+                    return bStudents - aStudents;
+                } else if (sortBy === 'name') {
+                    const aName = a.querySelector('.coach-name').textContent;
+                    const bName = b.querySelector('.coach-name').textContent;
+                    return aName.localeCompare(bName);
+                }
+            });
+            
+            cards.forEach(card => grid.appendChild(card));
+        }
+
+        // Open reviews modal
+        function openReviews(coachName, coachId) {
+            document.getElementById('modalTitle').textContent = `Отзывы: ${coachName}`;
+            
+            const reviews = reviewsData[coachId] || [];
+            const avgRating = reviews.length > 0 
+                ? (reviews.reduce((sum, r) => sum + r.stars, 0) / reviews.length).toFixed(1)
+                : '0.0';
+            
+            document.getElementById('summaryValue').textContent = avgRating;
+            document.getElementById('summaryCount').textContent = `${reviews.length} отзывов`;
+            
+            const container = document.getElementById('reviewsList');
+            container.innerHTML = reviews.map(review => {
+                const initial = review.name.charAt(0);
+                const starsHTML = '★'.repeat(review.stars) + '☆'.repeat(5 - review.stars);
+                
+                return `
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="review-avatar">${initial}</div>
+                            <div class="review-info">
+                                <div class="review-name">${review.name}</div>
+                                <div class="review-stars">${starsHTML}</div>
+                                <div class="review-date">
+                                    <i class="fas fa-calendar-alt"></i> ${review.date}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="review-text">${review.text}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            showModal();
+        }
+
+        function showModal() {
+            document.getElementById('reviewsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('reviewsModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Auth modal functions are provided by auth.js
+
+        // Close on backdrop click
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                closeModal();
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Include common auth functions
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+        });
+    </script>
+
+    <!-- Common Auth Script -->
+    <script src="auth.js"></script>
+</body>
+</html>
