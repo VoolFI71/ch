@@ -64,7 +64,7 @@ function createCourseCard(course, owned) {
     btn.className = 'btn btn-outline';
     btn.style.marginTop = '1rem';
     btn.textContent = 'Перейти к покупке';
-    btn.onclick = () => window.location.href = 'index.html#courses';
+    btn.onclick = () => window.location.href = '/#courses';
     content.appendChild(lock);
     content.appendChild(btn);
   }

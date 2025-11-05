@@ -1115,10 +1115,10 @@
 
                 <!-- Navigation -->
                 <nav class="nav">
-                    <a href="index.html" class="nav-link">Главная</a>
-                    <a href="course.html" class="nav-link">Курсы</a>
-                    <a href="couch.html#coaches" class="nav-link">Тренера</a>
-                    <a href="spaced-repetition.html" class="nav-link">Повторения</a>
+                    <a href="/" class="nav-link">Главная</a>
+                    <a href="/course" class="nav-link">Курсы</a>
+                    <a href="/couch#coaches" class="nav-link">Тренера</a>
+                    <a href="/spaced-repetition" class="nav-link">Повторения</a>
                 </nav>
 
                 <!-- Header Actions -->
@@ -1456,7 +1456,7 @@
                                 <button class="btn btn-primary" style="flex: 1; font-size: 0.95rem;" onclick="repeatLesson('Опровержение дебюта Гроба - Вариант 1','course-1')">
                                     <i class="fas fa-play"></i> Начать повторение
                                 </button>
-                                <button class="btn btn-outline" style="flex: 1; font-size: 0.95rem;" onclick="window.location.href='spaced-repetition.html'">
+                                <button class="btn btn-outline" style="flex: 1; font-size: 0.95rem;" onclick="window.location.href='/spaced-repetition'">
                                     <i class="fas fa-eye"></i> Просмотр
                                 </button>
                             </div>
@@ -1487,7 +1487,7 @@
                                 <button class="btn btn-primary" style="flex: 1; font-size: 0.95rem;" onclick="repeatLesson('Тактика - Двойной удар','course-2')">
                                     <i class="fas fa-play"></i> Начать повторение
                                 </button>
-                                <button class="btn btn-outline" style="flex: 1; font-size: 0.95rem;" onclick="window.location.href='spaced-repetition.html'">
+                                <button class="btn btn-outline" style="flex: 1; font-size: 0.95rem;" onclick="window.location.href='/spaced-repetition'">
                                     <i class="fas fa-eye"></i> Просмотр
                                 </button>
                             </div>
@@ -1521,7 +1521,7 @@
                                 <button class="btn btn-primary" style="flex: 1; font-size: 0.95rem;" onclick="repeatLesson('Эндшпиль - Король и пешка','course-3')">
                                     <i class="fas fa-play"></i> Начать повторение
                                 </button>
-                                <button class="btn btn-outline" style="flex: 1; font-size: 0.95rem;" onclick="window.location.href='spaced-repetition.html'">
+                                <button class="btn btn-outline" style="flex: 1; font-size: 0.95rem;" onclick="window.location.href='/spaced-repetition'">
                                     <i class="fas fa-eye"></i> Просмотр
                                 </button>
                             </div>
@@ -1705,7 +1705,7 @@
 
         // Open spaced repetition page with the current lesson context
         function repeatCurrentLesson() {
-            const url = new URL('spaced-repetition.html', window.location.href);
+            const url = new URL('/spaced-repetition', window.location.origin);
             if (currentLessonTitle) url.searchParams.set('lesson', currentLessonTitle);
             if (currentCourseId) url.searchParams.set('course', currentCourseId);
             window.location.href = url.toString();

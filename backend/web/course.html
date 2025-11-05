@@ -952,7 +952,7 @@
     <header class="header" id="header">
         <div class="container">
             <div class="header-content">
-                <a href="index.html" class="logo" onclick="closeMobileMenu()">
+                <a href="/" class="logo" onclick="closeMobileMenu()">
                     <div class="logo-icon">
                         <div class="chess-pattern"></div>
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
@@ -982,19 +982,23 @@
                 </a>
 
                 <nav class="nav">
-                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="/" class="nav-link">Главная</a>
                     <a href="#catalog" class="nav-link">Курсы</a>
-                    <a href="couch.html#coaches" class="nav-link">Тренера</a>
-                    <a href="index.html#reviews" class="nav-link">Отзывы</a>
-                    <a href="index.html#tournaments" class="nav-link">Турниры</a>
+                    <a href="/couch#coaches" class="nav-link">Тренера</a>
+                    <a href="/#reviews" class="nav-link">Отзывы</a>
+                    <a href="/#tournaments" class="nav-link">Турниры</a>
                 </nav>
 
                 <div class="header-actions">
                     <!-- User Actions -->
                     <div class="user-actions" id="userActions" style="display: none;">
-                        <a href="cabinet.html" class="btn btn-outline">
+                        <a href="/cabinet" class="btn btn-outline">
                             <i class="fas fa-user"></i> Кабинет
                         </a>
+                        <button type="button" class="btn btn-outline logout-btn" style="display: none; margin-left: 0.5rem;">
+                            <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
+                            Выйти
+                        </button>
                     </div>
 
                     <!-- Auth Buttons -->
@@ -1463,13 +1467,13 @@
                     if (url.startsWith('/api/payments/simulate/')) {
                         // Dev mode: simulate then go to cabinet
                         await apiFetch(url);
-                        window.location.href = '/cabinet.html';
+                        window.location.href = '/cabinet';
                     } else {
                         window.location.href = url;
                     }
                 } else {
                     // Free course path
-                    window.location.href = '/cabinet.html';
+                    window.location.href = '/cabinet';
                 }
             } catch (e) {
                 alert('Сетевая ошибка при переходе к оплате');

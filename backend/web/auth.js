@@ -112,9 +112,18 @@
     let btn = container.querySelector('.logout-btn');
     if (!btn) {
       btn = document.createElement('button');
-      btn.className = 'logout-btn';
-      btn.textContent = 'Выйти';
-      btn.style.marginLeft = '0.5rem';
+      btn.type = 'button';
+      btn.innerHTML = '<i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i> Выйти';
+      btn.style.display = 'none';
+      if (container.classList.contains('mobile-user-actions')) {
+        btn.classList.add('btn', 'btn-outline', 'logout-btn');
+        btn.style.width = '100%';
+        btn.style.justifyContent = 'center';
+        btn.style.marginTop = '0.5rem';
+      } else {
+        btn.classList.add('btn', 'btn-outline', 'logout-btn');
+        btn.style.marginLeft = '0.5rem';
+      }
       container.appendChild(btn);
     }
     return btn;
@@ -125,17 +134,21 @@
     if (authButtons) authButtons.style.display = isLoggedIn ? 'none' : 'flex';
 
     const userActions = document.getElementById('userActions');
-    if (userActions) userActions.style.display = isLoggedIn ? 'flex' : 'none';
+    if (userActions) {
+      if (isLoggedIn) ensureLogoutButton(userActions);
+      userActions.style.display = isLoggedIn ? 'flex' : 'none';
+    }
 
     const mobileUserActions = document.getElementById('mobileUserActions');
-    if (mobileUserActions) mobileUserActions.style.display = isLoggedIn ? 'block' : 'none';
+    if (mobileUserActions) {
+      if (isLoggedIn) ensureLogoutButton(mobileUserActions);
+      mobileUserActions.style.display = isLoggedIn ? 'block' : 'none';
+    }
 
-    // Only toggle visibility of existing logout buttons; do not inject new ones
     document.querySelectorAll('.logout-btn').forEach((el) => {
       el.style.display = isLoggedIn ? '' : 'none';
     });
 
-    // Rebind after potential injection
     bindLogoutButtons();
   }
 
@@ -215,15 +228,18 @@
   window.handleLogout = async function () {
     clearTokens();
     updateAuthUI(false);
+    window.location.reload();
   };
 
   // Wire logout buttons
   function bindLogoutButtons() {
     document.querySelectorAll('.logout-btn').forEach((btn) => {
+      if (btn.dataset.bound === 'true') return;
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         window.handleLogout();
       });
+      btn.dataset.bound = 'true';
     });
   }
 

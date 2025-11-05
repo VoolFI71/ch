@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const res = await authedFetch('/api/auth/me');
         if (res && res.ok) {
-          window.location.href = 'cabinet.html';
+          window.location.href = '/cabinet';
         } else {
           if (typeof showLoginModal === 'function') showLoginModal();
         }
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const enroll = await authedFetch('/api/courses/1/enroll', { method: 'POST' });
         if (enroll && enroll.ok) {
           alert('✅ Курс добавлен в ваш кабинет');
-          window.location.href = 'cabinet.html';
+          window.location.href = '/cabinet';
         } else {
           const msg = await enroll.text();
           alert('Не удалось выдать доступ: ' + msg);
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         freeCourseButton.textContent = 'Уже в вашем кабинете';
         freeCourseButton.classList.remove('btn-success');
         freeCourseButton.classList.add('btn-outline');
-        freeCourseButton.onclick = (e) => { e.preventDefault(); window.location.href = 'cabinet.html'; };
+        freeCourseButton.onclick = (e) => { e.preventDefault(); window.location.href = '/cabinet'; };
       }
     } catch {}
   })();
