@@ -27,6 +27,14 @@ class LessonOut(BaseModel):
     }
 
 
+class LessonUpdate(BaseModel):
+    title: str | None = None
+    content: str | None = None
+    pgn_content: str | None = None
+    order_index: int | None = None
+    duration_sec: int | None = None
+
+
 class PGNFileOut(BaseModel):
     id: int
     course_id: int

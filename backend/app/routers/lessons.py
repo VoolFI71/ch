@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Course, Lesson, User, Enrollment
-from ..schemas.lesson import LessonCreate, LessonOut, PGNFileOut
+from ..schemas.lesson import LessonCreate, LessonOut, LessonUpdate, PGNFileOut
 from ..security import get_current_user
 
 
@@ -62,6 +62,39 @@ def create_lesson(
         duration_sec=payload.duration_sec,
     )
     db.add(lesson)
+    db.commit()
+    db.refresh(lesson)
+    return lesson
+
+
+@router.patch("/{lesson_id}", response_model=LessonOut)
+def update_lesson(
+    course_id: int,
+    lesson_id: int,
+    payload: LessonUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> LessonOut:
+    course = db.get(Course, course_id)
+    if not course or not course.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
+    
+    lesson = db.get(Lesson, lesson_id)
+    if not lesson or lesson.course_id != course_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lesson not found")
+    
+    # Update only provided fields
+    if payload.title is not None:
+        lesson.title = payload.title
+    if payload.content is not None:
+        lesson.content = payload.content
+    if payload.pgn_content is not None:
+        lesson.pgn_content = payload.pgn_content
+    if payload.order_index is not None:
+        lesson.order_index = payload.order_index
+    if payload.duration_sec is not None:
+        lesson.duration_sec = payload.duration_sec
+    
     db.commit()
     db.refresh(lesson)
     return lesson
