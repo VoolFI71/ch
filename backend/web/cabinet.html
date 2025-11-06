@@ -1599,31 +1599,6 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="container">
-            <!-- Welcome Card -->
-            <div class="welcome-card">
-                <div class="welcome-content">
-                    <div class="welcome-left">
-                        <div class="welcome-header">
-                            <div class="crown-avatar">
-                                <i class="fas fa-crown" style="color: white; font-size: 2rem;"></i>
-                            </div>
-                            <div>
-                                <h2 class="welcome-title" id="greeting">Добрый день, Гроссмейстер!</h2>
-                                <p class="welcome-subtitle" id="motivationalMessage">Каждый мастер когда-то был новичком</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="streak-badge">
-                        <span class="streak-emoji">🔥</span>
-                        <div>
-                            <div class="streak-text">12 дней подряд</div>
-                            <div class="streak-subtext" style="font-size: 0.875rem; color: var(--muted-foreground);">Так держать!</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -2057,31 +2032,6 @@
 11. Nc3 O-O 12. Re1 Bf6 13. Ne4 Qd8 14. Nxf6+ Qxf6 
 15. Qf3 Qxf3 16. gxf3 1-0`
         };
-
-        // Greeting
-        function updateGreeting() {
-            const hour = new Date().getHours();
-            let greeting = 'Добрый день';
-            if (hour < 12) greeting = 'Доброе утро';
-            else if (hour >= 18) greeting = 'Добрый вечер';
-            
-            document.getElementById('greeting').textContent = `${greeting}, Гроссмейстер!`;
-        }
-
-        const messages = [
-            'Каждый мастер когда-то был новичком',
-            'Шахматы - это гимнастика для ума',
-            'Победа приходит к тем, кто упорно тренируется',
-            'В шахматах как в жизни - важна каждая деталь'
-        ];
-
-        function updateMessage() {
-            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-            document.getElementById('motivationalMessage').textContent = randomMessage;
-        }
-
-        updateGreeting();
-        updateMessage();
 
         // Tabs
         function switchTab(tabName) {
