@@ -1689,115 +1689,10 @@
                         Все мои файлы
                     </h2>
 
-                    <div class="files-list">
-                        <div class="file-item">
-                            <div class="file-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <div class="file-info">
-                                <div class="file-name">Дебют Гроба - Основные варианты.pgn</div>
-                                <div class="file-meta">
-                                    <i class="fas fa-tag"></i> Опровержение дебюта Гроба •
-                                    <i class="fas fa-calendar"></i> 15 января 2024 •
-                                    <i class="fas fa-file"></i> 24 KB
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="file-btn" onclick="viewPGN('Дебют Гроба - Основные варианты')">
-                                    <i class="fas fa-eye"></i> Просмотр
-                                </button>
-                                <button class="file-btn" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                    <i class="fas fa-download"></i> Скачать
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="file-item">
-                            <div class="file-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <div class="file-info">
-                                <div class="file-name">Защита от дебюта Гроба - Практика.pgn</div>
-                                <div class="file-meta">
-                                    <i class="fas fa-tag"></i> Опровержение дебюта Гроба •
-                                    <i class="fas fa-calendar"></i> 12 января 2024 •
-                                    <i class="fas fa-file"></i> 18 KB
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="file-btn" onclick="viewPGN('Защита от дебюта Гроба - Практика')">
-                                    <i class="fas fa-eye"></i> Просмотр
-                                </button>
-                                <button class="file-btn" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                    <i class="fas fa-download"></i> Скачать
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="file-item">
-                            <div class="file-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <div class="file-info">
-                                <div class="file-name">Тактические мотивы - Двойной удар.pgn</div>
-                                <div class="file-meta">
-                                    <i class="fas fa-tag"></i> Тактические комбинации •
-                                    <i class="fas fa-calendar"></i> 10 января 2024 •
-                                    <i class="fas fa-file"></i> 32 KB
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="file-btn" onclick="viewPGN('Тактические мотивы - Двойной удар')">
-                                    <i class="fas fa-eye"></i> Просмотр
-                                </button>
-                                <button class="file-btn" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                    <i class="fas fa-download"></i> Скачать
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="file-item">
-                            <div class="file-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <div class="file-info">
-                                <div class="file-name">Эндшпиль - Король и пешка.pgn</div>
-                                <div class="file-meta">
-                                    <i class="fas fa-tag"></i> Эндшпиль для начинающих •
-                                    <i class="fas fa-calendar"></i> 8 января 2024 •
-                                    <i class="fas fa-file"></i> 15 KB
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="file-btn" onclick="viewPGN('Эндшпиль - Король и пешка')">
-                                    <i class="fas fa-eye"></i> Просмотр
-                                </button>
-                                <button class="file-btn" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                    <i class="fas fa-download"></i> Скачать
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="file-item">
-                            <div class="file-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <div class="file-info">
-                                <div class="file-name">Связка и развязка - Примеры.pgn</div>
-                                <div class="file-meta">
-                                    <i class="fas fa-tag"></i> Тактические комбинации •
-                                    <i class="fas fa-calendar"></i> 5 января 2024 •
-                                    <i class="fas fa-file"></i> 28 KB
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="file-btn" onclick="viewPGN('Связка и развязка - Примеры')">
-                                    <i class="fas fa-eye"></i> Просмотр
-                                </button>
-                                <button class="file-btn" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                    <i class="fas fa-download"></i> Скачать
-                                </button>
-                            </div>
+                    <div class="files-list" id="pgnFilesList">
+                        <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <div>Загрузка файлов...</div>
                         </div>
                     </div>
                 </div>
@@ -1993,45 +1888,11 @@
     </div>
 
     <script>
-        // Mock PGN data
-        const pgnData = {
-            'course-1': `[Event "Дебют Гроба - Урок 1"]
-[Site "PowerChess"]
-[Date "2024.01.15"]
-[White "Пример"]
-[Black "Защита"]
-[Result "1-0"]
-
-1. g4 d5 2. Bg2 e5 3. c4 c6 4. cxd5 cxd5 5. Nc3 Ne7 
-6. Qb3 Nbc6 7. Qxd5 Qxd5 8. Nxd5 Nxd5 9. Bxd5 Be6 
-10. Bxc6+ bxc6 11. Nf3 Bd6 12. d3 O-O 13. O-O f5 
-14. gxf5 Bxf5 15. Ng5 h6 16. Ne4 Be7 17. Nc3 Bf6 
-18. Be3 Rfd8 19. Rad1 1-0`,
-
-            'course-2': `[Event "Тактические комбинации - Урок 1"]
-[Site "PowerChess"]
-[Date "2024.01.10"]
-[White "Двойной удар"]
-[Black "Пример"]
-[Result "1-0"]
-
-1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. c3 Nf6 5. d4 exd4 
-6. cxd4 Bb4+ 7. Bd2 Bxd2+ 8. Nbxd2 d5 9. exd5 Nxd5 
-10. Qb3 Na5 11. Qa4+ Nc6 12. Bb5 Nde7 13. O-O O-O 
-14. Rfe1 Bd7 15. Bxc6 Bxc6 16. Qc2 1-0`,
-
-            'course-3': `[Event "Эндшпиль - Урок 1"]
-[Site "PowerChess"]
-[Date "2024.01.08"]
-[White "Король и пешка"]
-[Black "Теория"]
-[Result "1-0"]
-
-1. e4 e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nxc6 bxc6 
-6. e5 Nd5 7. c4 Nb6 8. Bd3 d6 9. exd6 Qxd6 10. O-O Be7 
-11. Nc3 O-O 12. Re1 Bf6 13. Ne4 Qd8 14. Nxf6+ Qxf6 
-15. Qf3 Qxf3 16. gxf3 1-0`
-        };
+        // Store PGN files loaded from API
+        let pgnFilesData = [];
+        
+        // Legacy PGN data for backward compatibility (for lessons modal)
+        const pgnData = {};
 
         // Tabs
         function switchTab(tabName) {
@@ -2040,6 +1901,11 @@
             
             event.target.closest('.tab-button').classList.add('active');
             document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Load PGN files when switching to files tab
+            if (tabName === 'files' && pgnFilesData.length === 0) {
+                loadPGNFiles();
+            }
         }
 
         // Course accordion
@@ -2090,25 +1956,134 @@
             repeatCurrentLesson();
         }
 
+        // Load PGN files from API
+        async function loadPGNFiles() {
+            const filesList = document.getElementById('pgnFilesList');
+            if (!filesList) return;
+            
+            try {
+                const res = await apiFetch('/api/pgn-files/');
+                if (!res.ok) {
+                    throw new Error('Failed to load PGN files');
+                }
+                
+                pgnFilesData = await res.json();
+                renderPGNFiles();
+            } catch (error) {
+                console.error('Error loading PGN files:', error);
+                filesList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem; color: var(--red-500);"></i>
+                        <div>Ошибка загрузки файлов</div>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" onclick="loadPGNFiles()">
+                            Попробовать снова
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Render PGN files list
+        function renderPGNFiles() {
+            const filesList = document.getElementById('pgnFilesList');
+            if (!filesList) return;
+            
+            if (!pgnFilesData || pgnFilesData.length === 0) {
+                filesList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                        <i class="fas fa-folder-open" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <div>Пока нет PGN файлов</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            filesList.innerHTML = '';
+            
+            pgnFilesData.forEach((file, index) => {
+                const fileName = `"${file.course_title}" Урок ${file.lesson_number}`;
+                
+                // Format date for display
+                const dateObj = new Date(file.created_at);
+                const formattedDate = dateObj.toLocaleDateString('ru-RU', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+                
+                // Calculate file size (approximate)
+                const sizeBytes = new Blob([file.pgn_content]).size;
+                const sizeKB = (sizeBytes / 1024).toFixed(0);
+                
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">${fileName}.pgn</div>
+                        <div class="file-meta">
+                            <i class="fas fa-tag"></i> ${file.course_title} •
+                            <i class="fas fa-calendar"></i> ${formattedDate} •
+                            <i class="fas fa-file"></i> ${sizeKB} KB
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-btn" onclick="viewPGN(${index})">
+                            <i class="fas fa-eye"></i> Просмотр
+                        </button>
+                        <button class="file-btn" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="downloadPGN(${index})">
+                            <i class="fas fa-download"></i> Скачать
+                        </button>
+                    </div>
+                `;
+                
+                filesList.appendChild(fileItem);
+            });
+        }
+        
         // View PGN
-        function viewPGN(fileName) {
-            document.getElementById('pgnModalTitle').textContent = fileName;
+        function viewPGN(fileIndex) {
+            if (typeof fileIndex === 'string') {
+                // Legacy support: find by file name
+                const file = pgnFilesData.find(f => {
+                    const fileName = `"${f.course_title}" Урок ${f.lesson_number}`;
+                    return fileName === fileIndex || fileIndex.includes(f.course_title);
+                });
+                if (file) {
+                    const fileName = `"${file.course_title}" Урок ${file.lesson_number}`;
+                    document.getElementById('pgnModalTitle').textContent = fileName;
+                    document.getElementById('pgnContent').textContent = file.pgn_content;
+                    showModal('pgnModal');
+                }
+            } else {
+                // New way: by index
+                const file = pgnFilesData[fileIndex];
+                if (file) {
+                    const fileName = `"${file.course_title}" Урок ${file.lesson_number}`;
+                    document.getElementById('pgnModalTitle').textContent = fileName;
+                    document.getElementById('pgnContent').textContent = file.pgn_content;
+                    showModal('pgnModal');
+                }
+            }
+        }
+        
+        // Download PGN
+        function downloadPGN(fileIndex) {
+            const file = pgnFilesData[fileIndex];
+            if (!file) return;
             
-            // Generate sample PGN based on file name
-            let pgn = `[Event "${fileName}"]
-[Site "PowerChess"]
-[Date "2024.01.15"]
-[White "Пример"]
-[Black "Анализ"]
-[Result "*"]
-
-1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 
-6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Na5 10. Bc2 c5 
-11. d4 Qc7 12. Nbd2 cxd4 13. cxd4 Nc6 14. Nb3 a5 
-15. Be3 a4 16. Nbd2 Bd7 17. Rc1 Qb7 18. Nf1 *`;
-            
-            document.getElementById('pgnContent').textContent = pgn;
-            showModal('pgnModal');
+            const fileName = `"${file.course_title}" Урок ${file.lesson_number}.pgn`;
+            const blob = new Blob([file.pgn_content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         // Modal management
@@ -2152,6 +2127,12 @@
         // Include common auth functions
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme();
+            
+            // Load PGN files if files tab is active
+            const filesTab = document.getElementById('files-tab');
+            if (filesTab && filesTab.classList.contains('active')) {
+                loadPGNFiles();
+            }
 
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function(e) {

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Course, Lesson, User, Enrollment
-from ..schemas.lesson import LessonCreate, LessonOut
+from ..schemas.lesson import LessonCreate, LessonOut, PGNFileOut
 from ..security import get_current_user
 
 
@@ -57,6 +57,7 @@ def create_lesson(
         course_id=course_id,
         title=payload.title,
         content=payload.content,
+        pgn_content=payload.pgn_content,
         order_index=payload.order_index,
         duration_sec=payload.duration_sec,
     )
@@ -64,5 +65,7 @@ def create_lesson(
     db.commit()
     db.refresh(lesson)
     return lesson
+
+
 
 

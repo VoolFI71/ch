@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import get_db
 from .migrations_runner import run_migrations
-from .routers import auth_router, courses_router, lessons_router, payments_router
+from .routers import auth_router, courses_router, lessons_router, payments_router, pgn_files_router
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
@@ -49,6 +49,7 @@ app.include_router(auth_router)
 app.include_router(courses_router)
 app.include_router(lessons_router)
 app.include_router(payments_router)
+app.include_router(pgn_files_router)
 
 
 # Frontend serving
