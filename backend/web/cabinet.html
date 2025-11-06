@@ -27,7 +27,7 @@
             --secondary: #f1f5f9;
         }
         
-        .dark {
+        body.dark {
             --secondary: #1e293b;
         }
 
@@ -98,7 +98,7 @@
             transition: all 0.3s ease;
         }
 
-        .dark .header {
+        body.dark .header {
             background: rgba(15, 15, 35, 0.98);
             background-image: linear-gradient(rgba(15, 15, 35, 0.98), rgba(15, 15, 35, 0.98)),
                               linear-gradient(90deg, #8b5cf6, #3b82f6, #10b981, #f59e0b);
@@ -218,7 +218,7 @@
             border-radius: 2rem;
         }
 
-        .dark .user-profile {
+        body.dark .user-profile {
             border-left-color: var(--gray-700);
             background: rgba(139, 92, 246, 0.1);
         }
@@ -2085,12 +2085,35 @@
             if (window.innerWidth >= 1024) closeMobileMenu();
         });
 
+        // Theme management
+        let isDark = false;
+        
+        function toggleTheme() {
+            isDark = !isDark;
+            document.body.classList.toggle('dark', isDark);
+            const themeIcon = document.getElementById('themeIcon');
+            if (themeIcon) {
+                themeIcon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+            }
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+        
         function loadTheme() {
              const saved = localStorage.getItem('theme');
              if (saved === 'dark') {
                  isDark = true;
                  document.body.classList.add('dark');
-                 document.getElementById('themeIcon').className = 'fas fa-moon';
+                 const themeIcon = document.getElementById('themeIcon');
+                 if (themeIcon) {
+                     themeIcon.className = 'fas fa-moon';
+                 }
+             } else {
+                 isDark = false;
+                 document.body.classList.remove('dark');
+                 const themeIcon = document.getElementById('themeIcon');
+                 if (themeIcon) {
+                     themeIcon.className = 'fas fa-sun';
+                 }
              }
          }
 

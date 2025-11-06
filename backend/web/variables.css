@@ -63,3 +63,13 @@
     --gray-900: #111827;
 }
 
+/* ===== DARK THEME VARIABLES ===== */
+body.dark {
+    --background: #0f0f23;
+    --foreground: #f8fafc;
+    --card: #1e1e3f;
+    --card-foreground: #f8fafc;
+    --border: #334155;
+    --muted-foreground: #94a3b8;
+}
+
