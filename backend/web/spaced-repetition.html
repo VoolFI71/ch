@@ -9,62 +9,22 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Common Navigation Styles -->
+    <!-- Common Styles -->
+    <link rel="stylesheet" href="variables.css">
+    <link rel="stylesheet" href="common.css">
     <link rel="stylesheet" href="navigation.css">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --background: #fafafa;
-            --foreground: #0a0a0a;
-            --card: #ffffff;
-            --border: #e2e8f0;
-            --purple-600: #7c3aed;
-            --purple-700: #6d28d9;
-            --blue-500: #3b82f6;
-            --blue-600: #2563eb;
-            --indigo-500: #6366f1;
-            --indigo-600: #4f46e5;
-            --green-500: #10b981;
-            --green-600: #059669;
-            --amber-500: #f59e0b;
-            --amber-600: #d97706;
-            --red-500: #ef4444;
-            --red-600: #dc2626;
-            --muted-foreground: #64748b;
-            --dark-wood: #3e2723;
-            --light-wood: #795548;
-            --board-light: #f0d9b5;
-            --board-dark: #b58863;
-        }
-
+        /* ===== SPACED-REPETITION-SPECIFIC STYLES ===== */
+        /* Общие стили вынесены в common.css и variables.css */
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
-            background: var(--background);
-            color: var(--foreground);
-            line-height: 1.5;
             min-height: 100vh;
         }
-
-        /* ===== TYPOGRAPHY ===== */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Playfair Display', serif;
-            line-height: 1.2;
-            font-weight: 800;
-        }
-
-        h1 { font-size: clamp(2rem, 4vw, 3.25rem); }
-        h2 { font-size: clamp(1.5rem, 3.5vw, 2.5rem); }
-        h3 { font-size: clamp(1.25rem, 3vw, 1.75rem); }
 
         /* Chess Pattern Background */
         .chess-pattern-bg {

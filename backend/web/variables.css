@@ -1,0 +1,65 @@
+/* ===== CSS VARIABLES ===== */
+/* Общие переменные для всех страниц */
+
+:root {
+    /* Основные цвета */
+    --primary: #7c3aed;
+    --primary-dark: #6d28d9;
+    --secondary: #3b82f6;
+    --accent: #10b981;
+    --gold: #fbbf24;
+    
+    /* Цвета доски */
+    --dark-wood: #3e2723;
+    --light-wood: #795548;
+    --board-light: #f0d9b5;
+    --board-dark: #b58863;
+    
+    /* Фоновые цвета */
+    --bg-light: #fafafa;
+    --bg-dark: #0f0f23;
+    --background: #fafafa;
+    --foreground: #0a0a0a;
+    
+    /* Цвета карточек */
+    --card-light: #ffffff;
+    --card-dark: #1e1e3f;
+    --card: #ffffff;
+    --card-foreground: #0a0a0a;
+    
+    /* Текстовые цвета */
+    --text-light: #0a0a0a;
+    --text-dark: #f8fafc;
+    --muted: #64748b;
+    --muted-foreground: #64748b;
+    
+    /* Границы */
+    --border-light: #e2e8f0;
+    --border-dark: #334155;
+    --border: #e2e8f0;
+    
+    /* Дополнительные цвета */
+    --purple-100: #f3e8ff;
+    --purple-200: #e9d5ff;
+    --purple-500: #a855f7;
+    --purple-600: #9333ea;
+    --purple-700: #7e22ce;
+    --indigo-500: #6366f1;
+    --indigo-600: #4f46e5;
+    --amber-400: #fbbf24;
+    --amber-500: #f59e0b;
+    --amber-600: #d97706;
+    --orange-500: #f97316;
+    --green-500: #22c55e;
+    --green-600: #16a34a;
+    --emerald-500: #10b981;
+    --blue-500: #3b82f6;
+    --blue-600: #2563eb;
+    --cyan-500: #06b6d4;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+}
+

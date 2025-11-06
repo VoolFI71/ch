@@ -9,118 +9,50 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Common Navigation Styles -->
+    <!-- Common Styles -->
+    <link rel="stylesheet" href="variables.css">
+    <link rel="stylesheet" href="common.css">
     <link rel="stylesheet" href="navigation.css">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* ===== CABINET-SPECIFIC STYLES ===== */
+        /* Общие стили вынесены в common.css и variables.css */
+        
+        /* Cabinet-specific variables */
         :root {
-            --background: #fafafa;
-            --foreground: #0a0a0a;
-            --card: #ffffff;
-            --card-foreground: #0a0a0a;
-            --primary: #7c3aed;
-            --primary-dark: #6d28d9;
             --secondary: #f1f5f9;
-            --muted-foreground: #64748b;
-            --border: #e2e8f0;
-            --purple-100: #f3e8ff;
-            --purple-200: #e9d5ff;
-            --purple-500: #a855f7;
-            --purple-600: #9333ea;
-            --purple-700: #7e22ce;
-            --indigo-500: #6366f1;
-            --indigo-600: #4f46e5;
-            --amber-400: #fbbf24;
-            --amber-500: #f59e0b;
-            --amber-600: #d97706;
-            --orange-500: #f97316;
-            --green-500: #22c55e;
-            --green-600: #16a34a;
-            --emerald-500: #10b981;
-            --blue-500: #3b82f6;
-            --blue-600: #2563eb;
-            --cyan-500: #06b6d4;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
-            --dark-wood: #3e2723;
-            --light-wood: #795548;
-            --board-light: #f0d9b5;
-            --board-dark: #b58863;
         }
-
+        
         .dark {
-            --background: #0f0f23;
-            --foreground: #f8fafc;
-            --card: #1e1e3f;
-            --card-foreground: #f8fafc;
             --secondary: #1e293b;
-            --muted-foreground: #94a3b8;
-            --border: #334155;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             background: var(--background);
             color: var(--foreground);
-            line-height: 1.5;
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
-
-        /* ===== TYPOGRAPHY ===== */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Playfair Display', serif;
-            line-height: 1.2;
-            font-weight: 800;
-        }
-
-        h1 { font-size: clamp(2rem, 4vw, 3.25rem); }
-        h2 { font-size: clamp(1.5rem, 3.5vw, 2.5rem); }
-        h3 { font-size: clamp(1.25rem, 3vw, 1.75rem); }
 
         .container {
             max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 1rem;
         }
 
-        /* Buttons */
+        /* Cabinet-specific buttons */
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
             padding: 0.875rem 1.5rem;
-            border-radius: 1rem;
             font-weight: 700;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--purple-600), var(--indigo-600));
-            color: #fff;
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
             border: 2px solid transparent;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.4);
         }
 
         .btn-primary::before {

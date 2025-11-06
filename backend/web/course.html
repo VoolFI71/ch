@@ -9,77 +9,28 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Common Navigation Styles -->
+    <!-- Common Styles -->
+    <link rel="stylesheet" href="variables.css">
+    <link rel="stylesheet" href="common.css">
     <link rel="stylesheet" href="/navigation.css">
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♔</text></svg>">
     
     <style>
+        /* ===== COURSE-SPECIFIC STYLES ===== */
+        /* Общие стили вынесены в common.css и variables.css */
+        
         /* View specific course mode */
         #course-lessons { display: none; }
         body.view-course .hero { display: none !important; }
         body.view-course #catalog { display: none !important; }
         body.view-course #levelFilters { display: none !important; }
         body.view-course #course-lessons { display: block; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #7c3aed;
-            --primary-dark: #6d28d9;
-            --secondary: #3b82f6;
-            --accent: #10b981;
-            --gold: #fbbf24;
-            --dark-wood: #3e2723;
-            --light-wood: #795548;
-            --board-light: #f0d9b5;
-            --board-dark: #b58863;
-            --bg-light: #fafafa;
-            --bg-dark: #0f0f23;
-            --card-light: #ffffff;
-            --card-dark: #1e1e3f;
-            --text-light: #0a0a0a;
-            --text-dark: #f8fafc;
-            --border-light: #e2e8f0;
-            --border-dark: #334155;
-            --muted: #64748b;
-        }
-        html { font-size: 16px; scroll-behavior: smooth; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-light);
-            color: var(--text-light);
-            line-height: 1.6;
-            overflow-x: hidden;
-            transition: background 0.3s, color 0.3s;
-        }
-        body.dark { background: var(--bg-dark); color: var(--text-dark); }
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Playfair Display', serif;
-            line-height: 1.2;
-            font-weight: 800;
-        }
-        h1 { font-size: clamp(2rem, 4vw, 3.25rem); }
-        h2 { font-size: clamp(1.5rem, 3.5vw, 2.5rem); }
-        h3 { font-size: clamp(1.25rem, 3vw, 1.75rem); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        @media (min-width: 768px) { .container { padding: 0 2rem; } }
         
-        .gradient-text {
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-size: 200% 200%;
-            animation: gradientShift 4s ease infinite;
-        }
-        
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
         
         @keyframes logoGlow {
             0%, 100% {
