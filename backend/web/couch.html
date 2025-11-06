@@ -9,7 +9,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -533,37 +533,6 @@
             margin-bottom: 1rem;
         }
         
-        .coach-rating {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: rgba(245, 158, 11, 0.1);
-            border-radius: 1rem;
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-        
-        .rating-stars {
-            color: #f59e0b;
-            font-size: 1.25rem;
-        }
-        
-        .rating-info {
-            flex: 1;
-        }
-        
-        .rating-value {
-            font-weight: 800;
-            font-size: 1.125rem;
-            color: #f59e0b;
-        }
-        
-        .rating-count {
-            font-size: 0.875rem;
-            color: var(--muted);
-        }
-        
         .coach-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -786,32 +755,7 @@
             font-size: 0.95rem;
         }
         
-        /* Reviews Button */
-        .reviews-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-            border: 2px solid rgba(16, 185, 129, 0.2);
-            border-radius: 1rem;
-            color: #10b981;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .reviews-btn:hover {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff;
-            border-color: transparent;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        /* Reviews Modal */
+        /* Modal */
         .modal {
             position: fixed;
             inset: 0;
@@ -1530,7 +1474,6 @@
                         >
                         <select class="sort-select" id="sortSelect" onchange="sortCoaches()">
                             <option value="rating">По рейтингу ФИДЕ</option>
-                            <option value="reviews">По отзывам</option>
                             <option value="students">По ученикам</option>
                             <option value="name">По имени</option>
                         </select>
@@ -1572,20 +1515,11 @@
                     </div>
                     <div class="coach-body">
                         <h3 class="coach-name">Григорий Пономарев</h3>
-                        <p class="coach-title">Гроссмейстер, победитель чемпионата России</p>
+                        <p class="coach-title">Мастер FIDE, победитель чемпионата России</p>
                         
-                        <div class="coach-rating" onclick="openReviews('Григорий Пономарев', 1)">
-                            <div class="rating-stars">★★★★★</div>
-                            <div class="rating-info">
-                                <div class="rating-value">4.9</div>
-                                <div class="rating-count">98 отзывов</div>
-                            </div>
-                            <i class="fas fa-arrow-right" style="margin-left: auto; color: #f59e0b;"></i>
-                        </div>
-
                         <div class="coach-stats">
                             <div class="stat-item">
-                                <span class="stat-value">15</span>
+                                <span class="stat-value">13</span>
                                 <div class="stat-label">Лет опыта</div>
                             </div>
                             <div class="stat-item">
@@ -1593,8 +1527,8 @@
                                 <div class="stat-label">Учеников</div>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-value">12</span>
-                                <div class="stat-label">Курсов</div>
+                                <span class="stat-value" id="coursesCount">0</span>
+                                <div class="stat-label">Курса</div>
                             </div>
                         </div>
 
@@ -1617,9 +1551,6 @@
                                 </h4>
                                 <div class="courses-list">
                                     <div class="course-item">
-                                        <div class="course-item-title">Дебютная подготовка против AI</div>
-                                        <div class="course-item-desc">Глубокие идеи, анализ, новинки</div>
-                                    </div>
                                     <div class="course-item">
                                         <div class="course-item-title">Стратегия миттельшпиля</div>
                                         <div class="course-item-desc">Планирование и позиционная игра</div>
@@ -1676,12 +1607,6 @@
                             </div>
                         </div>
 
-                        <button class="reviews-btn" onclick="openReviews('Григорий Пономарев', 1)">
-                            <i class="fas fa-comments"></i>
-                            <span>Читать отзывы учеников</span>
-                            <i class="fas fa-external-link-alt"></i>
-                        </button>
-
                         <div class="coach-actions">
                             <button class="btn btn-primary">
                                 <i class="fas fa-video"></i>
@@ -1697,66 +1622,6 @@
             </div>
         </section>
     </main>
-
-    <!-- Reviews Modal -->
-    <div class="modal" id="reviewsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Отзывы о тренере</h3>
-                <button class="modal-close" onclick="closeModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="reviews-summary">
-                    <div class="summary-rating">
-                        <div class="summary-value" id="summaryValue">4.9</div>
-                        <div class="summary-stars">★★★★★</div>
-                        <div class="summary-count" id="summaryCount">98 отзывов</div>
-                    </div>
-                    <div class="summary-bars">
-                        <div class="bar-item">
-                            <div class="bar-label">5 ★</div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: 85%;"></div>
-                            </div>
-                            <div class="bar-count">83</div>
-                        </div>
-                        <div class="bar-item">
-                            <div class="bar-label">4 ★</div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: 10%;"></div>
-                            </div>
-                            <div class="bar-count">10</div>
-                        </div>
-                        <div class="bar-item">
-                            <div class="bar-label">3 ★</div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: 3%;"></div>
-                            </div>
-                            <div class="bar-count">3</div>
-                        </div>
-                        <div class="bar-item">
-                            <div class="bar-label">2 ★</div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: 2%;"></div>
-                            </div>
-                            <div class="bar-count">2</div>
-                        </div>
-                        <div class="bar-item">
-                            <div class="bar-label">1 ★</div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: 0%;"></div>
-                            </div>
-                            <div class="bar-count">0</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="reviews-list" id="reviewsList"></div>
-            </div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -1841,16 +1706,22 @@
     </footer>
 
     <script>
-        // Mock reviews data
-        const reviewsData = {
-            1: [
-                { name: 'Алексей Ковалёв', stars: 5, text: 'Григорий - феноменальный тренер! Его объяснения дебютов настолько глубоки, что я начал понимать шахматы на совершенно новом уровне. За полгода занятий мой рейтинг вырос на 200 пунктов!', date: '20 января 2024' },
-                { name: 'Мария Петрова', stars: 5, text: 'Лучший тренер, с которым я работала! Индивидуальный подход, внимание к деталям, глубокий анализ моих партий. Рекомендую всем, кто хочет серьёзно расти в шахматах.', date: '15 января 2024' },
-                { name: 'Дмитрий Соколов', stars: 4, text: 'Отличные уроки по стратегии. Григорий умеет объяснить сложные концепции простым языком. Единственный минус - высокая цена, но качество того стоит.', date: '10 января 2024' },
-                { name: 'Елена Новикова', stars: 5, text: 'Профессионал высочайшего уровня! Занимаюсь уже год, прогресс очевиден. Особенно ценю разборы моих партий - всегда нахожу что-то новое.', date: '5 января 2024' },
-                { name: 'Игорь Васильев', stars: 5, text: 'Григорий помог мне подготовиться к важному турниру. Его советы по дебютам оказались бесценными - выиграл турнир! Спасибо!', date: '28 декабря 2023' }
-            ]
-        };
+        // Load courses count from API
+        async function loadCoursesCount() {
+            try {
+                const response = await fetch('/api/courses/');
+                if (response.ok) {
+                    const courses = await response.json();
+                    const activeCourses = courses.filter(course => course.is_active);
+                    const coursesCountElement = document.getElementById('coursesCount');
+                    if (coursesCountElement) {
+                        coursesCountElement.textContent = activeCourses.length;
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке количества курсов:', error);
+            }
+        }
 
         // Theme
         let isDark = false;
@@ -1918,8 +1789,6 @@
             cards.sort((a, b) => {
                 if (sortBy === 'rating') {
                     return parseInt(b.dataset.rating) - parseInt(a.dataset.rating);
-                } else if (sortBy === 'reviews') {
-                    return parseInt(b.dataset.reviews) - parseInt(a.dataset.reviews);
                 } else if (sortBy === 'students') {
                     const aStudents = parseInt(a.querySelector('.stat-item:nth-child(2) .stat-value').textContent);
                     const bStudents = parseInt(b.querySelector('.stat-item:nth-child(2) .stat-value').textContent);
@@ -1934,52 +1803,6 @@
             cards.forEach(card => grid.appendChild(card));
         }
 
-        // Open reviews modal
-        function openReviews(coachName, coachId) {
-            document.getElementById('modalTitle').textContent = `Отзывы: ${coachName}`;
-            
-            const reviews = reviewsData[coachId] || [];
-            const avgRating = reviews.length > 0 
-                ? (reviews.reduce((sum, r) => sum + r.stars, 0) / reviews.length).toFixed(1)
-                : '0.0';
-            
-            document.getElementById('summaryValue').textContent = avgRating;
-            document.getElementById('summaryCount').textContent = `${reviews.length} отзывов`;
-            
-            const container = document.getElementById('reviewsList');
-            container.innerHTML = reviews.map(review => {
-                const initial = review.name.charAt(0);
-                const starsHTML = '★'.repeat(review.stars) + '☆'.repeat(5 - review.stars);
-                
-                return `
-                    <div class="review-item">
-                        <div class="review-header">
-                            <div class="review-avatar">${initial}</div>
-                            <div class="review-info">
-                                <div class="review-name">${review.name}</div>
-                                <div class="review-stars">${starsHTML}</div>
-                                <div class="review-date">
-                                    <i class="fas fa-calendar-alt"></i> ${review.date}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="review-text">${review.text}</div>
-                    </div>
-                `;
-            }).join('');
-            
-            showModal();
-        }
-
-        function showModal() {
-            document.getElementById('reviewsModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('reviewsModal').classList.remove('active');
-            document.body.style.overflow = '';
-        }
 
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
@@ -2029,6 +1852,7 @@
 
         // Include common auth functions
         document.addEventListener('DOMContentLoaded', function() {
+            loadCoursesCount();
             loadTheme();
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function(e) {
