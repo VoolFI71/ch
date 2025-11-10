@@ -1,8 +1,7 @@
 /* Common Navigation Styles for PowerChess */
 
 .main-header {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 1000;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
