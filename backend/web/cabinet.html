@@ -37,21 +37,21 @@
         }
 
         /* Cabinet-specific buttons */
-        .btn {
+        .main-content .btn {
             padding: 0.875rem 1.5rem;
             font-weight: 700;
         }
 
-        .btn-primary {
+        .main-content .btn-primary {
             background: linear-gradient(135deg, var(--purple-600), var(--indigo-600));
             border: 2px solid transparent;
         }
 
-        .btn-primary:hover {
+        .main-content .btn-primary:hover {
             transform: translateY(-2px);
         }
 
-        .btn-primary::before {
+        .main-content .btn-primary::before {
             content: '';
             position: absolute;
             top: 0;
@@ -62,15 +62,15 @@
             transition: left 0.5s;
         }
 
-        .btn-primary:hover::before { left: 100%; }
+        .main-content .btn-primary:hover::before { left: 100%; }
 
-        .btn-outline {
+        .main-content .btn-outline {
             background: transparent;
             color: var(--purple-600);
             border: 2px solid var(--purple-600);
         }
 
-        .btn-outline:hover {
+        .main-content .btn-outline:hover {
             background: var(--purple-600);
             color: #fff;
             transform: translateY(-2px);
@@ -308,7 +308,7 @@
             left: 100%;
         }
 
-        .btn-secondary {
+        .main-content .btn-secondary {
             padding: 0.75rem 1.75rem;
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
@@ -322,7 +322,7 @@
             overflow: hidden;
         }
 
-        .btn-secondary::before {
+        .main-content .btn-secondary::before {
             content: '';
             position: absolute;
             top: 0;
@@ -333,12 +333,12 @@
             transition: left 0.5s;
         }
 
-        .btn-secondary:hover {
+        .main-content .btn-secondary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
         }
 
-        .btn-secondary:hover::before {
+        .main-content .btn-secondary:hover::before {
             left: 100%;
         }
 
@@ -434,28 +434,9 @@
             width: 100%;
         }
 
-        .logout-btn {
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, #7c3aed, #3b82f6);
-            color: white;
-            border: none;
-            border-radius: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
-        }
-
         /* Main Content */
         .main-content {
-            padding-top: 10rem;
+            padding-top: 4rem;
             padding-bottom: 3rem;
             min-height: 100vh;
             position: relative;
