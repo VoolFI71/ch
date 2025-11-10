@@ -59,16 +59,6 @@ h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
 h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
 
 /* ===== UTILITIES ===== */
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
-@media (min-width: 768px) {
-    .container { padding: 0 2rem; }
-}
-
 .gradient-text {
     background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
     -webkit-background-clip: text;
@@ -175,10 +165,6 @@ body.dark .card { background: var(--card-dark); border-color: var(--border-dark)
 
 @media (max-width: 768px) {
     html { font-size: 15px; }
-
-    .container {
-        padding: 0 1rem;
-    }
 
     .hero {
         padding: 7rem 0 2.5rem;
