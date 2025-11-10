@@ -2473,14 +2473,21 @@
         }
 
         // Modal management
+        function updateBodyScrollLock() {
+            const hasActiveModal = document.querySelector('.modal.active') !== null;
+            document.body.classList.toggle('modal-open', hasActiveModal);
+        }
+
         function showModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-            document.body.style.overflow = 'hidden';
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('active');
+            updateBodyScrollLock();
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-            document.body.style.overflow = '';
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('active');
+            updateBodyScrollLock();
         }
 
         function showLoginModal() {
@@ -2510,7 +2517,7 @@
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.classList.remove('active');
-                document.body.style.overflow = '';
+                updateBodyScrollLock();
             }
 
             const menu = document.getElementById('mobileMenu');
@@ -2528,7 +2535,7 @@
                 document.querySelectorAll('.modal.active').forEach(modal => {
                     modal.classList.remove('active');
                 });
-                document.body.style.overflow = '';
+                updateBodyScrollLock();
                 closeMobileMenu();
             }
         });

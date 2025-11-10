@@ -116,17 +116,54 @@ function createChessBoard() {
   }
 }
 
+function updateBodyScrollLock() {
+  const hasActiveModal = !!document.querySelector('.modal.active');
+  document.body.classList.toggle('modal-open', hasActiveModal);
+}
+
 // Modals
-function showLoginModal() { document.getElementById('loginModal')?.classList.add('active'); }
-function closeLoginModal() { document.getElementById('loginModal')?.classList.remove('active'); }
-function showRegisterModal() { document.getElementById('registerModal')?.classList.add('active'); }
-function closeRegisterModal() { document.getElementById('registerModal')?.classList.remove('active'); }
-function showPurchaseModal() { const m = document.getElementById('purchaseModal'); if (m){ m.classList.add('active'); createChessBoard(); } }
-function closePurchaseModal() { document.getElementById('purchaseModal')?.classList.remove('active'); }
+function showLoginModal() {
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.classList.add('active');
+  updateBodyScrollLock();
+}
+function closeLoginModal() {
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.classList.remove('active');
+  updateBodyScrollLock();
+}
+function showRegisterModal() {
+  const modal = document.getElementById('registerModal');
+  if (modal) modal.classList.add('active');
+  updateBodyScrollLock();
+}
+function closeRegisterModal() {
+  const modal = document.getElementById('registerModal');
+  if (modal) modal.classList.remove('active');
+  updateBodyScrollLock();
+}
+function showPurchaseModal() {
+  const modal = document.getElementById('purchaseModal');
+  if (modal) {
+    modal.classList.add('active');
+    createChessBoard();
+  }
+  updateBodyScrollLock();
+}
+function closePurchaseModal() {
+  const modal = document.getElementById('purchaseModal');
+  if (modal) modal.classList.remove('active');
+  updateBodyScrollLock();
+}
 function completePurchase() { alert('🎉 Покупка успешно завершена. Добро пожаловать в PowerChess!'); closePurchaseModal(); }
 
 // Smooth scroll and events
-document.addEventListener('click', (e) => { if (e.target.classList?.contains('modal')) e.target.classList.remove('active'); });
+document.addEventListener('click', (e) => {
+  if (e.target.classList?.contains('modal')) {
+    e.target.classList.remove('active');
+    updateBodyScrollLock();
+  }
+});
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function(e) {
     const href = this.getAttribute('href');
