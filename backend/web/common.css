@@ -41,7 +41,7 @@ h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
 
 /* ===== UTILITIES ===== */
 .container {
-    max-width: 1400px;
+    max-width: 1700px;
     margin: 0 auto;
     padding: 0 1rem;
 }
