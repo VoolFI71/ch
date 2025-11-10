@@ -76,7 +76,7 @@
             transform: translateY(-2px);
         }
 
-        /* Header Styles */
+        /* ===== ENHANCED HEADER ===== */
         .header {
             position: fixed;
             top: 0;
@@ -85,82 +85,144 @@
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             border-bottom: 2px solid transparent;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.98)),
+            background-image: linear-gradient(rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.98)), 
                               linear-gradient(90deg, #7c3aed, #3b82f6, #10b981, #f59e0b);
             background-origin: border-box;
             background-clip: padding-box, border-box;
             z-index: 1000;
+            transition: all 0.3s;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
         }
 
         body.dark .header {
             background: rgba(15, 15, 35, 0.98);
-            background-image: linear-gradient(rgba(15, 15, 35, 0.98), rgba(15, 15, 35, 0.98)),
+            background-image: linear-gradient(rgba(15, 15, 35, 0.98), rgba(15, 15, 35, 0.98)), 
                               linear-gradient(90deg, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+        }
+
+        .header.scrolled {
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.15);
+            border-bottom-color: rgba(124, 58, 237, 0.2);
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 80px;
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            height: 5.5rem;
+            gap: 2rem;
         }
 
         .logo {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #1f2937 0%, #000 100%);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #1f2937, #000000);
             border-radius: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.3);
-            border: 3px solid rgba(255, 215, 0, 0.4);
             position: relative;
-            overflow: hidden;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(255, 215, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 215, 0, 0.4);
             animation: logoGlow 3s ease-in-out infinite;
         }
 
         @keyframes logoGlow {
-            0%, 100% {
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.3);
-            }
-            50% {
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.5);
-            }
+            0%, 100% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.2); }
         }
 
-        .logo::before {
-            content: '';
+        .chess-pattern {
             position: absolute;
             inset: 0;
-            background-image: 
-                linear-gradient(45deg, rgba(139, 92, 246, 0.05) 25%, transparent 25%),
-                linear-gradient(-45deg, rgba(139, 92, 246, 0.05) 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, rgba(139, 92, 246, 0.05) 75%),
-                linear-gradient(-45deg, transparent 75%, rgba(139, 92, 246, 0.05) 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
             opacity: 0.2;
+            background: 
+                linear-gradient(45deg, #ffffff 25%, transparent 25%),
+                linear-gradient(-45deg, #ffffff 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ffffff 75%),
+                linear-gradient(-45deg, transparent 75%, #ffffff 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
         }
 
-        .logo-text h1 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
+        .logo-sparkle {
+            position: absolute;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
         }
 
-        .logo-text p {
-            color: var(--muted-foreground);
-            margin-top: -0.25rem;
-            font-size: 0.85rem;
+        .logo-sparkle:nth-child(1) { top: 0.5rem; left: 0.5rem; animation-delay: 0s; }
+        .logo-sparkle:nth-child(2) { top: 0.5rem; right: 0.5rem; animation-delay: 0.5s; }
+        .logo-sparkle:nth-child(3) { bottom: 0.5rem; left: 0.5rem; animation-delay: 1s; }
+        .logo-sparkle:nth-child(4) { bottom: 0.5rem; right: 0.5rem; animation-delay: 1.5s; }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+
+        .nav {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .nav { display: flex; }
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s;
+            position: relative;
+            background: transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            transform: translateY(-2px);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0.25rem;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6);
+            border-radius: 2px;
+            transition: all 0.3s;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 60%;
         }
 
         .header-actions {
@@ -169,79 +231,118 @@
             gap: 1rem;
         }
 
-        .icon-button {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            color: var(--foreground);
-            transition: all 0.3s ease;
-            position: relative;
-            font-size: 1.25rem;
-        }
-
-        .icon-button:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-        }
-
-        .badge {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 20px;
-            height: 20px;
-            background: linear-gradient(135deg, var(--purple-500), var(--indigo-500));
-            color: white;
-            border-radius: 50%;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-        }
-
-        .user-profile {
-            display: flex;
+        .auth-buttons {
+            display: none;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.5rem 1rem;
-            padding-left: 1.5rem;
-            border-left: 2px solid var(--purple-200);
-            background: rgba(124, 58, 237, 0.05);
-            border-radius: 2rem;
         }
 
-        body.dark .user-profile {
-            border-left-color: var(--gray-700);
-            background: rgba(139, 92, 246, 0.1);
+        @media (min-width: 1024px) {
+            .auth-buttons { display: flex; }
+            .user-actions { display: flex; }
         }
 
-        .user-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--purple-500), var(--indigo-500));
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .btn-login {
+            padding: 0.75rem 1.75rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: left 0.3s;
+            z-index: -1;
+        }
+
+        .btn-login:hover {
             color: white;
-            font-weight: 800;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-            border: 3px solid rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
         }
 
-        .user-info h3 {
-            font-size: 1rem;
-            font-weight: 700;
+        .btn-login:hover::before {
+            left: 0;
         }
 
-        .user-info p {
-            font-size: 0.875rem;
-            color: var(--muted-foreground);
+        .btn-register {
+            padding: 0.75rem 1.75rem;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
+        }
+
+        .btn-secondary {
+            padding: 0.75rem 1.75rem;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary:hover::before {
+            left: 100%;
         }
 
         .theme-toggle {
@@ -288,29 +389,63 @@
             color: white;
         }
 
-        body.dark .theme-toggle {
-            color: #c4b5fd;
-            border-color: #c4b5fd;
+        .mobile-menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
         }
 
-        body.dark .theme-toggle:hover {
-            transform: rotate(20deg) scale(1.1);
-            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        @media (min-width: 1024px) {
+            .mobile-menu-btn { display: none; }
         }
 
-        body.dark .theme-toggle:hover i {
-            color: white;
+        .mobile-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-light);
+            border-top: 2px solid var(--primary);
+            padding: 2rem;
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        body.dark .mobile-menu {
+            background: var(--card-dark);
+        }
+
+        .mobile-menu.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+            display: block;
+        }
+
+        .mobile-auth {
+            display: none;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
         }
 
         .logout-btn {
             padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, var(--purple-600), var(--indigo-600));
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
             color: white;
             border: none;
             border-radius: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -318,7 +453,7 @@
 
         .logout-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
         }
 
         /* Main Content */
@@ -1423,89 +1558,113 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+    <header class="header" id="header">
         <div class="container">
             <div class="header-content">
                 <!-- Logo -->
-                <a href="/" class="logo-section" style="text-decoration: none; color: inherit;">
-                    <div class="logo">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <a href="/" class="logo">
+                    <div class="logo-icon">
+                        <div class="chess-pattern"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
                             <defs>
-                                <linearGradient id="crownGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <linearGradient id="crown" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#ffd700" />
                                     <stop offset="50%" stop-color="#ffffff" />
                                     <stop offset="100%" stop-color="#ffd700" />
                                 </linearGradient>
                             </defs>
-                            <rect x="3" y="16" width="18" height="3" fill="url(#crownGradient)" stroke="#ffffff" stroke-width="0.5" rx="1.5" />
-                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#crownGradient)" stroke="#ffffff" stroke-width="1" />
-                            <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#ffffff" stroke-width="0.5" />
+                            <rect x="3" y="16" width="18" height="3" fill="url(#crown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#crown)" stroke="#fff" stroke-width="1"/>
+                            <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
                         </svg>
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position: absolute; top: 0.25rem; right: 0.25rem; z-index: 3;">
+                            <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.8"/>
+                        </svg>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
+                        <div class="logo-sparkle"></div>
                     </div>
-                    <div class="logo-text">
-                        <h1 class="gradient-text">PowerChess</h1>
-                        <p>♔ Личный кабинет</p>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
+                        <div style="font-size: 0.75rem; color: var(--muted); margin-top: -0.25rem;">♔ Шахматная академия</div>
                     </div>
                 </a>
 
                 <!-- Navigation -->
                 <nav class="nav">
-                    <a href="/" class="nav-link">Главная</a>
                     <a href="/course" class="nav-link">Курсы</a>
                     <a href="/couch#coaches" class="nav-link">Тренера</a>
-                    <a href="/#reviews" class="nav-link">Отзывы</a>
-                    <a href="/#tournaments" class="nav-link">
+                    <a href="#reviews" class="nav-link">Отзывы</a>
+                    <a href="#tournaments" class="nav-link">
                         Турниры
                         <span class="badge badge-primary" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.65rem;">Новое</span>
                     </a>
                 </nav>
 
-                <!-- Header Actions -->
+                <!-- Actions -->
                 <div class="header-actions">
-                    <!-- Theme Toggle -->
+                    <!-- User Actions (Desktop) -->
+                    <div class="user-actions" id="userActions" style="display: none;">
+                        <a href="/cabinet" class="btn btn-outline">
+                            <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                            Кабинет
+                        </a>
+                        <button type="button" class="btn btn-outline logout-btn" style="display: none; margin-left: 0.5rem;">
+                            <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
+                            Выйти
+                        </button>
+                    </div>
+
+                    <!-- Auth Buttons (Desktop) -->
+                    <div class="auth-buttons" id="authButtons">
+                        <button class="btn-login" onclick="showLoginModal()">
+                            <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                            Войти
+                        </button>
+                        <button class="btn-register" onclick="showRegisterModal()">
+                            <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                            Регистрация
+                        </button>
+                    </div>
+
                     <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
                         <i class="fas fa-sun" id="themeIcon"></i>
                     </button>
-
-                    <!-- Mobile Menu Button -->
-                    <button class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Открыть меню">
+                    
+                    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
                         <i class="fas fa-bars" id="menuIcon"></i>
-                    </button>
-
-                    <!-- Logout -->
-                    <button class="btn btn-outline logout-btn">
-                        <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
-                        Выйти
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Mobile Menu -->
-        <div class="mobile-menu" id="mobileMenu">
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                <a href="/" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Главная</a>
-                <a href="/course" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Курсы</a>
-                <a href="/couch#coaches" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Тренера</a>
-                <a href="/#reviews" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Отзывы</a>
-                <a href="/#tournaments" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Турниры</a>
-                <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
+            <!-- Mobile Menu -->
+            <div class="mobile-menu" id="mobileMenu">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="/course" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Курсы</a>
+                    <a href="/couch#coaches" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Тренера</a>
+                    <a href="#reviews" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Отзывы</a>
+                    <a href="#tournaments" class="nav-link" style="display: block;" onclick="closeMobileMenu()">Турниры</a>
+                    <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
 
-                <div class="mobile-auth" id="mobileAuthButtons">
-                    <button class="btn-login" style="width: 100%; justify-content: center;" onclick="showLoginModal(); closeMobileMenu();">Войти</button>
-                    <button class="btn-register" style="width: 100%; justify-content: center;" onclick="showRegisterModal(); closeMobileMenu();">Регистрация</button>
+                    <!-- Mobile User Actions -->
+                    <div class="mobile-user-actions" id="mobileUserActions" style="display: none;">
+                        <a href="/cabinet" class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeMobileMenu()">
+                            <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                            Личный кабинет
+                        </a>
+                        <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
+                        <button type="button" class="btn btn-outline logout-btn" style="width: 100%; justify-content: center; display: none;">
+                            <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
+                            Выйти
+                        </button>
+                    </div>
+
+                    <div class="mobile-auth" id="mobileAuthButtons">
+                        <button class="btn-login" style="width: 100%; justify-content: center;" onclick="showLoginModal(); closeMobileMenu();">Войти</button>
+                        <button class="btn-register" style="width: 100%; justify-content: center;" onclick="showRegisterModal(); closeMobileMenu();">Регистрация</button>
+                    </div>
                 </div>
-
-                <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
-                <a href="/cabinet" class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeMobileMenu()">
-                    <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
-                    Личный кабинет
-                </a>
-                <button type="button" class="btn btn-outline logout-btn" style="width: 100%; justify-content: center; display: none;">
-                    <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
-                    Выйти
-                </button>
             </div>
         </div>
     </header>
