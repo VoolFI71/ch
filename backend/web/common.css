@@ -22,7 +22,9 @@ body {
     transition: background 0.3s, color 0.3s;
 }
 
+html.modal-open,
 body.modal-open {
+    height: 100%;
     overflow: hidden;
 }
 

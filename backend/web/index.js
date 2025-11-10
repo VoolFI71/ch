@@ -116,9 +116,25 @@ function createChessBoard() {
   }
 }
 
+let scrollPosition = 0;
+
 function updateBodyScrollLock() {
   const hasActiveModal = !!document.querySelector('.modal.active');
-  document.body.classList.toggle('modal-open', hasActiveModal);
+  if (hasActiveModal) {
+    scrollPosition = window.pageYOffset || document.documentElement.scrollTop || 0;
+    document.documentElement.classList.add('modal-open');
+    document.body.classList.add('modal-open');
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollPosition}px`;
+    document.body.style.width = '100%';
+  } else {
+    document.documentElement.classList.remove('modal-open');
+    document.body.classList.remove('modal-open');
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, scrollPosition || 0);
+  }
 }
 
 // Modals
