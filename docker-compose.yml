@@ -10,16 +10,88 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  auth:
+    build: ./auth_service
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      METRICS_ENABLED: "true"
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  payments:
+    build: ./payments_service
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      METRICS_ENABLED: "true"
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  enrollments:
+    build: ./enrollments_service
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      METRICS_ENABLED: "true"
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  courses:
+    build: ./courses_service
+    depends_on:
+      - db
+      - enrollments
+    env_file:
+      - .env
+    environment:
+      METRICS_ENABLED: "true"
+      ENROLLMENTS_SERVICE_URL: http://enrollments:8000
+      ENROLLMENTS_INTERNAL_TOKEN: ${ENROLLMENTS_INTERNAL_TOKEN}
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  lessons:
+    build: ./lessons_service
+    depends_on:
+      - db
+      - enrollments
+    env_file:
+      - .env
+    environment:
+      METRICS_ENABLED: "true"
+      ENROLLMENTS_SERVICE_URL: http://enrollments:8000
+      ENROLLMENTS_INTERNAL_TOKEN: ${ENROLLMENTS_INTERNAL_TOKEN}
+    expose:
+      - "8000"
+    restart: unless-stopped
+
   api:
     build: .
     depends_on:
       - db
       - minio
+      - auth
+      - enrollments
+      - courses
+      - lessons
+      - payments
     env_file:
       - .env
     environment:
       WEB_DIR: /app/backend/web
       METRICS_ENABLED: "true"
+      AUTH_SERVICE_URL: http://auth:8000
       VIRTUAL_HOST: ${LETSENCRYPT_DOMAIN}
       LETSENCRYPT_HOST: ${LETSENCRYPT_DOMAIN}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}

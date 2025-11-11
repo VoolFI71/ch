@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 30
     web_dir: str = "backend/web"
+    # Optional external auth service base URL. If set, API will proxy auth endpoints there.
+    auth_service_url: str | None = None
 
     # YooKassa settings
     yookassa_shop_id: str | None = None
