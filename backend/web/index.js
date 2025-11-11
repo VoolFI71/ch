@@ -116,70 +116,28 @@ function createChessBoard() {
   }
 }
 
-let scrollPosition = 0;
-
-function updateBodyScrollLock() {
-  const hasActiveModal = !!document.querySelector('.modal.active');
-  if (hasActiveModal) {
-    scrollPosition = window.pageYOffset || document.documentElement.scrollTop || 0;
-    document.documentElement.classList.add('modal-open');
-    document.body.classList.add('modal-open');
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollPosition}px`;
-    document.body.style.width = '100%';
-  } else {
-    document.documentElement.classList.remove('modal-open');
-    document.body.classList.remove('modal-open');
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    window.scrollTo(0, scrollPosition || 0);
-  }
-}
-
-// Modals
-function showLoginModal() {
-  const modal = document.getElementById('loginModal');
-  if (modal) modal.classList.add('active');
-  updateBodyScrollLock();
-}
-function closeLoginModal() {
-  const modal = document.getElementById('loginModal');
-  if (modal) modal.classList.remove('active');
-  updateBodyScrollLock();
-}
-function showRegisterModal() {
-  const modal = document.getElementById('registerModal');
-  if (modal) modal.classList.add('active');
-  updateBodyScrollLock();
-}
-function closeRegisterModal() {
-  const modal = document.getElementById('registerModal');
-  if (modal) modal.classList.remove('active');
-  updateBodyScrollLock();
-}
 function showPurchaseModal() {
-  const modal = document.getElementById('purchaseModal');
-  if (modal) {
-    modal.classList.add('active');
-    createChessBoard();
+  if (window.modalUtils) {
+    modalUtils.openModal('purchaseModal', { onOpen: createChessBoard });
+  } else {
+    const modal = document.getElementById('purchaseModal');
+    if (modal) {
+      modal.classList.add('active');
+      createChessBoard();
+    }
   }
-  updateBodyScrollLock();
 }
 function closePurchaseModal() {
-  const modal = document.getElementById('purchaseModal');
-  if (modal) modal.classList.remove('active');
-  updateBodyScrollLock();
+  if (window.modalUtils) {
+    modalUtils.closeModal('purchaseModal');
+  } else {
+    const modal = document.getElementById('purchaseModal');
+    if (modal) modal.classList.remove('active');
+  }
 }
 function completePurchase() { alert('🎉 Покупка успешно завершена. Добро пожаловать в PowerChess!'); closePurchaseModal(); }
 
 // Smooth scroll and events
-document.addEventListener('click', (e) => {
-  if (e.target.classList?.contains('modal')) {
-    e.target.classList.remove('active');
-    updateBodyScrollLock();
-  }
-});
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function(e) {
     const href = this.getAttribute('href');
@@ -193,7 +151,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 window.addEventListener('scroll', handleScroll, { passive: true });
 window.addEventListener('resize', () => { if (window.innerWidth >= 1024) closeMobileMenu(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLoginModal(); closeRegisterModal(); closePurchaseModal(); closeMobileMenu(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeMobileMenu(); } });
 
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof loadTheme === 'function') loadTheme();
@@ -266,10 +224,6 @@ window.toggleMobileMenu = toggleMobileMenu;
 window.closeMobileMenu = closeMobileMenu;
 window.toggleCollapsible = toggleCollapsible;
 window.filterReviews = filterReviews;
-window.showLoginModal = showLoginModal;
-window.closeLoginModal = closeLoginModal;
-window.showRegisterModal = showRegisterModal;
-window.closeRegisterModal = closeRegisterModal;
 window.showPurchaseModal = showPurchaseModal;
 window.closePurchaseModal = closePurchaseModal;
 window.completePurchase = completePurchase;

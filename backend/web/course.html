@@ -1870,6 +1870,7 @@
         .chess-piece-decoration:nth-child(2) { top: 50%; right: 10%; }
         .chess-piece-decoration:nth-child(3) { bottom: 10%; left: 15%; }
     </style>
+    <script src="modal-utils.js"></script>
     <script>
         // Set mode early to avoid flicker of catalog when opening /course/{id}
         (function(){
@@ -2220,10 +2221,6 @@
                     <input id="courseLoginPassword" type="password" class="form-input" placeholder="Введите пароль" required>
                 </div>
                 <div class="form-extra">
-                    <label class="form-remember" for="courseLoginRemember">
-                        <input type="checkbox" id="courseLoginRemember">
-                        <span>Запомнить меня</span>
-                    </label>
                     <a href="mailto:support@power-chess.ru">Забыли пароль?</a>
                 </div>
                 <button class="btn btn-primary modal-submit" type="submit">
@@ -2264,12 +2261,6 @@
                 <div class="form-group">
                     <label class="form-label" for="courseRegisterPassword">Пароль</label>
                     <input id="courseRegisterPassword" type="password" class="form-input" placeholder="Придумайте пароль" required>
-                </div>
-                <div class="form-extra">
-                    <label class="form-remember" for="courseRegisterUpdates">
-                        <input type="checkbox" id="courseRegisterUpdates" checked>
-                        <span>Получать новости о новых курсах</span>
-                    </label>
                 </div>
                 <button class="btn btn-success modal-submit" type="submit">
                     <i class="fas fa-user-plus"></i>
@@ -2472,48 +2463,6 @@
             checkoutAndRedirect(courseId);
         }
 
-        // Modal management
-        let modalScrollPosition = 0;
-
-        function updateBodyScrollLock() {
-            const hasActiveModal = document.querySelector('.modal.active') !== null;
-            if (hasActiveModal) {
-                modalScrollPosition = window.pageYOffset || document.documentElement.scrollTop || 0;
-                document.documentElement.classList.add('modal-open');
-                document.body.classList.add('modal-open');
-                document.body.style.position = 'fixed';
-                document.body.style.top = `-${modalScrollPosition}px`;
-                document.body.style.width = '100%';
-            } else {
-                document.documentElement.classList.remove('modal-open');
-                document.body.classList.remove('modal-open');
-                document.body.style.position = '';
-                document.body.style.top = '';
-                document.body.style.width = '';
-                window.scrollTo(0, modalScrollPosition || 0);
-            }
-        }
-
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('active');
-            updateBodyScrollLock();
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('active');
-            updateBodyScrollLock();
-        }
-
-        function showLoginModal() {
-            showModal('loginModal');
-        }
-
-        function showRegisterModal() {
-            showModal('registerModal');
-        }
-
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             const icon = document.getElementById('menuIcon');
@@ -2531,11 +2480,6 @@
 
         // Close modal / mobile menu on backdrop click
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('active');
-                updateBodyScrollLock();
-            }
-
             const menu = document.getElementById('mobileMenu');
             const trigger = document.querySelector('.mobile-menu-btn');
             if (menu && menu.classList.contains('active')) {
@@ -2548,10 +2492,9 @@
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.modal.active').forEach(modal => {
-                    modal.classList.remove('active');
-                });
-                updateBodyScrollLock();
+                if (typeof closeModal === 'function') {
+                    closeModal();
+                }
                 closeMobileMenu();
             }
         });

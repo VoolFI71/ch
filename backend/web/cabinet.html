@@ -2137,51 +2137,8 @@
             URL.revokeObjectURL(url);
         }
 
-        // Modal management
-        let modalScrollPosition = 0;
-
-        function updateBodyScrollLock() {
-            const hasActiveModal = document.querySelector('.modal.active') !== null;
-            if (hasActiveModal) {
-                modalScrollPosition = window.pageYOffset || document.documentElement.scrollTop || 0;
-                document.documentElement.classList.add('modal-open');
-                document.body.classList.add('modal-open');
-                document.body.style.position = 'fixed';
-                document.body.style.top = `-${modalScrollPosition}px`;
-                document.body.style.width = '100%';
-            } else {
-                document.documentElement.classList.remove('modal-open');
-                document.body.classList.remove('modal-open');
-                document.body.style.position = '';
-                document.body.style.top = '';
-                document.body.style.width = '';
-                window.scrollTo(0, modalScrollPosition || 0);
-            }
-        }
-
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('active');
-            updateBodyScrollLock();
-        }
-
-        function closeModal(modalId) {
-            if (modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) modal.classList.remove('active');
-            } else {
-                document.querySelectorAll('.modal.active').forEach(activeModal => activeModal.classList.remove('active'));
-            }
-            updateBodyScrollLock();
-        }
-
         // Close on backdrop click
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('active');
-                updateBodyScrollLock();
-            }
-
             const menu = document.getElementById('mobileMenu');
             const trigger = document.querySelector('.mobile-menu-btn');
             if (menu && menu.classList.contains('active')) {
@@ -2194,10 +2151,9 @@
         // Close on Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.modal.active').forEach(modal => {
-                    modal.classList.remove('active');
-                });
-                updateBodyScrollLock();
+                if (typeof closeModal === 'function') {
+                    closeModal();
+                }
                 closeMobileMenu();
             }
         });
@@ -2413,6 +2369,7 @@
 
     <!-- Common Auth Script (must load first) -->
     <script src="auth.js"></script>
+    <script src="modal-utils.js"></script>
     <!-- Page script -->
     <script src="cabinet.js"></script>
 </body>
