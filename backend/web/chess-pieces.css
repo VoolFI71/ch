@@ -1,0 +1,105 @@
+.pieces-page * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.pieces-page {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    padding: 40px 20px;
+    color: #333333;
+}
+
+.pieces-page .pieces-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.pieces-page .pieces-title {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.pieces-page .pieces-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.pieces-page .section-title {
+    color: #555555;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.pieces-page .pieces-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 20px;
+    justify-items: center;
+}
+
+.pieces-page .piece-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.pieces-page .piece-name {
+    font-size: 14px;
+    color: #666666;
+    font-weight: 600;
+}
+
+.pieces-page .piece-display {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.pieces-page .piece-display svg {
+    width: 70px;
+    height: 70px;
+}
+
+@media (max-width: 768px) {
+    .pieces-page .pieces-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    body.pieces-page {
+        padding: 30px 15px;
+    }
+
+    .pieces-page .pieces-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .pieces-page .piece-display {
+        width: 70px;
+        height: 70px;
+    }
+
+    .pieces-page .piece-display svg {
+        width: 60px;
+        height: 60px;
+    }
+}
+
