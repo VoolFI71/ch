@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 	refresh_token_expire_days: int = 30
 	app_name: str = "Auth Service"
 	metrics_enabled: bool = True
+	auth_internal_token: str | None = None
 
 	model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

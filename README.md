@@ -22,6 +22,8 @@
 3. API будет доступен на `http://localhost:8000` (Swagger: `http://localhost:8000/docs`)
 4. Фронтенд HTML файлы будут отдаваться по соответствующим путям, например `http://localhost:8000/index.html`
 
+> Миграции Alembic теперь выполняет только `auth_service` (таблица `users`). Gateway (`backend`) базу данных не модифицирует и может работать с отдельным подключением/без него.
+
 ### Переменные окружения
 Можно создать файл `.env` в корне или задать переменные в docker-compose.
 
@@ -35,6 +37,11 @@
 - `REFRESH_TOKEN_EXPIRE_DAYS=30`
 - `WEB_DIR=backend/web`
 - `METRICS_ENABLED=true` — включает `/metrics`
+- `AUTH_SERVICE_URL=http://auth:8000`
+- `ENROLLMENTS_SERVICE_URL=http://enrollments:8000`
+- `ENROLLMENTS_INTERNAL_TOKEN=enrollments-secret`
+- `API_INTERNAL_TOKEN`, `AUTH_INTERNAL_TOKEN`, `COURSES_INTERNAL_TOKEN`, `LESSONS_INTERNAL_TOKEN`, `PAYMENTS_INTERNAL_TOKEN`
+  — опциональные токены, которыми защищаются внутренние роуты соответствующих сервисов. Передавайте их в запросах через заголовок `X-Internal-Token`.
 
 Для HTTPS (Let's Encrypt):
 - `LETSENCRYPT_DOMAIN=example.com` — основной домен (можно перечислить несколько через запятую)
@@ -53,6 +60,26 @@
 - `S3_BUCKET_VIDEOS` — бакет для видео
 - `S3_BUCKET_ASSETS` — бакет для дополнительных файлов
 - `S3_PRESIGN_EXPIRE_SECONDS=3600` — срок действия подписанных ссылок
+
+> Все зависимости между сервисами используют формат переменных `*_SERVICE_URL` и `*_INTERNAL_TOKEN`, например `AUTH_SERVICE_URL`, `ENROLLMENTS_SERVICE_URL`, `ENROLLMENTS_INTERNAL_TOKEN`.
+
+Пример `.env` для локальной разработки:
+```
+DATABASE_URL=postgresql+psycopg2://chess:chess@db:5432/chess
+JWT_SECRET=change-me
+METRICS_ENABLED=true
+AUTH_SERVICE_URL=http://auth:8000
+ENROLLMENTS_SERVICE_URL=http://enrollments:8000
+ENROLLMENTS_INTERNAL_TOKEN=enrollments-secret
+#API_INTERNAL_TOKEN=
+#AUTH_INTERNAL_TOKEN=
+#COURSES_INTERNAL_TOKEN=
+#LESSONS_INTERNAL_TOKEN=
+#PAYMENTS_INTERNAL_TOKEN=
+S3_ENDPOINT=http://minio:9000
+S3_ACCESS_KEY=minioadmin
+S3_SECRET_KEY=minioadmin
+```
 
 ### Использование API (примеры)
 
@@ -127,6 +154,8 @@ uvicorn app.main:app --reload --app-dir backend
 - Loki: `http://localhost:3100` (API)
 - Promtail собирает логи Docker-контейнеров (`/var/lib/docker/containers/*/*-json.log`)
 - В Grafana уже добавлен источник данных Loki. Импортируйте дашборды для Loki/Logs Explorer
+
+> В `docker-compose.local.yml` monitoring-стек отключён, чтобы запуск разработки не затягивал Prometheus/Grafana/Loki.
 
 Сохранение дашбордов Grafana
 - Данные Grafana сохраняются в volume `grafana-data` (`/var/lib/grafana`), дашборды не пропадут между рестартами.

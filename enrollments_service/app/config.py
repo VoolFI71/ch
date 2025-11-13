@@ -9,7 +9,7 @@ class Settings(BaseSettings):
 	jwt_algorithm: str = "HS256"
 	app_name: str = "Enrollments Service"
 	metrics_enabled: bool = True
-	internal_api_token: str | None = None
+	enrollments_internal_token: str | None = None
 
 	model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

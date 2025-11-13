@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 	database_url: str
 	app_name: str = "Payments Service"
 	metrics_enabled: bool = True
+	payments_internal_token: str | None = None
 
 	# YooKassa
 	yookassa_shop_id: str | None = None

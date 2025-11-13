@@ -1,14 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
 import httpx
+from fastapi.security import HTTPAuthorizationCredentials
 
 from ..config import get_settings
-from ..database import get_db
-from ..models import User
 from ..schemas import LoginInput, RefreshInput, Token, UserCreate, UserOut
-from ..security import (
-	get_current_user,
-)
+from ..security import bearer_scheme
 
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -66,7 +62,20 @@ def refresh(data: RefreshInput) -> Token:
 
 
 @router.get("/me", response_model=UserOut)
-def me(current_user: User = Depends(get_current_user)) -> UserOut:
-    return current_user
+def me(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> UserOut:
+	settings = get_settings()
+	if not settings.auth_service_url:
+		raise HTTPException(status_code=503, detail="Auth service is not configured")
+	auth_url = settings.auth_service_url.rstrip("/") + "/api/auth/me"
+	headers = {"Authorization": f"{credentials.scheme} {credentials.credentials}"}
+	with httpx.Client(timeout=10.0) as client:
+		res = client.get(auth_url, headers=headers)
+		if not res.is_success:
+			try:
+				detail = res.json().get("detail")
+			except Exception:
+				detail = res.text
+			raise HTTPException(status_code=res.status_code, detail=detail or "Auth service error")
+		return UserOut.model_validate(res.json())
 
 

@@ -11,7 +11,9 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   auth:
-    build: ./auth_service
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
     depends_on:
       - db
     env_file:
@@ -23,7 +25,9 @@ services:
     restart: unless-stopped
 
   payments:
-    build: ./payments_service
+    build:
+      context: .
+      dockerfile: payments_service/Dockerfile
     depends_on:
       - db
     env_file:
@@ -35,19 +39,24 @@ services:
     restart: unless-stopped
 
   enrollments:
-    build: ./enrollments_service
+    build:
+      context: .
+      dockerfile: enrollments_service/Dockerfile
     depends_on:
       - db
     env_file:
       - .env
     environment:
       METRICS_ENABLED: "true"
+      ENROLLMENTS_INTERNAL_TOKEN: ${ENROLLMENTS_INTERNAL_TOKEN}
     expose:
       - "8000"
     restart: unless-stopped
 
   courses:
-    build: ./courses_service
+    build:
+      context: .
+      dockerfile: courses_service/Dockerfile
     depends_on:
       - db
       - enrollments
@@ -62,7 +71,9 @@ services:
     restart: unless-stopped
 
   lessons:
-    build: ./lessons_service
+    build:
+      context: .
+      dockerfile: lessons_service/Dockerfile
     depends_on:
       - db
       - enrollments

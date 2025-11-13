@@ -1,47 +1,37 @@
 from pathlib import Path
 
-from fastapi import Depends, FastAPI
-from fastapi import Response
+import httpx
+from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 
+from common.observability import configure_observability
+
 from .config import get_settings
 from .database import get_db
-from .migrations_runner import run_migrations
 from .routers import auth_router
-from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 
 settings = get_settings()
 
 app = FastAPI(title=settings.app_name)
 
-# Prometheus metrics
-instrumentator = Instrumentator().instrument(app) if settings.metrics_enabled else None
+
+async def _check_auth_service(_: Session) -> None:
+    if not settings.auth_service_url:
+        return
+    url = settings.auth_service_url.rstrip("/") + "/healthz"
+    async with httpx.AsyncClient(timeout=2.0) as client:
+        response = await client.get(url)
+        response.raise_for_status()
 
 
-
-@app.on_event("startup")
-def on_startup() -> None:
-    # Run Alembic migrations to ensure DB schema is up-to-date
-    run_migrations()
-    # Nothing else required for metrics; route is defined explicitly below
-
-
-@app.get("/healthz")
-def healthz(db: Session = Depends(get_db)) -> JSONResponse:
-    # touching the db session ensures connection pool is initialized
-    return JSONResponse({"status": "ok"})
-
-
-# Metrics endpoint (explicit to avoid being shadowed by catch-all route)
-@app.get("/metrics")
-def metrics() -> Response:
-    if not settings.metrics_enabled:
-        return JSONResponse({"detail": "Metrics disabled"}, status_code=404)
-    content = generate_latest()
-    return Response(content=content, media_type=CONTENT_TYPE_LATEST)
+configure_observability(
+    app,
+    settings=settings,
+    get_db=get_db,
+    extra_checks={"auth_service": _check_auth_service},
+)
 
 
 # API routes
@@ -87,11 +77,10 @@ def serve_course_by_id(course_id: int):
     # Inject no special headers; course.js will parse window.location.pathname
     return FileResponse(str(course_file))
 
+
 @app.get("/{full_path:path}")
 def serve_frontend(full_path: str):
     resolved = _resolve_web_path(full_path)
     if resolved is None:
         return JSONResponse({"detail": "Not Found"}, status_code=404)
     return FileResponse(str(resolved))
-
-

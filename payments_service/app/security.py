@@ -4,6 +4,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
+from common import make_internal_token_verifier
+
 from .config import get_settings
 
 
@@ -34,4 +36,6 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
 		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
 	return int(sub)
 
+
+verify_internal_token = make_internal_token_verifier(lambda: get_settings().payments_internal_token)
 

@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
+
+from common import make_internal_token_verifier
 
 from .config import get_settings
 
@@ -31,13 +33,6 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
 	return int(sub)
 
 
-def verify_internal_token(token: str | None = Header(default=None, alias="X-Internal-Token")) -> None:
-	settings = get_settings()
-	expected = settings.internal_api_token
-	if expected is None:
-		# token check disabled (dev mode)
-		return
-	if token != expected:
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid internal token")
+verify_internal_token = make_internal_token_verifier(lambda: get_settings().enrollments_internal_token)
 
 

@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 	jwt_algorithm: str = "HS256"
 	enrollments_service_url: str | None = None
 	enrollments_internal_token: str | None = None
+	lessons_internal_token: str | None = None
 
 	model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

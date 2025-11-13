@@ -1,6 +1,0 @@
-Alembic migrations directory.
-
-Generated programmatically to live inside the application package so the
-FastAPI server can run migrations at startup.
-
-

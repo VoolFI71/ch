@@ -7,6 +7,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
+from common import make_internal_token_verifier
+
 from .config import get_settings
 from .database import get_db
 from .models import User
@@ -77,4 +79,6 @@ async def get_current_user(
 
 	return user
 
+
+verify_internal_token = make_internal_token_verifier(lambda: get_settings().auth_internal_token)
 

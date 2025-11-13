@@ -8,12 +8,13 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./requirements.txt
+COPY lessons_service/requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
-COPY app ./app
+COPY lessons_service/app ./app
+COPY common ./common
 
-ENV PYTHONPATH=/app/app
+ENV PYTHONPATH=/app/app:/app
 
 EXPOSE 8000
 

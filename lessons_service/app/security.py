@@ -5,6 +5,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
+from common import make_internal_token_verifier
+
 from .config import get_settings
 
 
@@ -45,4 +47,6 @@ async def get_current_user(
 async def get_current_user_id(current_user: CurrentUser = Depends(get_current_user)) -> int:
 	return current_user.id
 
+
+verify_internal_token = make_internal_token_verifier(lambda: get_settings().lessons_internal_token)
 
