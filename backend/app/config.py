@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # Optional external auth service base URL. If set, API will proxy auth endpoints there.
     auth_service_url: str | None = None
     api_internal_token: str | None = None
+    kafka_broker_url: str | None = None
 
     # YooKassa settings
     yookassa_shop_id: str | None = None

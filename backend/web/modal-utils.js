@@ -46,8 +46,22 @@
     updateBodyScrollLock();
   }
 
+  function buildNextQuery() {
+    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (!currentPath || currentPath === '/login' || currentPath === '/register') {
+      return '';
+    }
+    try {
+      return `?next=${encodeURIComponent(currentPath)}`;
+    } catch {
+      return '';
+    }
+  }
+
   function showLoginModal() {
-    return openModal('loginModal');
+    const loginPath = '/login';
+    window.location.href = `${loginPath}${buildNextQuery()}`;
+    return null;
   }
 
   function closeLoginModal() {
@@ -55,7 +69,9 @@
   }
 
   function showRegisterModal() {
-    return openModal('registerModal');
+    const registerPath = '/register';
+    window.location.href = `${registerPath}${buildNextQuery()}`;
+    return null;
   }
 
   function closeRegisterModal() {
@@ -89,6 +105,10 @@
   window.showRegisterModal = showRegisterModal;
   window.closeRegisterModal = closeRegisterModal;
 })();
+
+
+
+
 
 
 

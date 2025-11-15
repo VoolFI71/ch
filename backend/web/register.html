@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerChess — Регистрация</title>
+    <meta name="description" content="Создайте аккаунт PowerChess, чтобы проходить курсы, тренироваться с тренерами и играть матчи с аналитикой.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="variables.css">
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="header.css">
+    <link rel="stylesheet" href="auth.css">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♔</text></svg>">
+</head>
+<body class="auth-page register-page">
+    <header class="auth-header">
+        <div class="container auth-header__content">
+            <a href="/" class="logo" aria-label="PowerChess — на главную">
+                <div class="logo-icon">
+                    <div class="chess-pattern"></div>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+                        <defs>
+                            <linearGradient id="auth-register-crown" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#bbf7d0" />
+                                <stop offset="50%" stop-color="#f0fdfa" />
+                                <stop offset="100%" stop-color="#bbf7d0" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="3" y="16" width="18" height="3" fill="url(#auth-register-crown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                        <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#auth-register-crown)" stroke="#fff" stroke-width="1"/>
+                        <circle cx="12" cy="9" r="1.5" fill="#22c55e" stroke="#fff" stroke-width="0.5"/>
+                    </svg>
+                    <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position:absolute;top:0.25rem;right:0.25rem;z-index:3;">
+                        <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#bbf7d0" stroke="#fff" stroke-width="0.8"/>
+                    </svg>
+                    <div class="logo-sparkle"></div>
+                    <div class="logo-sparkle"></div>
+                    <div class="logo-sparkle"></div>
+                    <div class="logo-sparkle"></div>
+                </div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
+                    <div style="font-size: 0.75rem; color: var(--muted); margin-top: -0.25rem;">♔ Шахматная академия</div>
+                </div>
+            </a>
+            <div class="auth-header__actions">
+                <a href="/login" class="btn btn-outline auth-header__cta">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Уже есть аккаунт
+                </a>
+                <button type="button" class="theme-toggle" data-theme-toggle aria-label="Переключить тему">
+                    <i class="fas fa-sun" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="auth-main">
+        <div class="container auth-content">
+            <section class="auth-card">
+                <span class="auth-accent">
+                    <i class="fas fa-chess-queen"></i>
+                    Новый аккаунт PowerChess
+                </span>
+                <h1>Создать аккаунт</h1>
+                <p class="lead">Откройте доступ к закрытым курсам, живым турнирам и аналитике ходов с помощью искусственного интеллекта.</p>
+
+                <p class="auth-feedback" data-feedback hidden></p>
+
+                <form class="form-stack" data-auth-form="register" novalidate>
+                    <div class="form-group">
+                        <label class="form-label" for="registerUsername">Имя пользователя</label>
+                        <input id="registerUsername" name="username" type="text" class="form-input" placeholder="например knight_master" autocomplete="username" pattern="^[A-Za-z0-9_.-]{3,32}$" title="3–32 символа: латиница, цифры, _ . -" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="registerEmail">Email</label>
+                        <input id="registerEmail" name="email" type="email" class="form-input" placeholder="you@example.ru" autocomplete="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="registerPassword">
+                            Пароль
+                            <span style="font-size: 0.8rem; font-weight: 500; color: rgba(148, 163, 184, 0.8);">минимум 8 символов</span>
+                        </label>
+                        <input id="registerPassword" name="password" type="password" class="form-input" placeholder="Придумайте пароль" autocomplete="new-password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="registerPasswordConfirm">Подтвердите пароль</label>
+                        <input id="registerPasswordConfirm" name="password_confirm" type="password" class="form-input" placeholder="Повторите пароль" autocomplete="new-password" required>
+                    </div>
+
+                    <div class="form-extra">
+                        <label style="font-size: 0.85rem; color: rgba(148,163,184,0.9); display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="checkbox" style="width: 1rem; height: 1rem;" required>
+                            Принимаю условия использования
+                        </label>
+                        <a href="mailto:support@power-chess.ru?subject=PowerChess%20Terms">Вопросы?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-success form-submit">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Зарегистрироваться</span>
+                    </button>
+                </form>
+
+                <p class="auth-note" data-next-note>После входа вы автоматически перейдёте в личный кабинет.</p>
+
+                <p class="auth-switch">
+                    Уже обучались с нами?
+                    <a href="/login">Войти</a>
+                </p>
+            </section>
+
+            <aside class="auth-side">
+                <h2>Стартуйте с правильных ходов</h2>
+                <p>Выбирайте курсы от гроссмейстеров, проходите адаптивные тесты и следите за прогрессом в одном интерфейсе.</p>
+                <ul class="auth-perks">
+                    <li>
+                        <i class="fas fa-graduation-cap"></i>
+                        50+ курсов по дебютам, миттельшпилю и эндшпилю с интерактивными заданиями
+                    </li>
+                    <li>
+                        <i class="fas fa-robot"></i>
+                        Аналитика ходов с поддержкой AI и рекомендации по улучшению игры
+                    </li>
+                    <li>
+                        <i class="fas fa-users"></i>
+                        Сообщество и турниры с прямым эфиром и таблицей лидеров
+                    </li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="auth-footer">
+        © <span data-current-year>2024</span> PowerChess. Вместе повышаем шахматный рейтинг.
+    </footer>
+
+    <script src="auth-pages.js" defer></script>
+</body>
+</html>
+

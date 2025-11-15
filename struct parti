@@ -1,0 +1,85 @@
+Ниже — структурированная схема таблиц (DDL‑стиль) и краткие пояснения. Схема минимальна, практична и готова для live‑игр, реплея.
+
+1. Таблица games — партия (сжатое описание)
+- id (UUID) PRIMARY KEY
+- white_id (UUID) NOT NULL REFERENCES users(id) ON DELETE RESTRICT
+- black_id (UUID) NULL REFERENCES users(id) ON DELETE SET NULL
+- initial_pos (TEXT) NOT NULL DEFAULT 'startpos'  — FEN начальной позиции
+- current_pos (TEXT) NOT NULL                   — FEN текущей позиции
+- next_turn (CHAR(1) NOT NULL CHECK (next_turn IN ('w','b'))) — чей ход ожидается; синхронизирован с FEN
+- time_control (JSONB) NULL                      — {initial_ms, increment_ms, type}
+- move_count (INT) NOT NULL DEFAULT 0
+- status (TEXT) NOT NULL INDEX CHECK (status IN ('CREATED','ACTIVE','PAUSED','FINISHED')) — FINISHED ставится при мате, сдаче или окончании времени
+- white_clock_ms (BIGINT) NOT NULL DEFAULT 0
+- black_clock_ms (BIGINT) NOT NULL DEFAULT 0
+- result (TEXT) NULL CHECK (result IN ('1-0','0-1','1/2-1/2')) 
+- termination_reason (TEXT) NULL CHECK (termination_reason IN ('CHECKMATE','RESIGNATION','TIMEOUT')) — почему завершилась партия
+- ended_by (UUID) NULL REFERENCES users(id) ON DELETE SET NULL — кто завершил (сдался / поднял флаг)
+- pgn (TEXT) NULL                                — опционально, для экспорта
+- metadata (JSONB) NULL                          — variant, rated 
+- created_at (TIMESTAMPTZ) NOT NULL DEFAULT now()
+- started_at (TIMESTAMPTZ) NULL
+- finished_at (TIMESTAMPTZ) NULL
+
+2) Таблица moves — каждый ход (основная история партии)
+- id (BIGSERIAL) PRIMARY KEY
+- game_id (UUID) NOT NULL REFERENCES games(id) ON DELETE CASCADE
+- move_index (INT) NOT NULL                      — 1,2,3...
+- uci (VARCHAR) NOT NULL                          — машинный формат хода (e2e4, g7g8q)
+- san (VARCHAR) NULL                              — человекочитаемый формат (Nf3)
+- fen_after (TEXT) NOT NULL                       — FEN после применения хода
+- player_id (UUID) NULL REFERENCES users(id) ON DELETE SET NULL
+- clocks_after (JSONB) NULL                       — {white_ms:..., black_ms:...}
+- is_capture (BOOLEAN) DEFAULT FALSE
+- promotion (CHAR(1)) NULL
+- created_at (TIMESTAMPTZ) NOT NULL DEFAULT now()
+
+Индексы/ограничения для moves:
+- UNIQUE(game_id, move_index)
+- INDEX(game_id, created_at)
+- INDEX(player_id)
+
+Зачем нужна таблица moves:
+- Хранит полную историю ходов для реплея, анализа и генерации PGN.
+- Упрощает откат/проверку правил (проверка трехкратного повторения, 50‑ходовое правило).
+- Позволяет быстро отдавать последние N ходов клиенту при reconnect.
+- fen_after ускоряет восстановление позиции без применения всех предыдущих ходов.
+
+4) Таблица game_snapshots — снимки для быстрого восстановления (опционально)
+- id (BIGSERIAL) PRIMARY KEY
+- game_id (UUID) NOT NULL REFERENCES games(id)
+- snapshot_move_index (INT) NOT NULL
+- fen (TEXT) NOT NULL
+- created_at (TIMESTAMPTZ) NOT NULL DEFAULT now()
+- UNIQUE(game_id, snapshot_move_index)
+- INDEX(game_id)
+
+Краткие рекомендации по использованию
+- При каждом ходе: в одной транзакции INSERT в moves и UPDATE games (current_pos = fen_after, move_count += 1, next_turn = CASE next_turn WHEN 'w' THEN 'b' ELSE 'w' END, обновить clocks). Дополнительно обновляйте terminated_at/termination_reason при финале. Для консистентности оборачивайте операции в транзакцию и проверяйте ожидаемый move_count либо ставьте SELECT ... FOR UPDATE по строке games.
+- Используйте clocks в миллисекундах.
+- Делайте snapshot каждые N ходов (например 50) в game_snapshots для ускорения восстановления длинных партий.
+
+
+
+Минимальная схема moves (рекомендуемый минимум)
+
+id BIGSERIAL PRIMARY KEY
+game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE
+move_index INT NOT NULL — 1-based порядок хода
+uci VARCHAR NOT NULL — основной машинный формат (обязательно)
+fen_after TEXT NOT NULL — ускоряет восстановление позиции
+player_id UUID NULL — кто сделал ход (можно nullable для анонимных/ботов)
+created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+
+
+
+ДАЛЬШЕ ИДЁТ БЕКЕНД.
+Каждая партия представляет собой вебсокет соединение, там будут как и возможные зрители так и два игрока.
+важно смотреть чей ход текущий и реализовано ли это в бд или на вебсокетах, чтобы игроки ходили по очереди. (на фронтенде пользователи смогут ходит только по возможных ходам, но на бекенде нужно проверять реальный ли ход был сделан тк можно считерить запросом)
+Клиент → сервер: make_move
+Сервер → оба игрока: move_made
+Сервер → отправитель при ошибке: move_rejected 
+Сервер → оба игрока: game_finished
+
+2. Необходимо создать микросервис для шахматных партий. Должно быть апи создания партии. После создания партии, партия становится created и к партии должен присоединиться какой - то пользователь. после первого хода игра становится active и время начинает идти.
+3. Так же должна быть веб страничка, которая отображает текущие созданные партии и чтобы к ним можно было присоединиться какому - либо пользователю. Так же должна быть отдельная веб страница, где по uuid партии можно зайти на страницу партии и играть если ты игрок или наблюдать прямой эфир, или посмотреть историю партии

@@ -5,9 +5,6 @@
 **/*.pyo
 **/*.pyd
 **/.Python
-**/env
-**/env*/
-**/.env
 **/.venv
 **/venv
 **/venv*/

@@ -10,5 +10,6 @@ prometheus-client==0.20.0
 python-jose==3.3.0
 passlib==1.7.4
 argon2-cffi==23.1.0
+aiokafka==0.10.0
 
 

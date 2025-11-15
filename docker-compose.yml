@@ -87,6 +87,20 @@ services:
       - "8000"
     restart: unless-stopped
 
+  games:
+    build:
+      context: .
+      dockerfile: games_service/Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      METRICS_ENABLED: "true"
+    expose:
+      - "8000"
+    restart: unless-stopped
+
   api:
     build: .
     depends_on:
@@ -97,6 +111,7 @@ services:
       - courses
       - lessons
       - payments
+      - games
     env_file:
       - .env
     environment:
@@ -143,14 +158,37 @@ services:
   minio:
     image: minio/minio
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-powerchess}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-powerchess-secret}
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio-data:/data
+
+  # kafka:
+  #   image: apache/kafka:latest
+  #   environment:
+  #     KAFKA_NODE_ID: 1
+  #     KAFKA_PROCESS_ROLES: broker,controller
+  #     KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+  #     KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+  #     KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  #     KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+  #     KAFKA_NUM_PARTITIONS: 1
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  #     KAFKA_LOG_DIRS: /var/lib/kafka/data
+  #     KAFKA_KRAFT_CLUSTER_ID: muHc2VgSpKuTyL0Av89W3g
+  #   ports:
+  #     - "9092:9092"
+  #   volumes:
+  #     - kafka-data:/var/lib/kafka/data
 
   prometheus:
     image: prom/prometheus:v2.55.1
@@ -201,6 +239,7 @@ volumes:
   loki-data:
   grafana-data:
   minio-data:
+  kafka-data:
   nginx_certs:
   acme:
 

@@ -5,9 +5,10 @@
 - JWT токены: access и refresh
 - Роуты: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/me`
 - Простой healthcheck: `GET /healthz`
-- Автосоздание таблиц при старте
+- Шахматные партии вынесены в отдельный микросервис `games_service` (таблицы `games`, `moves`, `game_snapshots`, REST + WebSocket API)
 - Отдача существующего фронтенда из директории `backend/web/` через FastAPI (маршрутизация к `.html`)
 - Dockerfile и docker-compose для запуска API и Postgres
+- Отдельные страницы `/login` и `/register` с современной версткой, подключенные к API авторизации
 
 ### Быстрый старт (Docker Compose)
 1. Установите Docker и Docker Compose
@@ -22,7 +23,13 @@
 3. API будет доступен на `http://localhost:8000` (Swagger: `http://localhost:8000/docs`)
 4. Фронтенд HTML файлы будут отдаваться по соответствующим путям, например `http://localhost:8000/index.html`
 
-> Миграции Alembic теперь выполняет только `auth_service` (таблица `users`). Gateway (`backend`) базу данных не модифицирует и может работать с отдельным подключением/без него.
+> Для таблиц шахматных партий добавлен SQL-скрипт `games_service/app/migrations/versions/202511150001_create_games_tables.sql`. Запустите его один раз перед стартом сервиса (`psql -f games_service/app/migrations/versions/202511150001_create_games_tables.sql "$DATABASE_URL"`), чтобы создать `games`, `moves` и `game_snapshots`.
+
+> Для пользователей (auth-service) добавлен скрипт `auth_service/app/migrations/versions/202511150002_add_username_to_users.sql`. Он создаёт столбец `username`, заполняет его для существующих записей и навешивает уникальный индекс. Выполните:
+> ```bash
+> Get-Content auth_service/app/migrations/versions/202511150002_add_username_to_users.sql | docker compose exec -T db psql -U chess -d chess
+> ```
+> (или аналогичную команду `psql`) перед перезапуском `auth_service`.
 
 ### Переменные окружения
 Можно создать файл `.env` в корне или задать переменные в docker-compose.
@@ -40,6 +47,7 @@
 - `AUTH_SERVICE_URL=http://auth:8000`
 - `ENROLLMENTS_SERVICE_URL=http://enrollments:8000`
 - `ENROLLMENTS_INTERNAL_TOKEN=enrollments-secret`
+- `KAFKA_BROKER_URL=kafka:9092`
 - `API_INTERNAL_TOKEN`, `AUTH_INTERNAL_TOKEN`, `COURSES_INTERNAL_TOKEN`, `LESSONS_INTERNAL_TOKEN`, `PAYMENTS_INTERNAL_TOKEN`
   — опциональные токены, которыми защищаются внутренние роуты соответствующих сервисов. Передавайте их в запросах через заголовок `X-Internal-Token`.
 
@@ -71,11 +79,14 @@ METRICS_ENABLED=true
 AUTH_SERVICE_URL=http://auth:8000
 ENROLLMENTS_SERVICE_URL=http://enrollments:8000
 ENROLLMENTS_INTERNAL_TOKEN=enrollments-secret
+KAFKA_BROKER_URL=kafka:9092
 #API_INTERNAL_TOKEN=
 #AUTH_INTERNAL_TOKEN=
 #COURSES_INTERNAL_TOKEN=
 #LESSONS_INTERNAL_TOKEN=
 #PAYMENTS_INTERNAL_TOKEN=
+MINIO_ROOT_USER=powerchess
+MINIO_ROOT_PASSWORD=super-secret-change-me
 S3_ENDPOINT=http://minio:9000
 S3_ACCESS_KEY=minioadmin
 S3_SECRET_KEY=minioadmin
@@ -89,6 +100,7 @@ POST /api/auth/register
 Content-Type: application/json
 
 {
+  "username": "chess_master",
   "email": "user@example.com",
   "password": "StrongPass123"
 }
@@ -129,6 +141,53 @@ Content-Type: application/json
 }
 ```
 
+### Шахматные партии (REST + WebSocket)
+
+Сервис `games_service` работает в отдельном контейнере `games` (порт `8000`). В продакшн/локальном `gateway.dev.conf` на него прокинуто `/api/games/*` и `/ws/games/*`, так что при разработке достаточно обращаться к `http://localhost:8080/api/games` и `ws://localhost:8080/ws/games/...`. Внутри docker-сети сервис доступен по `http://games:8000`.
+
+Создать партию:
+```http
+POST /api/games
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "initial_fen": "startpos",
+  "time_control": {"initial_ms": 300000, "increment_ms": 0, "type": "BLITZ"},
+  "metadata": {"variant": "standard", "rated": false}
+}
+```
+
+Присоединиться ко второй стороне:
+```http
+POST /api/games/{game_id}/join
+Authorization: Bearer <access_token>
+```
+
+Получить список активных/открытых партий:
+```http
+GET /api/games?status=CREATED&status=ACTIVE
+```
+
+Завершить партию:
+```http
+POST /api/games/{game_id}/resign
+POST /api/games/{game_id}/timeout
+```
+
+WebSocket для игры/наблюдения:
+```
+ws://localhost:8000/ws/games/{game_id}?token=<access_token>
+```
+
+Сообщения:
+- клиент → сервер: `{ "type": "make_move", "uci": "e2e4", "white_clock_ms": 295000, "black_clock_ms": 300000, "client_move_id": "uuid" }`
+- сервер → клиент: `move_made`, `move_rejected`, `state`, `game_finished`
+
+Сервер восстанавливает позицию по FEN и отклоняет незаконные ходы/нарушения очередности.
+
+Для быстрого доступа есть отдельная веб‑страница `games.html`: здесь можно создать новую партию, присоединиться к существующей, следить за ходами и подключаться к вебсокету без сторонних клиентов. Ссылка на страницу добавлена в основной хедер сайта.
+
 ### Локальный запуск без Docker
 ```bash
 python -m venv .venv
@@ -156,6 +215,24 @@ uvicorn app.main:app --reload --app-dir backend
 - В Grafana уже добавлен источник данных Loki. Импортируйте дашборды для Loki/Logs Explorer
 
 > В `docker-compose.local.yml` monitoring-стек отключён, чтобы запуск разработки не затягивал Prometheus/Grafana/Loki.
+
+### Kafka (события/очереди)
+
+- В `docker-compose.yml` и `docker-compose.local.yml` добавлен односерверный брокер Kafka (порт `9092`).
+- В контейнерах используйте `kafka:9092`, при локальном подключении — `localhost:9092`.
+- Задайте `KAFKA_BROKER_URL` в `.env`, чтобы сервисы могли выпускать и читать события.
+- Темы можно создавать вручную или полагаться на `KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true` (включено для dev).
+- Отладочные команды:
+  ```bash
+  docker compose exec kafka kafka-topics.sh --bootstrap-server localhost:9092 --list
+  ```
+- В сервисах доступен вспомогательный модуль:
+  ```python
+  from common.kafka import kafka_producer
+
+  async with kafka_producer(get_settings()) as producer:
+      await producer.send_and_wait("payments.events", b"payload")
+  ```
 
 Сохранение дашбордов Grafana
 - Данные Grafana сохраняются в volume `grafana-data` (`/var/lib/grafana`), дашборды не пропадут между рестартами.
@@ -196,12 +273,31 @@ backend/
     config.py
     database.py
     security.py
-    models/
-      user.py
     routers/
       auth.py
     schemas/
       auth.py
+games_service/
+  app/
+    main.py
+    config.py
+    database.py
+    security.py
+    models/
+      game.py
+      move.py
+    routers/
+      games.py
+      game_ws.py
+    schemas/
+      game.py
+    services/
+      games.py
+    realtime/
+      manager.py
+    migrations/
+      versions/
+        202511150001_create_games_tables.sql
 web/
   *.html, *.css
   (перемещено в backend/web)

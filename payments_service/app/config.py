@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 	app_name: str = "Payments Service"
 	metrics_enabled: bool = True
 	payments_internal_token: str | None = None
+	kafka_broker_url: str | None = None
 
 	# YooKassa
 	yookassa_shop_id: str | None = None

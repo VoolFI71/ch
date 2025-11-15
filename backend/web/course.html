@@ -1914,6 +1914,7 @@
 
                 <!-- Navigation -->
                 <nav class="nav">
+                    <a href="/games" class="nav-link">Играть</a>
                     <a href="/course" class="nav-link">Курсы</a>
                     <a href="/couch#coaches" class="nav-link">Тренера</a>
                     <a href="#reviews" class="nav-link">Отзывы</a>
@@ -2246,16 +2247,16 @@
             </div>
             <form class="modal-form" onsubmit="handleRegister(event)">
                 <div class="form-group">
-                    <label class="form-label" for="courseRegisterName">Имя</label>
-                    <input id="courseRegisterName" type="text" class="form-input" placeholder="Ваше имя" required>
+                    <label class="form-label" for="courseRegisterUsername">Имя пользователя</label>
+                    <input id="courseRegisterUsername" name="username" type="text" class="form-input" placeholder="например knight_master" pattern="^[A-Za-z0-9_.-]{3,32}$" title="3-32 символа: латиница, цифры, _ . -" autocomplete="username" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="courseRegisterEmail">Email</label>
-                    <input id="courseRegisterEmail" type="email" class="form-input" placeholder="name@email.ru" required>
+                    <input id="courseRegisterEmail" name="email" type="email" class="form-input" placeholder="name@email.ru" autocomplete="email" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="courseRegisterPassword">Пароль</label>
-                    <input id="courseRegisterPassword" type="password" class="form-input" placeholder="Придумайте пароль" required>
+                    <input id="courseRegisterPassword" name="password" type="password" class="form-input" placeholder="Придумайте пароль" autocomplete="new-password" required>
                 </div>
                 <button class="btn btn-success modal-submit" type="submit">
                     <i class="fas fa-user-plus"></i>

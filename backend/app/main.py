@@ -78,6 +78,23 @@ def serve_course_by_id(course_id: int):
     return FileResponse(str(course_file))
 
 
+@app.get("/games")
+@app.get("/games/")
+def serve_games_page():
+    games_file = WEB_DIR / "games.html"
+    if not games_file.is_file():
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
+    return FileResponse(str(games_file))
+
+
+@app.get("/match/{match_id}")
+def serve_match_page(match_id: str):
+    match_file = WEB_DIR / "match.html"
+    if not match_file.is_file():
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
+    return FileResponse(str(match_file))
+
+
 @app.get("/{full_path:path}")
 def serve_frontend(full_path: str):
     resolved = _resolve_web_path(full_path)

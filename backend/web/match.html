@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PowerChess — Матч</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/variables.css">
+  <link rel="stylesheet" href="/common.css">
+  <link rel="stylesheet" href="/navigation.css">
+  <link rel="stylesheet" href="/header.css">
+  <link rel="stylesheet" href="/games.css">
+  <link rel="stylesheet" href="/chess-board.css">
+  <style>
+    .match-main {
+      padding: 3rem 0;
+    }
+
+    .match-container {
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .match-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .match-board-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    .match-board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .match-board-header h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .match-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .match-header-actions .btn {
+      padding: 0.6rem 1.1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .match-players {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .match-players {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .player-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding: 1.25rem 1.5rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(124, 58, 237, 0.15);
+      background: rgba(39, 39, 42, 0.02);
+    }
+
+    .player-card.white {
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .player-card.black {
+      border-color: rgba(124, 58, 237, 0.25);
+    }
+
+    .player-card .label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .player-card .name {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .player-card .clock {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .board-info {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+      color: var(--muted-foreground);
+    }
+
+    .board-info > div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .board-info .status-label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .match-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      padding: 2rem;
+    }
+
+    .match-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .match-meta .copy-field input {
+      font-size: 0.9rem;
+      padding: 0.65rem 0.85rem;
+    }
+
+    .match-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .match-actions button {
+      flex: 1 1 200px;
+    }
+
+    .moves-card h3 {
+      margin: 0 0 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .moves-card .moves-list {
+      max-height: 340px;
+      overflow-y: auto;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 0.75rem 1rem;
+      background: rgba(248, 250, 252, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    body.dark .moves-card .moves-list {
+      background: rgba(15, 23, 42, 0.6);
+      border-color: rgba(148, 163, 184, 0.25);
+    }
+
+    .moves-card .moves-list li {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      align-items: center;
+      padding: 0.35rem 0.25rem;
+      border-radius: 0.5rem;
+    }
+
+    .moves-card .moves-list li.active {
+      background: rgba(124, 58, 237, 0.12);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .moves-card .moves-list li {
+        grid-template-columns: 40px 1fr;
+        grid-template-rows: auto auto;
+      }
+      .moves-card .moves-list li span:nth-child(3) {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .move-form form {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: minmax(0, 1fr) 120px auto;
+    }
+
+    @media (max-width: 640px) {
+      .move-form form {
+        grid-template-columns: 1fr 1fr;
+      }
+      .move-form form button {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .board-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 340px;
+      border-radius: 1rem;
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+      color: var(--muted-foreground);
+      text-align: center;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="header" id="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="/" class="logo">
+          <div class="logo-icon">
+            <div class="chess-pattern"></div>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+              <defs>
+                <linearGradient id="match-crown" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffd700" />
+                  <stop offset="50%" stop-color="#ffffff" />
+                  <stop offset="100%" stop-color="#ffd700" />
+                </linearGradient>
+              </defs>
+              <rect x="3" y="16" width="18" height="3" fill="url(#match-crown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+              <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#match-crown)" stroke="#fff" stroke-width="1"/>
+              <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
+            </svg>
+            <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position:absolute;top:0.25rem;right:0.25rem;z-index:3;">
+              <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.8"/>
+            </svg>
+            <div class="logo-sparkle"></div>
+            <div class="logo-sparkle"></div>
+            <div class="logo-sparkle"></div>
+            <div class="logo-sparkle"></div>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
+            <div style="font-size: 0.75rem; color: var(--muted); margin-top: -0.25rem;">♔ Шахматная академия</div>
+          </div>
+        </a>
+        <nav class="nav">
+          <a href="/games" class="nav-link active">Играть</a>
+          <a href="/course" class="nav-link">Курсы</a>
+          <a href="/couch#coaches" class="nav-link">Тренеры</a>
+          <a href="#reviews" class="nav-link">Отзывы</a>
+          <a href="#tournaments" class="nav-link">Турниры</a>
+        </nav>
+        <div class="header-actions">
+          <div class="user-actions" id="userActions" style="display: none;">
+            <a href="/cabinet" class="btn btn-outline">
+              <i class="fas fa-user" style="margin-right: 0.4rem;"></i>
+              Кабинет
+            </a>
+            <button type="button" class="btn btn-outline logout-btn" id="gamesLogoutBtn" style="display: none;">
+              <i class="fas fa-sign-out-alt" style="margin-right: 0.4rem;"></i>
+              Выйти
+            </button>
+          </div>
+          <div class="auth-buttons" id="authButtons">
+            <button class="btn-login" id="gamesLoginBtn">
+              <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+              Войти
+            </button>
+            <button class="btn-register" id="gamesRegisterBtn">
+              <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+              Регистрация
+            </button>
+          </div>
+          <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+            <i class="fas fa-sun" id="themeIcon"></i>
+          </button>
+          <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars" id="menuIcon"></i>
+          </button>
+        </div>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <a href="/games" class="nav-link active" style="display:block;" onclick="closeMobileMenu()">Играть</a>
+          <a href="/course" class="nav-link" style="display:block;" onclick="closeMobileMenu()">Курсы</a>
+          <a href="/couch#coaches" class="nav-link" style="display:block;" onclick="closeMobileMenu()">Тренеры</a>
+          <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
+          <div class="mobile-user-actions" id="mobileUserActions" style="display:none;">
+            <a href="/cabinet" class="btn btn-outline" style="width:100%;justify-content:center;" onclick="closeMobileMenu()">
+              <i class="fas fa-user" style="margin-right:0.4rem;"></i>
+              Кабинет
+            </a>
+            <button type="button" class="btn btn-outline logout-btn" id="gamesLogoutBtnMobile" style="width:100%;justify-content:center;margin-top:0.75rem;">
+              <i class="fas fa-sign-out-alt" style="margin-right:0.4rem;"></i>
+              Выйти
+            </button>
+          </div>
+          <div class="mobile-auth" id="mobileAuthButtons">
+            <button class="btn-login" id="gamesLoginBtnMobile" style="width:100%;justify-content:center;">Войти</button>
+            <button class="btn-register" id="gamesRegisterBtnMobile" style="width:100%;justify-content:center;">Регистрация</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="match-main">
+    <div class="container match-container">
+      <section class="card match-board-card">
+        <div class="match-board-header">
+          <div>
+            <p class="status-label" style="margin-bottom: 0.4rem;">Матч в реальном времени</p>
+            <h1 id="matchTitle">Загружаем партию…</h1>
+          </div>
+          <div class="match-header-actions">
+            <span class="pill" id="gameStatusBadge">—</span>
+            <span class="ws-indicator ws-offline" id="wsStatus">WS: offline</span>
+            <button class="btn btn-outline" id="flipBoardBtn">
+              <i class="fas fa-sync-alt"></i>
+              Повернуть
+            </button>
+            <button class="btn btn-outline" id="copyMatchLinkBtn">
+              <i class="fas fa-link"></i>
+              Скопировать ссылку
+            </button>
+          </div>
+        </div>
+
+        <div id="matchMessage" class="empty-state" style="display:none;">
+          Партия не найдена или недоступна. Проверьте ссылку или вернитесь к списку матчей.
+        </div>
+
+        <div class="match-players">
+          <div class="player-card white">
+            <div class="label">Белые</div>
+            <div class="name" id="whitePlayerLabel">—</div>
+            <div class="clock" id="whiteClock">05:00</div>
+          </div>
+          <div class="player-card black">
+            <div class="label">Чёрные</div>
+            <div class="name" id="blackPlayerLabel">—</div>
+            <div class="clock" id="blackClock">05:00</div>
+          </div>
+        </div>
+
+        <div class="board-container">
+          <div class="board-wrapper">
+            <div class="board-shell">
+              <div class="chess-board" id="matchBoard"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="board-info">
+          <div>
+            <span class="status-label">Контроль</span>
+            <span id="gameTimeControl">—</span>
+          </div>
+          <div>
+            <span class="status-label">Результат</span>
+            <span id="gameResult">—</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card match-sidebar">
+        <div class="match-meta">
+          <div class="copy-field">
+            <input type="text" id="gameIdField" readonly>
+            <button class="btn btn-outline" id="copyGameIdBtn">
+              <i class="fas fa-copy"></i>
+              UUID партии
+            </button>
+          </div>
+        </div>
+
+        <div class="match-actions" id="gameActions"></div>
+
+        <div class="moves-card">
+          <h3>Ходы</h3>
+          <ol class="moves-list" id="movesList"></ol>
+        </div>
+
+        <div class="move-form">
+          <div class="status-label">Сделать ход (UCI)</div>
+          <form id="moveForm">
+            <input type="text" id="uciInput" name="uci" placeholder="Например, e2e4" minlength="4" autocomplete="off" required>
+            <input type="text" id="promotionInput" name="promotion" placeholder="Промо (qrbn)" maxlength="1" autocomplete="off">
+            <button type="submit" class="btn-primary">Отправить</button>
+          </form>
+          <small style="color:rgba(148,163,184,0.8); display:block; margin-top:0.5rem;">Инкремент добавляется автоматически после вашего хода.</small>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="gamesToast" class="toast"></div>
+
+  <script src="/match.js" defer></script>
+</body>
+</html>
+
+

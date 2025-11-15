@@ -1,8 +1,0 @@
-Revision scripts for auth_service.
-
-Run with:
-
-```
-alembic upgrade head
-```
-

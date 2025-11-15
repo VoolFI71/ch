@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+import re
 
 from ..database import get_db
 from ..models import User
@@ -13,18 +15,49 @@ from ..security import (
 	decode_token,
 )
 
+USERNAME_ALLOWED_RE = re.compile(r"[^A-Za-z0-9_.-]+")
+
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+
+def _sanitize_username(raw: str | None, email: str) -> str:
+	base = (raw or "").strip()
+	if not base:
+		base = email.split("@", 1)[0]
+	base = USERNAME_ALLOWED_RE.sub("-", base)
+	base = base.strip("-_.")
+	if len(base) < 3:
+		base = (base + "user") if base else "user"
+	base = base[:32]
+	if len(base) < 3:
+		base = base.ljust(3, "0")
+	return base
+
+
+def _ensure_unique_username(base: str, db: Session) -> str:
+	candidate = base
+	suffix = 1
+	while db.query(User).filter(func.lower(User.username) == candidate.lower()).first():
+		suffix += 1
+		suffix_str = f"-{suffix}"
+		max_len = 32 - len(suffix_str)
+		candidate = f"{base[:max_len]}{suffix_str}"
+	return candidate
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)) -> UserOut:
 	email = user_in.email.lower()
+	username = _sanitize_username(user_in.username if hasattr(user_in, "username") else None, email)
+
 	existing = db.query(User).filter(User.email == email).first()
 	if existing:
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
-	user = User(email=email, hashed_password=get_password_hash(user_in.password))
+	username = _ensure_unique_username(username, db)
+
+	user = User(email=email, username=username, hashed_password=get_password_hash(user_in.password))
 	db.add(user)
 	db.commit()
 	db.refresh(user)

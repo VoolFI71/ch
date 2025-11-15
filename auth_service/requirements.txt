@@ -10,5 +10,6 @@ email-validator==2.2.0
 alembic==1.13.2
 prometheus-fastapi-instrumentator==6.1.0
 prometheus-client==0.20.0
+aiokafka==0.10.0
 
 

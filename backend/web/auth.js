@@ -79,11 +79,11 @@
     return data;
   }
 
-  async function register(email, password) {
+  async function register(username, email, password) {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, email, password }),
     });
     if (!res.ok) {
       const msg = await safeError(res);
@@ -226,10 +226,14 @@
     if (event && event.preventDefault) event.preventDefault();
     try {
       const form = event?.target || document.querySelector('#registerModal form') || document.querySelector('form[action="#register"]');
-      const inputs = form ? form.querySelectorAll('input') : [];
-      const email = (inputs[1] || inputs[0])?.value?.trim() || '';
-      const password = (inputs[2] || inputs[1])?.value || '';
-      await register(email, password);
+      const formData = form ? new FormData(form) : null;
+      const username = (formData?.get('username') || '').toString().trim();
+      const email = (formData?.get('email') || '').toString().trim();
+      const password = (formData?.get('password') || '').toString();
+      if (!username) throw new Error('Укажите имя пользователя');
+      if (!email) throw new Error('Укажите email');
+      if (!password) throw new Error('Укажите пароль');
+      await register(username, email, password);
       await login(email, password);
       updateAuthUI(true);
       if (typeof window.closeRegisterModal === 'function') window.closeRegisterModal();
