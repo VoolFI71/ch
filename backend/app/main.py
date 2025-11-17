@@ -9,7 +9,7 @@ from common.observability import configure_observability
 
 from .config import get_settings
 from .database import get_db
-from .routers import auth_router
+from .routers import auth_router, users_router
 
 
 settings = get_settings()
@@ -36,6 +36,7 @@ configure_observability(
 
 # API routes
 app.include_router(auth_router)
+app.include_router(users_router)
 
 
 # Frontend serving

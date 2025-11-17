@@ -23,13 +23,7 @@
 3. API будет доступен на `http://localhost:8000` (Swagger: `http://localhost:8000/docs`)
 4. Фронтенд HTML файлы будут отдаваться по соответствующим путям, например `http://localhost:8000/index.html`
 
-> Для таблиц шахматных партий добавлен SQL-скрипт `games_service/app/migrations/versions/202511150001_create_games_tables.sql`. Запустите его один раз перед стартом сервиса (`psql -f games_service/app/migrations/versions/202511150001_create_games_tables.sql "$DATABASE_URL"`), чтобы создать `games`, `moves` и `game_snapshots`.
-
-> Для пользователей (auth-service) добавлен скрипт `auth_service/app/migrations/versions/202511150002_add_username_to_users.sql`. Он создаёт столбец `username`, заполняет его для существующих записей и навешивает уникальный индекс. Выполните:
-> ```bash
-> Get-Content auth_service/app/migrations/versions/202511150002_add_username_to_users.sql | docker compose exec -T db psql -U chess -d chess
-> ```
-> (или аналогичную команду `psql`) перед перезапуском `auth_service`.
+> При первом запуске сервисы авторизации и матчей автоматически создают необходимые таблицы в базе данных (используется SQLAlchemy `metadata.create_all`). Дополнительные SQL-скрипты не требуются.
 
 ### Переменные окружения
 Можно создать файл `.env` в корне или задать переменные в docker-compose.

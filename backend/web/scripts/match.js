@@ -17,11 +17,20 @@
     clockTimer: null,
     autoJoinAttempted: false,
     loginPromptShown: false,
+    selectedSquare: null,
+    availableTargets: new Set(),
+    legalMovesByFrom: new Map(),
+    pendingMove: false,
+    autoCancelDeadline: null,
+    autoCancelTimerId: null,
   };
 
   let isDarkTheme = false;
   let boardOrientation = 'white';
   let userSetOrientation = false;
+
+  const playerUsernames = new Map();
+  const AUTO_CANCEL_TIMEOUT_MS = 30_000;
 
   const API_BASE = (() => {
     const { protocol, hostname, port } = window.location;
@@ -113,12 +122,18 @@
     }, 4000);
   }
 
-  const translateStatus = (status) => ({
-    CREATED: 'Ожидает соперника',
-    ACTIVE: 'Идёт партия',
-    PAUSED: 'Пауза',
-    FINISHED: 'Завершена',
-  }[status] || status || '—');
+  const translateStatus = (status, nextTurn) => {
+    if (status === 'CREATED' || status === 'ACTIVE') {
+      if (nextTurn === 'w') return 'Ход белых';
+      if (nextTurn === 'b') return 'Ход чёрных';
+    }
+    return (
+      {
+        PAUSED: 'Пауза',
+        FINISHED: 'Завершена',
+      }[status] || status || '—'
+    );
+  };
 
   const statusClass = (status) => ({
     CREATED: 'status-created',
@@ -142,12 +157,206 @@
     return `${minutes}:${seconds}`;
   };
 
-  const labelPlayer = (id) => {
-    if (!id) return '—';
-    if (state.currentUser && state.currentUser.id === id) {
-      return state.currentUser.username ? `Вы (@${state.currentUser.username})` : 'Вы';
+  const normalizeUserId = (value) => {
+    if (value === null || value === undefined) return null;
+    const numeric = Number(value);
+    return Number.isNaN(numeric) ? value : numeric;
+  };
+
+  const usernameFromCache = (id) => {
+    const key = normalizeUserId(id);
+    if (key === null) return null;
+    return playerUsernames.has(key) ? playerUsernames.get(key) : null;
+  };
+
+  const storeUsername = (id, username) => {
+    const key = normalizeUserId(id);
+    if (key === null) return;
+    if (typeof username === 'string') {
+      const trimmed = username.trim();
+      playerUsernames.set(key, trimmed.length ? trimmed : null);
+      return;
     }
+    playerUsernames.set(key, null);
+  };
+
+  const formatCountdown = (totalSeconds) => {
+    const seconds = Math.max(0, totalSeconds);
+    const minutes = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${secs}`;
+  };
+
+  function clearAutoCancelTimer() {
+    if (state.autoCancelTimerId) {
+      clearInterval(state.autoCancelTimerId);
+      state.autoCancelTimerId = null;
+    }
+    state.autoCancelDeadline = null;
+    const banner = document.getElementById('autoCancelBanner');
+    const timerEl = document.getElementById('autoCancelTimer');
+    if (banner) banner.style.display = 'none';
+    if (timerEl) timerEl.textContent = '00:30';
+  }
+
+  function updateAutoCancelTimerDisplay() {
+    const banner = document.getElementById('autoCancelBanner');
+    const timerEl = document.getElementById('autoCancelTimer');
+    if (!banner || !timerEl) return;
+    if (!state.autoCancelDeadline) {
+      banner.style.display = 'none';
+      return;
+    }
+    const remainingMs = state.autoCancelDeadline - Date.now();
+    if (remainingMs <= 0) {
+      clearAutoCancelTimer();
+      return;
+    }
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+    timerEl.textContent = formatCountdown(remainingSeconds);
+    banner.style.display = '';
+  }
+
+  function setAutoCancelDeadline(deadlineMs) {
+    if (deadlineMs === null || deadlineMs === undefined || Number.isNaN(deadlineMs)) {
+      clearAutoCancelTimer();
+      return;
+    }
+    if (deadlineMs <= Date.now()) {
+      clearAutoCancelTimer();
+      return;
+    }
+    const prev = state.autoCancelDeadline;
+    state.autoCancelDeadline = deadlineMs;
+    if (prev && Math.abs(prev - deadlineMs) < 500) {
+      updateAutoCancelTimerDisplay();
+      return;
+    }
+    if (state.autoCancelTimerId) {
+      clearInterval(state.autoCancelTimerId);
+      state.autoCancelTimerId = null;
+    }
+    updateAutoCancelTimerDisplay();
+    state.autoCancelTimerId = setInterval(() => {
+      if (!state.autoCancelDeadline) {
+        clearAutoCancelTimer();
+        return;
+      }
+      updateAutoCancelTimerDisplay();
+    }, 1000);
+  }
+
+  function syncAutoCancelDeadline(detail) {
+    if (!detail) {
+      clearAutoCancelTimer();
+      return;
+    }
+    if (detail.status !== 'CREATED' || detail.move_count > 0) {
+      clearAutoCancelTimer();
+      return;
+    }
+    const whiteReady = detail.white_id !== null && detail.white_id !== undefined;
+    const blackReady = detail.black_id !== null && detail.black_id !== undefined;
+    if (!whiteReady || !blackReady) {
+      clearAutoCancelTimer();
+      return;
+    }
+    let deadlineMs = null;
+    if (detail.auto_cancel_at) {
+      const parsed = Date.parse(detail.auto_cancel_at);
+      if (!Number.isNaN(parsed)) {
+        deadlineMs = parsed;
+      }
+    }
+    if (!deadlineMs) {
+      if (state.autoCancelDeadline) {
+        updateAutoCancelTimerDisplay();
+        return;
+      }
+      deadlineMs = Date.now() + AUTO_CANCEL_TIMEOUT_MS;
+    }
+    setAutoCancelDeadline(deadlineMs);
+  }
+
+  const titleName = (id) => {
+    if (id === null || id === undefined) return '—';
+    const username = usernameFromCache(id);
+    if (username) return username;
     return `ID ${id}`;
+  };
+
+  async function fetchUsername(userId) {
+    const key = normalizeUserId(userId);
+    if (key === null) return null;
+    if (playerUsernames.has(key)) return playerUsernames.get(key);
+    try {
+      const res = await authedFetch(`/api/users/${encodeURIComponent(key)}`);
+      if (!res.ok) {
+        storeUsername(key, null);
+        return null;
+      }
+      const data = await res.json();
+      const username =
+        (data && (data.username || data.display_name || data.name || data.handle || data.login)) || null;
+      storeUsername(key, username);
+      updatePlayerLabelsAndTitle();
+      return usernameFromCache(key);
+    } catch {
+      storeUsername(key, null);
+      updatePlayerLabelsAndTitle();
+      return null;
+    }
+  }
+
+  async function ensurePlayerUsernames(game) {
+    if (!game) return;
+    const ids = [normalizeUserId(game.white_id), normalizeUserId(game.black_id)]
+      .filter((id) => id !== null && !playerUsernames.has(id));
+    if (!ids.length) return;
+    await Promise.all(ids.map((id) => fetchUsername(id)));
+    updatePlayerLabelsAndTitle();
+  }
+
+  const labelPlayer = (id) => {
+    if (id === null || id === undefined) return '—';
+    if (state.currentUser && state.currentUser.id === id) {
+      return state.currentUser.username ? `Вы (${state.currentUser.username})` : 'Вы';
+    }
+    const username = usernameFromCache(id);
+    if (username) return username;
+    return `ID ${id}`;
+  };
+
+  function updatePlayerLabelsAndTitle() {
+    const matchTitle = document.getElementById('matchTitle');
+    if (matchTitle) {
+      if (state.game) {
+        const whiteName = titleName(state.game.white_id);
+        const blackName = titleName(state.game.black_id);
+        matchTitle.textContent = `${whiteName} vs ${blackName}`;
+      } else {
+        matchTitle.textContent = 'Партия не найдена';
+      }
+    }
+
+    const whiteLabel = document.getElementById('whitePlayerLabel');
+    if (whiteLabel) {
+      whiteLabel.textContent = state.game ? labelPlayer(state.game.white_id) : '—';
+    }
+
+    const blackLabel = document.getElementById('blackPlayerLabel');
+    if (blackLabel) {
+      blackLabel.textContent = state.game ? labelPlayer(state.game.black_id) : '—';
+    }
+  }
+
+  const getAvailableSeat = (game) => {
+    if (!game) return null;
+    if (game.white_id == null) return 'white';
+    if (game.black_id == null) return 'black';
+    return null;
   };
 
   function updateAuthPanel() {
@@ -202,6 +411,11 @@
       state.currentUser = null;
     }
     updateAuthPanel();
+    updatePlayerLabelsAndTitle();
+    if (state.game) {
+      updateLegalMoves();
+      renderBoard();
+    }
   }
 
   const parseMatchId = () => {
@@ -256,6 +470,11 @@
     const highlightSet = new Set(getHighlightSquares());
     const files = boardOrientation === 'white' ? FILES : [...FILES].reverse();
     const ranks = boardOrientation === 'white' ? RANKS : [...RANKS].reverse();
+    const utils = window.ChessMoveUtils;
+    const baseBoard = state.game && utils ? utils.parseFen(state.game.current_pos).board : null;
+    const selectedSquare = state.selectedSquare;
+    const targetSquares =
+      state.availableTargets instanceof Set ? state.availableTargets : new Set();
 
     boardEl.innerHTML = '';
     matrix.forEach((row, rIdx) => {
@@ -269,6 +488,28 @@
           const overlay = document.createElement('div');
           overlay.className = 'highlight-overlay';
           square.appendChild(overlay);
+        }
+        if (selectedSquare && squareName === selectedSquare) {
+          square.classList.add('selected-user');
+        }
+        let isCaptureTarget = false;
+        if (targetSquares.has(squareName)) {
+          square.classList.add('legal-target');
+          if (baseBoard) {
+            const fileIdx = squareName.charCodeAt(0) - 97;
+            const rankIdx = 8 - Number.parseInt(squareName[1], 10);
+            const occupant = baseBoard?.[rankIdx]?.[fileIdx];
+            if (occupant && occupant !== '') {
+              isCaptureTarget = true;
+            }
+          }
+          if (isCaptureTarget) {
+            square.classList.add('legal-target-capture');
+          }
+          const marker = document.createElement('div');
+          marker.className = 'legal-move-indicator';
+          if (isCaptureTarget) marker.classList.add('capture');
+          square.appendChild(marker);
         }
         if (piece) {
           const pieceEl = document.createElement('span');
@@ -288,6 +529,8 @@
           rankCoord.textContent = ranks[rIdx];
           square.appendChild(rankCoord);
         }
+        square.dataset.square = squareName;
+        square.addEventListener('click', () => handleSquareClick(squareName));
         boardEl.appendChild(square);
       });
     });
@@ -366,20 +609,129 @@
     list.scrollTop = list.scrollHeight;
   }
 
+  function resetSelection() {
+    state.selectedSquare = null;
+    state.availableTargets = new Set();
+  }
+
+  function pieceBelongsToRole(piece, role) {
+    if (!piece) return false;
+    const isWhite = piece === piece.toUpperCase();
+    return role === (isWhite ? 'white' : 'black');
+  }
+
+  function getPieceAtSquare(fen, square) {
+    const utils = window.ChessMoveUtils;
+    if (!utils || !fen || !square) return null;
+    const { board } = utils.parseFen(fen);
+    const fileIdx = square.charCodeAt(0) - 97;
+    const rankIdx = 8 - Number.parseInt(square[1], 10);
+    if (Number.isNaN(fileIdx) || Number.isNaN(rankIdx)) return null;
+    return board?.[rankIdx]?.[fileIdx] ?? null;
+  }
+
+  function updateLegalMoves() {
+    state.legalMovesByFrom = new Map();
+    resetSelection();
+    if (!state.game) return;
+    if (state.game.status !== 'ACTIVE') return;
+    const utils = window.ChessMoveUtils;
+    if (!utils) return;
+    const role = getCurrentUserRole();
+    if (!role) return;
+    const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';
+    if (role !== expectedTurn) return;
+    const { movesByFrom } = utils.generateMoves(state.game.current_pos, role);
+    movesByFrom.forEach((uciSet, fromSquare) => {
+      const entries = [];
+      uciSet.forEach((uci) => {
+        const base = uci.slice(0, 4);
+        const to = uci.slice(2, 4);
+        const promotion = uci.length > 4 ? uci.slice(4) : null;
+        entries.push({ from: fromSquare, to, base, promotion });
+      });
+      if (entries.length) {
+        state.legalMovesByFrom.set(fromSquare, entries);
+      }
+    });
+  }
+
+  function executeMove(fromSquare, toSquare) {
+    const moves = state.legalMovesByFrom.get(fromSquare);
+    if (!moves || !moves.length) return;
+    const options = moves.filter((entry) => entry.to === toSquare);
+    if (!options.length) return;
+    let chosen = options[0];
+    if (options.length > 1) {
+      let promotion = prompt('Выберите фигуру для промоции (q, r, b, n)', 'q');
+      if (!promotion) return;
+      promotion = promotion.toLowerCase();
+      chosen = options.find((entry) => entry.promotion === promotion);
+      if (!chosen) {
+        showToast('Неверная фигура промоции', 'error');
+        return;
+      }
+    }
+    const success = attemptMove(chosen.base, chosen.promotion);
+    if (success) {
+      resetSelection();
+      renderBoard();
+    }
+  }
+
+  function handleSquareClick(squareName) {
+    if (!state.game) return;
+    if (state.game.status !== 'ACTIVE') return;
+    if (state.pendingMove) return;
+    const role = getCurrentUserRole();
+    if (!role) return;
+    const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';
+    if (role !== expectedTurn) return;
+    const square = squareName.toLowerCase();
+
+    if (state.selectedSquare && state.availableTargets.has(square)) {
+      executeMove(state.selectedSquare, square);
+      return;
+    }
+
+    if (state.selectedSquare === square) {
+      resetSelection();
+      renderBoard();
+      return;
+    }
+
+    const moves = state.legalMovesByFrom.get(square);
+    if (!moves || !moves.length) {
+      resetSelection();
+      renderBoard();
+      return;
+    }
+
+    const piece = getPieceAtSquare(state.game.current_pos, square);
+    if (!piece || !pieceBelongsToRole(piece, role)) {
+      resetSelection();
+      renderBoard();
+      return;
+    }
+
+    state.selectedSquare = square;
+    state.availableTargets = new Set(moves.map((entry) => entry.to));
+    renderBoard();
+  }
+
   const canJoinGame = () => {
     if (!state.currentUser || !state.game) return false;
     if (state.game.status !== 'CREATED') return false;
-    if (state.game.black_id) return false;
-    return state.currentUser.id !== state.game.white_id;
+    if (state.currentUser.id === state.game.white_id || state.currentUser.id === state.game.black_id) return false;
+    return getAvailableSeat(state.game) !== null;
   };
 
   const shouldAutoJoin = () => {
     if (!state.game || state.autoJoinAttempted) return false;
     if (state.game.status !== 'CREATED') return false;
-    if (state.game.black_id) return false;
     if (!state.currentUser) return false;
     if (state.currentUser.id === state.game.white_id || state.currentUser.id === state.game.black_id) return false;
-    return true;
+    return getAvailableSeat(state.game) !== null;
   };
 
   const getCurrentUserRole = () => {
@@ -388,8 +740,6 @@
     if (state.currentUser.id === state.game.black_id) return 'black';
     return null;
   };
-
-  const isSpectator = () => !getCurrentUserRole();
 
   const canDeclareTimeout = (role) => {
     const clocks = getDisplayedClocks(false);
@@ -410,9 +760,15 @@
     container.innerHTML = '';
     if (!state.game) return;
 
+    const seat = getAvailableSeat(state.game);
     const joinBtn = document.createElement('button');
     joinBtn.className = 'btn btn-primary';
-    joinBtn.textContent = 'Присоединиться чёрными';
+    joinBtn.textContent =
+      seat === 'white'
+        ? 'Присоединиться белыми'
+        : seat === 'black'
+          ? 'Присоединиться чёрными'
+          : 'Присоединиться';
     joinBtn.addEventListener('click', () => joinGame());
 
     const resignBtn = document.createElement('button');
@@ -456,7 +812,7 @@
     if (
       !state.game ||
       state.game.status !== 'CREATED' ||
-      state.game.black_id ||
+      !getAvailableSeat(state.game) ||
       state.currentUser ||
       state.loginPromptShown
     ) {
@@ -496,26 +852,65 @@
   }
 
   function applyGameDetail(detail) {
+    const previousGame = state.game;
+    const previousRole = getCurrentUserRole();
     state.game = detail;
     state.moves = detail?.moves || [];
     state.lastStateTimestamp = Date.now();
+    state.pendingMove = false;
+    const newRole = getCurrentUserRole();
+    if (newRole !== previousRole) {
+      userSetOrientation = false;
+    }
+    syncAutoCancelDeadline(detail);
+    updateLegalMoves();
     computeOrientationFromRole();
     updateUI();
     maybeAutoJoin();
+    ensurePlayerUsernames(detail);
+
+    const notifyOpponentJoined = () => {
+      if (!state.game) return;
+      const role = getCurrentUserRole();
+      if (role === 'white') {
+        const currentOpponent = state.game.black_id;
+        const previousOpponent = previousGame?.black_id ?? null;
+        if (
+          currentOpponent !== null &&
+          currentOpponent !== undefined &&
+          currentOpponent !== previousOpponent
+        ) {
+          fetchUsername(currentOpponent).then((resolved) => {
+            const display = resolved || `ID ${currentOpponent}`;
+            showToast(`Соперник ${display} подключился к партии`, 'info');
+          });
+        }
+      } else if (role === 'black') {
+        const currentOpponent = state.game.white_id;
+        const previousOpponent = previousGame?.white_id ?? null;
+        if (
+          currentOpponent !== null &&
+          currentOpponent !== undefined &&
+          currentOpponent !== previousOpponent
+        ) {
+          fetchUsername(currentOpponent).then((resolved) => {
+            const display = resolved || `ID ${currentOpponent}`;
+            showToast(`Соперник ${display} подключился к партии`, 'info');
+          });
+        }
+      }
+    };
+
+    notifyOpponentJoined();
   }
 
   function updateUI() {
-    const matchTitle = document.getElementById('matchTitle');
-    if (state.game && matchTitle) {
-      matchTitle.textContent = `Матч • ${state.game.id.slice(0, 8)}…`;
-    } else if (matchTitle) {
-      matchTitle.textContent = 'Партия не найдена';
-    }
+    updatePlayerLabelsAndTitle();
 
     const badge = document.getElementById('gameStatusBadge');
     if (badge) {
       if (state.game) {
-        badge.textContent = translateStatus(state.game.status);
+        badge.textContent = translateStatus(state.game.status, state.game.next_turn);
         badge.className = `pill ${statusClass(state.game.status)}`;
       } else {
         badge.textContent = '—';
@@ -531,16 +926,6 @@
     const resultEl = document.getElementById('gameResult');
     if (resultEl) {
       resultEl.textContent = state.game?.result || '—';
-    }
-
-    const whiteLabel = document.getElementById('whitePlayerLabel');
-    if (whiteLabel) {
-      whiteLabel.textContent = state.game ? labelPlayer(state.game.white_id) : '—';
-    }
-
-    const blackLabel = document.getElementById('blackPlayerLabel');
-    if (blackLabel) {
-      blackLabel.textContent = state.game ? labelPlayer(state.game.black_id) : '—';
     }
 
     const gameIdField = document.getElementById('gameIdField');
@@ -563,6 +948,7 @@
   async function loadMatch() {
     if (!state.matchId) {
       state.game = null;
+      clearAutoCancelTimer();
       updateUI();
       return;
     }
@@ -577,6 +963,7 @@
       showToast('Не удалось загрузить партию', 'error');
       state.game = null;
       state.moves = [];
+      clearAutoCancelTimer();
       updateUI();
     }
   }
@@ -616,17 +1003,24 @@
 
   function handleWsPayload(payload) {
     if (!payload) return;
+    if (payload.type === 'game_cancelled') {
+      state.pendingMove = false;
+      clearAutoCancelTimer();
+      showToast('Партия отменена: никто не сделал ход', 'error');
+      setTimeout(() => {
+        window.location.href = '/games';
+      }, 1200);
+      return;
+    }
     if (payload.type === 'move_rejected' || payload.type === 'error') {
+      state.pendingMove = false;
+      updateLegalMoves();
+      renderBoard();
       showToast(payload.message || 'Ход отклонён', 'error');
       return;
     }
     if (payload.type === 'state' || payload.type === 'game_finished' || payload.type === 'move_made') {
-      state.game = payload.game;
-      state.moves = payload.game.moves || [];
-      state.lastStateTimestamp = Date.now();
-      computeOrientationFromRole();
-      updateUI();
-      maybeAutoJoin();
+      applyGameDetail(payload.game);
     }
   }
 
@@ -721,45 +1115,84 @@
     };
   }
 
-  function handleMoveSubmit(event) {
-    event.preventDefault();
+  function attemptMove(baseUci, promotion) {
     if (!state.game || !state.ws || state.ws.readyState !== WebSocket.OPEN) {
       showToast('Вебсокет не подключен', 'error');
-      return;
+      return false;
+    }
+    if (state.pendingMove) {
+      showToast('Дождитесь подтверждения предыдущего хода', 'error');
+      return false;
     }
     const role = getCurrentUserRole();
     if (!role) {
       showToast('Ходы могут делать только участники партии', 'error');
-      return;
+      return false;
     }
     if (state.game.status !== 'ACTIVE') {
       showToast('Партия не активна', 'error');
-      return;
+      return false;
     }
-    const uciInput = document.getElementById('uciInput');
-    const promotionInput = document.getElementById('promotionInput');
-    const uci = (uciInput?.value || '').trim();
-    const promotion = (promotionInput?.value || '').trim();
-    if (uci.length < 4) {
-      showToast('Введите ход в формате UCI', 'error');
-      return;
+    const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';
+    if (role !== expectedTurn) {
+      showToast('Сейчас очередь соперника', 'error');
+      return false;
+    }
+    const normalizedPromotion = promotion ? promotion.toLowerCase() : null;
+    if (normalizedPromotion && !['q', 'r', 'b', 'n'].includes(normalizedPromotion)) {
+      showToast('Символ промоции должен быть q, r, b или n', 'error');
+      return false;
+    }
+    const normalizedUci = baseUci.toLowerCase();
+    const uciForValidation = normalizedPromotion
+      ? `${normalizedUci}${normalizedPromotion}`
+      : normalizedUci;
+    const moveUtils = window.ChessMoveUtils;
+    if (moveUtils) {
+      const fen = state.game.current_pos;
+      if (!moveUtils.isMoveAllowed(fen, role, uciForValidation)) {
+        showToast('Недопустимый ход для ваших фигур', 'error');
+        return false;
+      }
     }
     const clocks = computeClocksAfterMove();
     if (!clocks) {
       showToast('Не удалось вычислить таймеры', 'error');
-      return;
+      return false;
     }
     const payload = {
       type: 'make_move',
-      uci,
-      promotion: promotion || null,
+      uci: normalizedUci,
+      promotion: normalizedPromotion,
       white_clock_ms: Math.round(clocks.white),
       black_clock_ms: Math.round(clocks.black),
       client_move_id: `web-${Date.now()}`,
     };
     state.ws.send(JSON.stringify(payload));
+    state.pendingMove = true;
+    resetSelection();
+    renderBoard();
+    return true;
+  }
+
+  function handleMoveSubmit(event) {
+    event.preventDefault();
+    const uciInput = document.getElementById('uciInput');
+    const promotionInput = document.getElementById('promotionInput');
+    const rawUci = (uciInput?.value || '').trim().toLowerCase();
+    let promotion = (promotionInput?.value || '').trim().toLowerCase();
+    if (rawUci.length < 4) {
+      showToast('Введите ход в формате UCI', 'error');
+      return;
+    }
+    const baseUci = rawUci.slice(0, 4);
+    if (!promotion && rawUci.length > 4) {
+      promotion = rawUci.slice(4);
+    }
+    if (attemptMove(baseUci, promotion)) {
     if (uciInput) uciInput.value = '';
     if (promotionInput) promotionInput.value = '';
+    }
   }
 
   function handleLoginRedirect() {

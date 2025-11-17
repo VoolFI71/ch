@@ -27,6 +27,7 @@ from ..services import (
 	build_game_detail,
 	build_game_summary,
 	build_move_out,
+	schedule_auto_cancel,
 )
 
 router = APIRouter(prefix="/api/games", tags=["games"])
@@ -41,14 +42,14 @@ def _handle_error(exc: GameServiceError) -> HTTPException:
 async def _broadcast_state(game: GameDetail) -> None:
 	await game_ws_manager.broadcast(
 		game.id,
-		WsStatePayload(type="state", game=game).model_dump(),
+		WsStatePayload(type="state", game=game).model_dump(mode="json"),
 	)
 
 
 async def _broadcast_finished(game: GameDetail) -> None:
 	await game_ws_manager.broadcast(
 		game.id,
-		WsGameFinishedPayload(type="game_finished", game=game).model_dump(),
+		WsGameFinishedPayload(type="game_finished", game=game).model_dump(mode="json"),
 	)
 
 
@@ -122,6 +123,7 @@ async def join_game(
 	except GameServiceError as exc:
 		raise _handle_error(exc)
 
+	await schedule_auto_cancel(game)
 	game_detail = _build_detail(service, game)
 	await _broadcast_state(game_detail)
 	return game_detail

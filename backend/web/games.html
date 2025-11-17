@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="variables.css">
-  <link rel="stylesheet" href="common.css">
-  <link rel="stylesheet" href="navigation.css">
-  <link rel="stylesheet" href="header.css">
-  <link rel="stylesheet" href="games.css">
+  <link rel="stylesheet" href="/styles/variables.css">
+  <link rel="stylesheet" href="/styles/common.css">
+  <link rel="stylesheet" href="/styles/navigation.css">
+  <link rel="stylesheet" href="/styles/header.css">
+  <link rel="stylesheet" href="/styles/games.css">
 </head>
 <body>
   <header class="header" id="header">
@@ -197,6 +197,19 @@
               <input type="number" id="incrementSeconds" name="incrementSeconds" min="0" max="60" value="3">
             </div>
           </div>
+          <div class="input-group">
+            <label style="margin-bottom:0.35rem;">Ваш цвет</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="creatorColor" value="white" checked>
+                Играть за белых
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="creatorColor" value="black">
+                Играть за чёрных
+              </label>
+            </div>
+          </div>
           <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;">
             <input type="checkbox" id="ratedFlag" name="ratedFlag">
             Рейтинговая партия
@@ -279,7 +292,7 @@
 
   <div id="gamesToast" class="toast"></div>
 
-  <script src="games.js" defer></script>
+  <script src="/scripts/games.js" defer></script>
 </body>
 </html>
 

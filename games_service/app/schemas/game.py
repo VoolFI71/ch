@@ -19,6 +19,9 @@ class CreateGameRequest(BaseModel):
 	initial_fen: str | None = Field(
 		default=None, description="FEN строки или 'startpos' для стандартного начала"
 	)
+	creator_color: Literal["white", "black"] = Field(
+		default="white", description="Цвет, которым будет играть создатель партии"
+	)
 	metadata: dict[str, Any] | None = None
 	time_control: TimeControlSettings | None = None
 
@@ -27,7 +30,7 @@ class GameSummary(BaseModel):
 	model_config = ConfigDict(from_attributes=True, use_enum_values=True)
 
 	id: UUID
-	white_id: int
+	white_id: int | None
 	black_id: int | None
 	status: GameStatus
 	next_turn: SideToMove
@@ -66,6 +69,7 @@ class GameDetail(GameSummary):
 	black_clock_ms: int
 	pgn: str | None = None
 	moves: list[MoveOut] = Field(default_factory=list)
+	auto_cancel_at: datetime | None = None
 
 
 class JoinGameResponse(GameDetail):

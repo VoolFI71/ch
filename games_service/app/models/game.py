@@ -59,7 +59,7 @@ class Game(Base):
 	id: Mapped[UUID] = mapped_column(
 		PGUUID(as_uuid=True), primary_key=True, default=uuid4, nullable=False
 	)
-	white_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+	white_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
 	black_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
 	initial_pos: Mapped[str] = mapped_column(Text, nullable=False, default="startpos")
 	current_pos: Mapped[str] = mapped_column(Text, nullable=False)

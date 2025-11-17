@@ -101,3 +101,11 @@ def me(current_user: User = Depends(get_current_user)) -> UserOut:
 	return current_user
 
 
+@router.get("/users/{user_id}", response_model=UserOut)
+def get_user_by_id(user_id: int, db: Session = Depends(get_db)) -> UserOut:
+	user = db.get(User, user_id)
+	if not user:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+	return user
+
+

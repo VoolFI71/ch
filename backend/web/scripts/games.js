@@ -134,6 +134,13 @@
     return `ID ${id}`;
   };
 
+  const getAvailableSeat = (game) => {
+    if (!game) return null;
+    if (game.white_id == null) return 'white';
+    if (game.black_id == null) return 'black';
+    return null;
+  };
+
   // -------------------- Data loading --------------------
   async function fetchCurrentUser() {
     try {
@@ -224,10 +231,11 @@
       });
       actions.appendChild(openBtn);
 
-      if (view === 'waiting' && canJoinGame(game)) {
+      const openSeat = getAvailableSeat(game);
+      if (view === 'waiting' && canJoinGame(game) && openSeat) {
         const joinBtn = document.createElement('button');
         joinBtn.className = 'btn-primary';
-        joinBtn.textContent = 'Играть за чёрных';
+        joinBtn.textContent = openSeat === 'white' ? 'Играть за белых' : 'Играть за чёрных';
         joinBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           selectGame(game.id).then(() => joinGame());
@@ -243,9 +251,8 @@
   function canJoinGame(game) {
     if (!state.currentUser) return false;
     if (game.status !== 'CREATED') return false;
-    if (game.black_id) return false;
-    if (state.currentUser.id === game.white_id) return false;
-    return true;
+    if (state.currentUser.id === game.white_id || state.currentUser.id === game.black_id) return false;
+    return getAvailableSeat(game) !== null;
   }
 
   const highlightSelectedCard = () => {
@@ -350,9 +357,15 @@
     if (!container || !state.selectedGame) return;
     container.innerHTML = '';
 
+    const openSeat = getAvailableSeat(state.selectedGame);
     const joinBtn = document.createElement('button');
     joinBtn.className = 'btn-primary';
-    joinBtn.textContent = 'Присоединиться чёрными';
+    joinBtn.textContent =
+      openSeat === 'white'
+        ? 'Присоединиться белыми'
+        : openSeat === 'black'
+          ? 'Присоединиться чёрными'
+          : 'Присоединиться';
     joinBtn.addEventListener('click', joinGame);
 
     const resignBtn = document.createElement('button');
@@ -390,8 +403,13 @@
   const canJoinCurrentGame = () => {
     if (!state.currentUser || !state.selectedGame) return false;
     if (state.selectedGame.status !== 'CREATED') return false;
-    if (state.selectedGame.black_id) return false;
-    return state.currentUser.id !== state.selectedGame.white_id;
+    if (
+      state.currentUser.id === state.selectedGame.white_id ||
+      state.currentUser.id === state.selectedGame.black_id
+    ) {
+      return false;
+    }
+    return getAvailableSeat(state.selectedGame) !== null;
   };
 
   const getCurrentUserRole = () => {
@@ -632,9 +650,12 @@
     const minutes = Number(document.getElementById('initialMinutes').value || 5);
     const increment = Number(document.getElementById('incrementSeconds').value || 0);
     const rated = document.getElementById('ratedFlag').checked;
+    const colorInput = document.querySelector('input[name="creatorColor"]:checked');
+    const creatorColor = colorInput ? colorInput.value : 'white';
 
     const payload = {
       initial_fen: fen || null,
+      creator_color: creatorColor,
       time_control: {
         initial_ms: Math.max(1, minutes) * 60000,
         increment_ms: Math.max(0, increment) * 1000,
@@ -654,9 +675,12 @@
       });
       if (!res.ok) throw new Error(await res.text());
       const game = await res.json();
+      if (game && game.id) {
+        window.location.href = `/match/${game.id}`;
+        return;
+      }
       showToast('Партия создана');
       await loadGames(false);
-      selectGame(game.id);
       document.getElementById('createGameForm').reset();
     } catch (err) {
       console.error(err);

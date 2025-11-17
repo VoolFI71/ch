@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import asyncio
+from datetime import datetime, timezone, timedelta
+from threading import Lock
 from typing import Sequence
 from uuid import UUID
 
@@ -9,6 +11,7 @@ from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..database import SessionLocal
 from ..models import (
 	Game,
 	GameResult,
@@ -25,8 +28,13 @@ from ..schemas import (
 	MakeMovePayload,
 	MoveOut,
 )
+from ..realtime.manager import game_ws_manager
 
 SNAPSHOT_INTERVAL = 50
+AUTO_CANCEL_TIMEOUT_SECONDS = 30
+_AUTO_CANCEL_TASKS: dict[UUID, asyncio.Task] = {}
+_AUTO_CANCEL_DEADLINES: dict[UUID, datetime] = {}
+_AUTO_CANCEL_LOCK = Lock()
 
 
 class GameServiceError(Exception):
@@ -76,7 +84,83 @@ def build_game_detail(game: Game, moves: Sequence[Move] | None = None) -> GameDe
 			"moves": [build_move_out(m) for m in moves] if moves else [],
 		}
 	)
+	with _AUTO_CANCEL_LOCK:
+		deadline = _AUTO_CANCEL_DEADLINES.get(game.id)
+	if not deadline and game.metadata_json:
+		raw_deadline = game.metadata_json.get("auto_cancel_deadline")
+		if raw_deadline:
+			try:
+				deadline = datetime.fromisoformat(raw_deadline)
+			except ValueError:
+				deadline = None
+	data["auto_cancel_at"] = deadline.isoformat() if deadline else None
 	return GameDetail(**data)
+
+
+def _persist_auto_cancel_deadline(game_id: UUID, deadline: datetime | None) -> None:
+	with SessionLocal() as db:
+		db_game = db.get(Game, game_id)
+		if not db_game:
+			return
+		metadata = dict(db_game.metadata_json or {})
+		if deadline:
+			metadata["auto_cancel_deadline"] = deadline.isoformat()
+		else:
+			metadata.pop("auto_cancel_deadline", None)
+		db_game.metadata_json = metadata or None
+		db.commit()
+
+
+async def _auto_cancel_job(game_id: UUID) -> None:
+	try:
+		await asyncio.sleep(AUTO_CANCEL_TIMEOUT_SECONDS)
+		with SessionLocal() as db:
+			game = db.get(Game, game_id)
+			if not game:
+				return
+			if game.status != GameStatus.CREATED or game.move_count > 0:
+				return
+			db.delete(game)
+			db.commit()
+		await game_ws_manager.broadcast(
+			game_id,
+			{
+				"type": "game_cancelled",
+				"game_id": str(game_id),
+			},
+		)
+	finally:
+		with _AUTO_CANCEL_LOCK:
+			_AUTO_CANCEL_TASKS.pop(game_id, None)
+			_AUTO_CANCEL_DEADLINES.pop(game_id, None)
+
+
+async def schedule_auto_cancel(game: Game) -> None:
+	if (
+		game.status != GameStatus.CREATED
+		or game.move_count > 0
+		or game.white_id is None
+		or game.black_id is None
+	):
+		cancel_auto_cancel(game.id)
+		return
+	loop = asyncio.get_running_loop()
+	with _AUTO_CANCEL_LOCK:
+		if game.id in _AUTO_CANCEL_TASKS:
+			return
+		deadline = _utcnow() + timedelta(seconds=AUTO_CANCEL_TIMEOUT_SECONDS)
+		_AUTO_CANCEL_TASKS[game.id] = loop.create_task(_auto_cancel_job(game.id))
+		_AUTO_CANCEL_DEADLINES[game.id] = deadline
+	_persist_auto_cancel_deadline(game.id, deadline)
+
+
+def cancel_auto_cancel(game_id: UUID) -> None:
+	with _AUTO_CANCEL_LOCK:
+		task = _AUTO_CANCEL_TASKS.pop(game_id, None)
+		_AUTO_CANCEL_DEADLINES.pop(game_id, None)
+	if task:
+		task.cancel()
+	_persist_auto_cancel_deadline(game_id, None)
 
 
 class GameService:
@@ -88,8 +172,16 @@ class GameService:
 		time_control = payload.time_control.dict() if payload.time_control else None
 		initial_clock = payload.time_control.initial_ms if payload.time_control else 0
 
+		if payload.creator_color == "white":
+			white_id = creator_id
+			black_id = None
+		else:
+			white_id = None
+			black_id = creator_id
+
 		game = Game(
-			white_id=creator_id,
+			white_id=white_id,
+			black_id=black_id,
 			initial_pos=initial_pos,
 			current_pos=board.fen(),
 			next_turn=SideToMove.WHITE if board.turn == chess.WHITE else SideToMove.BLACK,
@@ -141,14 +233,17 @@ class GameService:
 
 	def join_game(self, game_id: UUID, *, player_id: int) -> Game:
 		game = self._lock_game(game_id)
-		if game.black_id:
-			raise GameServiceError("Game already has a second player", status.HTTP_409_CONFLICT)
-		if player_id == game.white_id:
-			raise GameServiceError("Creator cannot join as second player")
 		if game.status != GameStatus.CREATED:
 			raise GameServiceError("Game is not open for joining", status.HTTP_409_CONFLICT)
+		if player_id in {game.white_id, game.black_id}:
+			raise GameServiceError("You are already part of this game", status.HTTP_400_BAD_REQUEST)
+		if game.white_id is not None and game.black_id is not None:
+			raise GameServiceError("Game already has two players", status.HTTP_409_CONFLICT)
 
-		game.black_id = player_id
+		if game.white_id is None:
+			game.white_id = player_id
+		else:
+			game.black_id = player_id
 		self.db.commit()
 		self.db.refresh(game)
 		return game
@@ -163,7 +258,7 @@ class GameService:
 		game = self._lock_game(game_id)
 		if game.status == GameStatus.FINISHED:
 			raise GameServiceError("Game already finished", status.HTTP_409_CONFLICT)
-		if not game.black_id:
+		if not game.white_id or not game.black_id:
 			raise GameServiceError("Cannot start until second player joins")
 
 		expected_player = game.white_id if game.next_turn == SideToMove.WHITE else game.black_id
@@ -236,6 +331,7 @@ class GameService:
 		self.db.commit()
 		self.db.refresh(game)
 		self.db.refresh(move)
+		cancel_auto_cancel(game.id)
 		return game, move
 
 	def resign(self, game_id: UUID, *, player_id: int) -> Game:
@@ -286,6 +382,7 @@ class GameService:
 		reason: TerminationReason,
 		ended_by: int | None,
 	) -> None:
+		cancel_auto_cancel(game.id)
 		game.status = GameStatus.FINISHED
 		game.finished_at = _utcnow()
 		game.termination_reason = reason

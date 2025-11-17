@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/variables.css">
-  <link rel="stylesheet" href="/common.css">
-  <link rel="stylesheet" href="/navigation.css">
-  <link rel="stylesheet" href="/header.css">
-  <link rel="stylesheet" href="/games.css">
-  <link rel="stylesheet" href="/chess-board.css">
+  <link rel="stylesheet" href="/styles/variables.css">
+  <link rel="stylesheet" href="/styles/common.css">
+  <link rel="stylesheet" href="/styles/navigation.css">
+  <link rel="stylesheet" href="/styles/header.css">
+  <link rel="stylesheet" href="/styles/games.css">
+  <link rel="stylesheet" href="/styles/chess-board.css">
   <style>
     .match-main {
       padding: 3rem 0;
@@ -52,6 +52,29 @@
       font-size: 1.75rem;
       font-weight: 800;
       letter-spacing: -0.02em;
+    }
+
+    .auto-cancel-banner {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.75rem;
+      background: rgba(234, 179, 8, 0.12);
+      color: #ca8a04;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    body.dark .auto-cancel-banner {
+      background: rgba(234, 179, 8, 0.2);
+      color: #facc15;
+    }
+
+    .auto-cancel-banner .timer-value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
     }
 
     .match-header-actions {
@@ -344,6 +367,9 @@
           <div>
             <p class="status-label" style="margin-bottom: 0.4rem;">Матч в реальном времени</p>
             <h1 id="matchTitle">Загружаем партию…</h1>
+            <div class="auto-cancel-banner" id="autoCancelBanner" style="display:none;">
+              Ожидаем первый ход: <span class="timer-value" id="autoCancelTimer">00:30</span>
+            </div>
           </div>
           <div class="match-header-actions">
             <span class="pill" id="gameStatusBadge">—</span>
@@ -429,7 +455,8 @@
 
   <div id="gamesToast" class="toast"></div>
 
-  <script src="/match.js" defer></script>
+  <script src="/scripts/chess-move-utils.js" defer></script>
+  <script src="/scripts/match.js" defer></script>
 </body>
 </html>
 
