@@ -1,42 +1,19 @@
 from pathlib import Path
 
-import httpx
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
-from sqlalchemy.orm import Session
 
 from common.observability import configure_observability
 
 from .config import get_settings
 from .database import get_db
-from .routers import auth_router, users_router
 
 
 settings = get_settings()
 
 app = FastAPI(title=settings.app_name)
 
-
-async def _check_auth_service(_: Session) -> None:
-    if not settings.auth_service_url:
-        return
-    url = settings.auth_service_url.rstrip("/") + "/healthz"
-    async with httpx.AsyncClient(timeout=2.0) as client:
-        response = await client.get(url)
-        response.raise_for_status()
-
-
-configure_observability(
-    app,
-    settings=settings,
-    get_db=get_db,
-    extra_checks={"auth_service": _check_auth_service},
-)
-
-
-# API routes
-app.include_router(auth_router)
-app.include_router(users_router)
+configure_observability(app, settings=settings, get_db=get_db)
 
 
 # Frontend serving

@@ -15,8 +15,7 @@ class UserPublic(BaseModel):
 	created_at: Optional[datetime] = None
 	updated_at: Optional[datetime] = None
 
-	model_config = {
-		"from_attributes": True,
-	}
+	model_config = {"from_attributes": True}
+
 
 

@@ -25,7 +25,6 @@ services:
     environment:
       WEB_DIR: /app/backend/web
       METRICS_ENABLED: "true"
-      AUTH_SERVICE_URL: http://auth:8000
     volumes:
       - ./backend:/app/backend:ro
 
@@ -33,6 +32,18 @@ services:
     build:
       context: .
       dockerfile: auth_service/Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      METRICS_ENABLED: "true"
+    restart: unless-stopped
+
+  users:
+    build:
+      context: .
+      dockerfile: users_service/Dockerfile
     depends_on:
       - db
     env_file:
@@ -101,6 +112,7 @@ services:
     depends_on:
       - api
       - auth
+      - users
       - courses
       - enrollments
       - payments

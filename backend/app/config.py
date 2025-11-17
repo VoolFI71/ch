@@ -11,8 +11,6 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 30
     web_dir: str = "backend/web"
-    # Optional external auth service base URL. If set, API will proxy auth endpoints there.
-    auth_service_url: str | None = None
     api_internal_token: str | None = None
     kafka_broker_url: str | None = None
 
