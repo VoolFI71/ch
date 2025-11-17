@@ -130,8 +130,11 @@
   }
 
   let lastAuthState = false;
+  let cachedUser = null;
 
-  function updateAuthUI(isLoggedIn) {
+  function updateAuthUI(user) {
+    const isLoggedIn = !!user;
+    cachedUser = user || null;
     lastAuthState = isLoggedIn;
     const isDesktop = window.innerWidth >= 1024;
 
@@ -153,6 +156,17 @@
       mobileUserActions.style.display = isLoggedIn ? 'block' : 'none';
     }
 
+    const pillText = user ? user.username || `ID ${user.id}` : '';
+    document.querySelectorAll('.user-pill').forEach((pill) => {
+      const label = pill.querySelector('span');
+      if (isLoggedIn) {
+        pill.style.display = 'inline-flex';
+        if (label) label.textContent = pillText;
+      } else {
+        pill.style.display = 'none';
+      }
+    });
+
     const mobileAuthButtons = document.getElementById('mobileAuthButtons');
     if (mobileAuthButtons) {
       mobileAuthButtons.style.display = !isDesktop && !isLoggedIn ? 'flex' : 'none';
@@ -166,13 +180,12 @@
   }
 
   async function initAuth() {
-    let loggedIn = false;
+    let user = null;
     if (getAccessToken() || getRefreshToken()) {
-      const user = await me();
-      loggedIn = !!user;
+      user = await me();
     }
-    lastAuthState = loggedIn;
-    updateAuthUI(loggedIn);
+    lastAuthState = !!user;
+    updateAuthUI(user);
   }
 
   // Expose fetch and helpers globally for page scripts
@@ -213,7 +226,8 @@
       const email = inputs[0]?.value?.trim() || '';
       const password = inputs[1]?.value || '';
       await login(email, password);
-      updateAuthUI(true);
+      const user = await me();
+      updateAuthUI(user);
       // Close modals if present
       if (typeof window.closeLoginModal === 'function') window.closeLoginModal();
       if (typeof window.closeModal === 'function') window.closeModal('loginModal');
@@ -235,7 +249,8 @@
       if (!password) throw new Error('Укажите пароль');
       await register(username, email, password);
       await login(email, password);
-      updateAuthUI(true);
+      const user = await me();
+      updateAuthUI(user);
       if (typeof window.closeRegisterModal === 'function') window.closeRegisterModal();
       if (typeof window.closeModal === 'function') window.closeModal('registerModal');
     } catch (e) {
@@ -245,7 +260,8 @@
 
   window.handleLogout = async function () {
     clearTokens();
-    updateAuthUI(false);
+    cachedUser = null;
+    updateAuthUI(null);
     window.location.reload();
   };
 
@@ -267,7 +283,7 @@
   });
 
   window.addEventListener('resize', () => {
-    updateAuthUI(lastAuthState);
+    updateAuthUI(cachedUser);
   });
 })();
 

@@ -1589,11 +1589,11 @@
                 <div class="header-actions">
                     <!-- User Actions (Desktop) -->
                     <div class="user-actions" id="userActions" style="display: none;">
-                        <a href="/cabinet" class="btn btn-outline">
-                            <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
-                            Кабинет
-                        </a>
-                        <button type="button" class="btn btn-outline logout-btn" style="display: none; margin-left: 0.5rem;">
+                        <button type="button" class="user-pill" id="gamesUserInfo" onclick="window.location.href='/cabinet'">
+                            <i class="fas fa-user"></i>
+                            <span>—</span>
+                        </button>
+                        <button type="button" class="btn-login logout-btn" style="display: none; margin-left: 0.5rem;">
                             <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
                             Выйти
                         </button>
@@ -1633,12 +1633,12 @@
 
                     <!-- Mobile User Actions -->
                     <div class="mobile-user-actions" id="mobileUserActions" style="display: none;">
-                        <a href="/cabinet" class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeMobileMenu()">
-                            <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
-                            Личный кабинет
-                        </a>
+                        <button type="button" class="user-pill" id="gamesUserInfoMobile" style="width: 100%; justify-content: center;" onclick="closeMobileMenu(); window.location.href='/cabinet';">
+                            <i class="fas fa-user"></i>
+                            <span>—</span>
+                        </button>
                         <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
-                        <button type="button" class="btn btn-outline logout-btn" style="width: 100%; justify-content: center; display: none;">
+                        <button type="button" class="btn-login logout-btn" style="width: 100%; justify-content: center; display: none;">
                             <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
                             Выйти
                         </button>

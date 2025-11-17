@@ -210,6 +210,35 @@ body.dark .header {
 	left: 0;
 }
 
+.user-actions {
+	display: none;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.user-pill {
+	display: none;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.55rem 1.5rem;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.15));
+	color: var(--text-primary);
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s;
+}
+
+.user-pill i {
+	color: var(--primary);
+}
+
+.user-pill:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+}
+
 .btn-register {
 	background: linear-gradient(135deg, #7c3aed, #3b82f6);
 	color: white;
@@ -249,7 +278,7 @@ body.dark .header {
 	width: 3.5rem;
 	height: 3.5rem;
 	display: flex;
-	align	items: center;
+	align-items: center;
 	justify-content: center;
 	cursor: pointer;
 	transition: all 0.3s;

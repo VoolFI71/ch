@@ -199,10 +199,10 @@
   const labelPlayer = (id) => {
     if (!id) return '—';
     if (state.currentUser && state.currentUser.id === id) {
-      return state.currentUser.username ? `Вы (@${state.currentUser.username})` : 'Вы';
+      return state.currentUser.username ? `Вы (${state.currentUser.username})` : 'Вы';
     }
     const cached = usernameFromCache(id);
-    if (cached) return `@${cached}`;
+    if (cached) return cached;
     return `ID ${id}`;
   };
 
@@ -769,6 +769,7 @@
   // -------------------- Auth panel --------------------
   function updateAuthPanel() {
     const info = document.getElementById('gamesUserInfo');
+    const infoMobile = document.getElementById('gamesUserInfoMobile');
     const loginBtns = [
       document.getElementById('gamesLoginBtn'),
       document.getElementById('gamesLoginBtnMobile'),
@@ -786,12 +787,24 @@
     const mobileUser = document.getElementById('mobileUserActions');
     const mobileAuth = document.getElementById('mobileAuthButtons');
 
-    if (state.currentUser) {
-      if (info) {
-        info.style.display = 'inline-flex';
-        const displayName = state.currentUser.username ? `@${state.currentUser.username}` : `ID ${state.currentUser.id}`;
-        info.textContent = displayName;
+    const displayName = state.currentUser
+      ? state.currentUser.username || `ID ${state.currentUser.id}`
+      : '—';
+
+    const updateUserPill = (el) => {
+      if (!el) return;
+      const textNode = el.querySelector('span');
+      if (state.currentUser) {
+        el.style.display = 'inline-flex';
+        if (textNode) textNode.textContent = displayName;
+      } else {
+        el.style.display = 'none';
       }
+    };
+
+    if (state.currentUser) {
+      updateUserPill(info);
+      updateUserPill(infoMobile);
       loginBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
       registerBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
       logoutBtns.forEach((btn) => { if (btn) btn.style.display = 'inline-flex'; });
@@ -800,7 +813,8 @@
       if (mobileUser) mobileUser.style.display = 'flex';
       if (mobileAuth) mobileAuth.style.display = 'none';
     } else {
-      if (info) info.style.display = 'none';
+      updateUserPill(info);
+      updateUserPill(infoMobile);
       loginBtns.forEach((btn) => { if (btn) btn.style.display = 'inline-flex'; });
       registerBtns.forEach((btn) => { if (btn) btn.style.display = 'inline-flex'; });
       logoutBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
