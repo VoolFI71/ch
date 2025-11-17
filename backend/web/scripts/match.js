@@ -1196,11 +1196,11 @@
   }
 
   function handleLoginRedirect() {
-    window.location.href = '/#login';
+    window.location.href = '/login.html';
   }
 
   function handleRegisterRedirect() {
-    window.location.href = '/#register';
+    window.location.href = '/register.html';
   }
 
   function handleLogout() {

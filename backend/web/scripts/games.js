@@ -15,6 +15,8 @@
     pendingGameId: new URLSearchParams(window.location.search).get('game'),
     activeTab: 'waiting',
   };
+  const playerUsernames = new Map();
+  const pendingUsernameRequests = new Map();
   let isDarkTheme = false;
 
   // --- Base URL helper: force :8080 for local host like other pages ------
@@ -126,11 +128,81 @@
     FINISHED: 'status-finished',
   }[status] || '');
 
+  const normalizeUserId = (value) => {
+    if (value === null || value === undefined) return null;
+    const numeric = Number(value);
+    return Number.isNaN(numeric) ? value : numeric;
+  };
+
+  const usernameFromCache = (id) => {
+    const key = normalizeUserId(id);
+    if (key === null) return null;
+    return playerUsernames.has(key) ? playerUsernames.get(key) : null;
+  };
+
+  const storeUsername = (id, username) => {
+    const key = normalizeUserId(id);
+    if (key === null) return;
+    if (typeof username === 'string') {
+      const trimmed = username.trim();
+      playerUsernames.set(key, trimmed.length ? trimmed : null);
+    } else {
+      playerUsernames.set(key, null);
+    }
+  };
+
+  async function fetchUsername(id) {
+    const key = normalizeUserId(id);
+    if (key === null) return null;
+    if (playerUsernames.has(key)) return playerUsernames.get(key);
+    if (pendingUsernameRequests.has(key)) return pendingUsernameRequests.get(key);
+
+    const request = (async () => {
+      try {
+        const res = await fetch(buildUrl(`/api/users/${encodeURIComponent(key)}`));
+        if (!res.ok) throw new Error('failed');
+        const data = await res.json();
+        const username =
+          (data && (data.username || data.display_name || data.name || data.handle || data.login)) ||
+          null;
+        storeUsername(key, username);
+        return usernameFromCache(key);
+      } catch {
+        storeUsername(key, null);
+        return null;
+      } finally {
+        pendingUsernameRequests.delete(key);
+      }
+    })();
+
+    pendingUsernameRequests.set(key, request);
+    return request;
+  }
+
+  async function ensureUsernamesForGames(games) {
+    if (!Array.isArray(games)) return;
+    const fetchIds = [];
+    games.forEach((game) => {
+      if (!game) return;
+      [game.white_id, game.black_id].forEach((id) => {
+        const key = normalizeUserId(id);
+        if (key === null) return;
+        if (!playerUsernames.has(key) && !pendingUsernameRequests.has(key)) {
+          fetchIds.push(key);
+        }
+      });
+    });
+    if (!fetchIds.length) return;
+    await Promise.all(fetchIds.map((id) => fetchUsername(id)));
+  }
+
   const labelPlayer = (id) => {
     if (!id) return '—';
     if (state.currentUser && state.currentUser.id === id) {
       return state.currentUser.username ? `Вы (@${state.currentUser.username})` : 'Вы';
     }
+    const cached = usernameFromCache(id);
+    if (cached) return `@${cached}`;
     return `ID ${id}`;
   };
 
@@ -166,6 +238,7 @@
       const res = await fetch(url);
       if (!res.ok) throw new Error(await res.text());
       state.games = await res.json();
+      await ensureUsernamesForGames(state.games);
       segmentGames();
       renderCollections();
       updateHeroStats();
@@ -287,6 +360,7 @@
       state.selectedGame = detail;
       state.moves = detail.moves || [];
       state.lastStateTimestamp = Date.now();
+      await ensureUsernamesForGames([detail]);
       renderGameDetail();
       connectWebSocket(gameId);
     } catch (err) {
@@ -446,17 +520,17 @@
     ws.onopen = () => updateWsIndicator('online');
     ws.onclose = () => updateWsIndicator('offline');
     ws.onerror = () => updateWsIndicator('offline');
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       try {
         const payload = JSON.parse(event.data);
-        handleWsPayload(payload);
+        await handleWsPayload(payload);
       } catch (err) {
         console.error('WS parse error', err);
       }
     };
   }
 
-  function handleWsPayload(payload) {
+  async function handleWsPayload(payload) {
     if (!payload) return;
     if (payload.type === 'move_rejected' || payload.type === 'error') {
       showToast(payload.message || 'Ход отклонён', 'error');
@@ -466,6 +540,7 @@
       state.selectedGame = payload.game;
       state.moves = payload.game.moves || [];
       state.lastStateTimestamp = Date.now();
+      await ensureUsernamesForGames([payload.game]);
       renderGameDetail();
       loadGames(false);
     }
@@ -540,6 +615,7 @@
       state.selectedGame = detail;
       state.moves = detail.moves || [];
       state.lastStateTimestamp = Date.now();
+      await ensureUsernamesForGames([detail]);
       renderGameDetail();
       showToast('Вы присоединились к партии');
     } catch (err) {
@@ -749,11 +825,11 @@
   }
 
   const handleLoginRedirect = () => {
-    window.location.href = '/#login';
+    window.location.href = '/login.html';
   };
 
   const handleRegisterRedirect = () => {
-    window.location.href = '/#register';
+    window.location.href = '/register.html';
   };
 
   function handleLogout() {
