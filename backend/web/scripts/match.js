@@ -972,15 +972,33 @@
     console.log('[applyGameDetail] Обновление состояния игры');
     const previousGame = state.game;
     const previousRole = getCurrentUserRole();
+    const previousNextTurn = state.game?.next_turn;
+    const previousStatus = state.game?.status;
+    
+    // Обновляем состояние игры
     state.game = detail;
     state.moves = detail?.moves || [];
     state.lastStateTimestamp = Date.now();
     state.pendingMove = false;
+    
     const newRole = getCurrentUserRole();
+    const newNextTurn = detail?.next_turn;
+    const newStatus = detail?.status;
+    
     console.log('[applyGameDetail] Предыдущая роль:', previousRole, 'Новая роль:', newRole);
+    console.log('[applyGameDetail] Предыдущий next_turn:', previousNextTurn, 'Новый next_turn:', newNextTurn);
+    console.log('[applyGameDetail] Предыдущий статус:', previousStatus, 'Новый статус:', newStatus);
+    console.log('[applyGameDetail] state.game.next_turn после обновления:', state.game?.next_turn);
+    
     if (newRole !== previousRole) {
       userSetOrientation = false;
     }
+    
+    // Если next_turn изменился, это означает что был сделан ход
+    if (previousNextTurn !== newNextTurn) {
+      console.log('[applyGameDetail] ⚠️ next_turn изменился! Это означает что был сделан ход');
+    }
+    
     syncAutoCancelDeadline(detail);
     updateLegalMoves(); // Обновляем легальные ходы при изменении состояния игры
     computeOrientationFromRole();
@@ -1139,10 +1157,16 @@
       return;
     }
     if (payload.type === 'state' || payload.type === 'game_finished' || payload.type === 'move_made') {
+      console.log('[handleWsPayload] Получено обновление игры, тип:', payload.type);
       const previousStatus = state.game?.status;
       const previousWhiteId = state.game?.white_id;
       const previousBlackId = state.game?.black_id;
+      const previousNextTurn = state.game?.next_turn;
+      console.log('[handleWsPayload] payload.game.next_turn:', payload.game?.next_turn);
+      console.log('[handleWsPayload] state.game.next_turn до обновления:', state.game?.next_turn);
       applyGameDetail(payload.game);
+      console.log('[handleWsPayload] После обновления payload.game.next_turn:', payload.game?.next_turn);
+      console.log('[handleWsPayload] После обновления state.game.next_turn:', state.game?.next_turn);
       // Если игра только что стала активной, показываем уведомление
       if (previousStatus === 'CREATED' && payload.game.status === 'ACTIVE') {
         showToast('Игра началась! Теперь вы можете делать ходы', 'success');
@@ -1154,6 +1178,19 @@
         console.log('[handleWsPayload] Второй игрок присоединился, обновляем возможные ходы');
         updateLegalMoves();
         renderBoard();
+      }
+      // Если это был ход противника, убеждаемся что ходы обновлены
+      if (payload.type === 'move_made') {
+        console.log('[handleWsPayload] Ход сделан, обновляем доску и ходы');
+        console.log('[handleWsPayload] Проверяем next_turn после обновления:', state.game?.next_turn);
+        // updateLegalMoves уже вызывается в applyGameDetail, но убеждаемся что доска обновлена
+        renderBoard();
+        // Показываем уведомление о ходе противника
+        const role = getCurrentUserRole();
+        const expectedTurn = payload.game?.next_turn === 'w' ? 'white' : 'black';
+        if (role === expectedTurn) {
+          console.log('[handleWsPayload] Теперь ваша очередь ходить');
+        }
       }
     }
   }
@@ -1271,7 +1308,9 @@
       return false;
     }
     const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';
+    console.log('[attemptMove] Проверка очереди. Роль:', role, 'Ожидается:', expectedTurn, 'next_turn:', state.game.next_turn);
     if (role !== expectedTurn) {
+      console.log('[attemptMove] Не очередь пользователя. Роль:', role, 'Ожидается:', expectedTurn);
       showToast('Сейчас очередь соперника', 'error');
       return false;
     }
