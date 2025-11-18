@@ -978,6 +978,9 @@
     // Обновляем состояние игры
     console.log('[applyGameDetail] detail.next_turn из payload:', detail?.next_turn);
     console.log('[applyGameDetail] detail.status из payload:', detail?.status);
+    console.log('[applyGameDetail] detail.white_id из payload:', detail?.white_id);
+    console.log('[applyGameDetail] detail.black_id из payload:', detail?.black_id);
+    console.log('[applyGameDetail] До обновления state.game.white_id:', state.game?.white_id, 'state.game.black_id:', state.game?.black_id);
     
     state.game = detail;
     state.moves = detail?.moves || [];
@@ -988,6 +991,7 @@
     const newNextTurn = detail?.next_turn;
     const newStatus = detail?.status;
     
+    console.log('[applyGameDetail] После обновления state.game.white_id:', state.game?.white_id, 'state.game.black_id:', state.game?.black_id);
     console.log('[applyGameDetail] Предыдущая роль:', previousRole, 'Новая роль:', newRole);
     console.log('[applyGameDetail] Предыдущий next_turn:', previousNextTurn, 'Новый next_turn:', newNextTurn);
     console.log('[applyGameDetail] Предыдущий статус:', previousStatus, 'Новый статус:', newStatus);
@@ -999,6 +1003,15 @@
       console.error('[applyGameDetail] ❌ ОШИБКА: next_turn не совпадает! detail:', detail?.next_turn, 'state.game:', state.game?.next_turn);
     } else {
       console.log('[applyGameDetail] ✅ next_turn успешно обновлен');
+    }
+    
+    // Проверка: убеждаемся что white_id и black_id действительно обновились
+    if (state.game?.white_id !== detail?.white_id || state.game?.black_id !== detail?.black_id) {
+      console.error('[applyGameDetail] ❌ ОШИБКА: white_id или black_id не совпадают!');
+      console.error('[applyGameDetail] detail.white_id:', detail?.white_id, 'state.game.white_id:', state.game?.white_id);
+      console.error('[applyGameDetail] detail.black_id:', detail?.black_id, 'state.game.black_id:', state.game?.black_id);
+    } else {
+      console.log('[applyGameDetail] ✅ white_id и black_id успешно обновлены');
     }
     
     if (newRole !== previousRole) {
@@ -1173,11 +1186,18 @@
       const previousWhiteId = state.game?.white_id;
       const previousBlackId = state.game?.black_id;
       const previousNextTurn = state.game?.next_turn;
+      const previousBothJoined = state.game?.white_id && state.game?.black_id;
+      
       console.log('[handleWsPayload] payload.game.next_turn:', payload.game?.next_turn);
       console.log('[handleWsPayload] state.game.next_turn до обновления:', state.game?.next_turn);
+      console.log('[handleWsPayload] До обновления: white_id:', previousWhiteId, 'black_id:', previousBlackId);
+      console.log('[handleWsPayload] payload.game: white_id:', payload.game?.white_id, 'black_id:', payload.game?.black_id);
+      
       applyGameDetail(payload.game);
+      
       console.log('[handleWsPayload] После обновления payload.game.next_turn:', payload.game?.next_turn);
       console.log('[handleWsPayload] После обновления state.game.next_turn:', state.game?.next_turn);
+      console.log('[handleWsPayload] После обновления: white_id:', state.game?.white_id, 'black_id:', state.game?.black_id);
       // Если игра только что стала активной, показываем уведомление
       if (previousStatus === 'CREATED' && payload.game.status === 'ACTIVE') {
         showToast('Игра началась! Теперь вы можете делать ходы', 'success');
@@ -1185,11 +1205,18 @@
       // Если присоединился второй игрок, обновляем ходы
       const bothJoined = payload.game.white_id && payload.game.black_id;
       const wasWaiting = !previousWhiteId || !previousBlackId;
+      console.log('[handleWsPayload] Проверка присоединения. Оба присоединились:', bothJoined, 'Было ожидание:', wasWaiting);
+      console.log('[handleWsPayload] previousWhiteId:', previousWhiteId, 'previousBlackId:', previousBlackId);
+      console.log('[handleWsPayload] payload.game.white_id:', payload.game.white_id, 'payload.game.black_id:', payload.game.black_id);
+      
       if (wasWaiting && bothJoined) {
-        console.log('[handleWsPayload] Второй игрок присоединился, обновляем возможные ходы');
+        console.log('[handleWsPayload] ✅ Второй игрок присоединился! Обновляем возможные ходы');
         // Принудительно обновляем ходы после присоединения второго игрока
+        // Важно: это должно произойти ДО того, как пользователь попытается сделать ход
         updateLegalMoves();
         renderBoard();
+        // Показываем уведомление первому игроку
+        showToast('Соперник присоединился! Теперь можно начинать игру', 'success');
       }
       // Если это был ход (move_made), убеждаемся что все обновлено
       if (payload.type === 'move_made') {
@@ -1323,8 +1350,20 @@
     // Разрешаем ходы если игра ACTIVE или оба игрока присоединились (даже в CREATED)
     const bothPlayersJoined = state.game.white_id !== null && state.game.white_id !== undefined &&
                               state.game.black_id !== null && state.game.black_id !== undefined;
+    
+    console.log('[attemptMove] Проверка состояния игры. Статус:', state.game.status);
+    console.log('[attemptMove] white_id:', state.game.white_id, 'black_id:', state.game.black_id);
+    console.log('[attemptMove] Оба игрока присоединились:', bothPlayersJoined);
+    
     if (state.game.status !== 'ACTIVE' && !bothPlayersJoined) {
+      console.log('[attemptMove] ❌ Партия не активна и не все игроки присоединились');
       showToast('Партия не активна. Дождитесь присоединения соперника', 'error');
+      return false;
+    }
+    
+    if (!bothPlayersJoined) {
+      console.log('[attemptMove] ❌ Не все игроки присоединились. white_id:', state.game.white_id, 'black_id:', state.game.black_id);
+      showToast('Дождитесь присоединения соперника', 'error');
       return false;
     }
     const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';
