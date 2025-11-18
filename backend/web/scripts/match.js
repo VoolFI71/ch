@@ -976,6 +976,9 @@
     const previousStatus = state.game?.status;
     
     // Обновляем состояние игры
+    console.log('[applyGameDetail] detail.next_turn из payload:', detail?.next_turn);
+    console.log('[applyGameDetail] detail.status из payload:', detail?.status);
+    
     state.game = detail;
     state.moves = detail?.moves || [];
     state.lastStateTimestamp = Date.now();
@@ -989,6 +992,14 @@
     console.log('[applyGameDetail] Предыдущий next_turn:', previousNextTurn, 'Новый next_turn:', newNextTurn);
     console.log('[applyGameDetail] Предыдущий статус:', previousStatus, 'Новый статус:', newStatus);
     console.log('[applyGameDetail] state.game.next_turn после обновления:', state.game?.next_turn);
+    console.log('[applyGameDetail] detail.next_turn:', detail?.next_turn, 'state.game.next_turn:', state.game?.next_turn);
+    
+    // Проверка: убеждаемся что next_turn действительно обновился
+    if (state.game?.next_turn !== detail?.next_turn) {
+      console.error('[applyGameDetail] ❌ ОШИБКА: next_turn не совпадает! detail:', detail?.next_turn, 'state.game:', state.game?.next_turn);
+    } else {
+      console.log('[applyGameDetail] ✅ next_turn успешно обновлен');
+    }
     
     if (newRole !== previousRole) {
       userSetOrientation = false;
@@ -1174,22 +1185,31 @@
       // Если присоединился второй игрок, обновляем ходы
       const bothJoined = payload.game.white_id && payload.game.black_id;
       const wasWaiting = !previousWhiteId || !previousBlackId;
-      if (wasWaiting && bothJoined && payload.game.status === 'CREATED') {
+      if (wasWaiting && bothJoined) {
         console.log('[handleWsPayload] Второй игрок присоединился, обновляем возможные ходы');
+        // Принудительно обновляем ходы после присоединения второго игрока
         updateLegalMoves();
         renderBoard();
       }
-      // Если это был ход противника, убеждаемся что ходы обновлены
+      // Если это был ход (move_made), убеждаемся что все обновлено
       if (payload.type === 'move_made') {
-        console.log('[handleWsPayload] Ход сделан, обновляем доску и ходы');
-        console.log('[handleWsPayload] Проверяем next_turn после обновления:', state.game?.next_turn);
-        // updateLegalMoves уже вызывается в applyGameDetail, но убеждаемся что доска обновлена
+        console.log('[handleWsPayload] Ход сделан, проверяем обновление');
+        console.log('[handleWsPayload] payload.game.next_turn:', payload.game?.next_turn);
+        console.log('[handleWsPayload] state.game.next_turn после applyGameDetail:', state.game?.next_turn);
+        
+        // Принудительно обновляем ходы после хода противника
+        // Это важно, так как next_turn изменился
+        updateLegalMoves();
         renderBoard();
+        
         // Показываем уведомление о ходе противника
         const role = getCurrentUserRole();
         const expectedTurn = payload.game?.next_turn === 'w' ? 'white' : 'black';
+        console.log('[handleWsPayload] Роль:', role, 'Ожидается:', expectedTurn);
         if (role === expectedTurn) {
-          console.log('[handleWsPayload] Теперь ваша очередь ходить');
+          console.log('[handleWsPayload] ✅ Теперь ваша очередь ходить');
+        } else {
+          console.log('[handleWsPayload] ⏳ Ожидаем ход противника');
         }
       }
     }
@@ -1344,10 +1364,12 @@
       black_clock_ms: Math.round(clocks.black),
       client_move_id: `web-${Date.now()}`,
     };
+    console.log('[attemptMove] Отправка хода через WebSocket:', payload);
     state.ws.send(JSON.stringify(payload));
     state.pendingMove = true;
     resetSelection();
     renderBoard();
+    console.log('[attemptMove] Ход отправлен, ожидаем подтверждение от сервера');
     return true;
   }
 
