@@ -193,6 +193,7 @@
   window.authMe = me;
 
   // Global theme initializer used by multiple pages
+  // Использует единый ключ 'theme' для сохранения выбранной темы
   window.loadTheme = function loadTheme() {
     try {
       const saved = localStorage.getItem('theme');
@@ -206,6 +207,7 @@
   };
 
   // Global theme toggle for all pages
+  // Сохраняет выбранную тему в localStorage с ключом 'theme'
   window.toggleTheme = function toggleTheme() {
     try {
       const isDark = document.body.classList.toggle('dark');

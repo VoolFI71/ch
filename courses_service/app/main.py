@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from common import configure_observability
 
 from .config import get_settings
-from .database import engine, get_db
+from .database import get_db, sync_engine
 from .routers import courses_router
 
 
@@ -26,7 +26,7 @@ def apply_sql_migrations() -> None:
 		sql = sql_file.read_text(encoding="utf-8").strip()
 		if not sql:
 			continue
-		with engine.begin() as conn:
+		with sync_engine.begin() as conn:
 			conn.exec_driver_sql(sql)
 
 

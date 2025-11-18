@@ -1,41 +1,24 @@
-from datetime import datetime, timezone
-
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
-
-from common import make_internal_token_verifier
-
+from common import (
+	bearer_scheme,
+	make_get_current_user,
+	make_get_current_user_id,
+	make_internal_token_verifier,
+)
 from .config import get_settings
 
+# Создаем функции для зависимостей FastAPI
+get_current_user = make_get_current_user(get_settings)
+get_current_user_id = make_get_current_user_id(get_current_user)
 
-bearer_scheme = HTTPBearer(auto_error=True)
+# Верификация внутренних токенов
+verify_internal_token = make_internal_token_verifier(
+	lambda: get_settings().payments_internal_token
+)
 
-
-def decode_token(token: str) -> dict:
-	settings = get_settings()
-	return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-
-
-async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> int:
-	token = credentials.credentials
-	try:
-		payload = decode_token(token)
-	except JWTError:
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-
-	if payload.get("type") != "access":
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
-
-	exp = payload.get("exp")
-	if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
-
-	sub = payload.get("sub")
-	if not sub:
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
-	return int(sub)
-
-
-verify_internal_token = make_internal_token_verifier(lambda: get_settings().payments_internal_token)
+__all__ = [
+	"bearer_scheme",
+	"get_current_user",
+	"get_current_user_id",
+	"verify_internal_token",
+]
 

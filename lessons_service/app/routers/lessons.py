@@ -4,7 +4,8 @@ from typing import List
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..database import get_db
@@ -48,34 +49,35 @@ def _user_enrolled(course_id: int, user_id: int) -> bool:
 
 
 @router.get("/", response_model=List[LessonOut])
-def list_lessons(
+async def list_lessons(
 	course_id: int,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	user_id: int = Depends(get_current_user_id),
 ) -> List[LessonOut]:
-	course = db.get(Course, course_id)
+	course = await db.get(Course, course_id)
 	if not course or not course.is_active:
 		raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Course not found")
 
 	if course.price_cents and course.price_cents > 0 and not _user_enrolled(course_id, user_id):
 		raise HTTPException(status.HTTP_403_FORBIDDEN, detail="No access to this course")
 
-	return (
-		db.query(Lesson)
-		.filter(Lesson.course_id == course_id)
+	stmt = (
+		select(Lesson)
+		.where(Lesson.course_id == course_id)
 		.order_by(Lesson.order_index.asc(), Lesson.id.asc())
-		.all()
 	)
+	result = await db.execute(stmt)
+	return list(result.scalars().all())
 
 
 @router.post("/", response_model=LessonOut, status_code=status.HTTP_201_CREATED)
-def create_lesson(
+async def create_lesson(
 	course_id: int,
 	payload: LessonCreate,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	_: int = Depends(get_current_user_id),
 ) -> LessonOut:
-	course = db.get(Course, course_id)
+	course = await db.get(Course, course_id)
 	if not course or not course.is_active:
 		raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Course not found")
 
@@ -88,24 +90,24 @@ def create_lesson(
 		duration_sec=payload.duration_sec,
 	)
 	db.add(lesson)
-	db.commit()
-	db.refresh(lesson)
+	await db.commit()
+	await db.refresh(lesson)
 	return lesson
 
 
 @router.patch("/{lesson_id}", response_model=LessonOut)
-def update_lesson(
+async def update_lesson(
 	course_id: int,
 	lesson_id: int,
 	payload: LessonUpdate,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	_: int = Depends(get_current_user_id),
 ) -> LessonOut:
-	course = db.get(Course, course_id)
+	course = await db.get(Course, course_id)
 	if not course or not course.is_active:
 		raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Course not found")
 
-	lesson = db.get(Lesson, lesson_id)
+	lesson = await db.get(Lesson, lesson_id)
 	if not lesson or lesson.course_id != course_id:
 		raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Lesson not found")
 
@@ -120,8 +122,8 @@ def update_lesson(
 	if payload.duration_sec is not None:
 		lesson.duration_sec = payload.duration_sec
 
-	db.commit()
-	db.refresh(lesson)
+	await db.commit()
+	await db.refresh(lesson)
 	return lesson
 
 

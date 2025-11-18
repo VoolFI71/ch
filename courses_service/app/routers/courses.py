@@ -4,7 +4,8 @@ from typing import List
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..database import get_db
@@ -70,29 +71,33 @@ def _ensure_enrollment(user_id: int, course_id: int) -> None:
 
 
 @router.get("/", response_model=List[CourseOut])
-def list_courses(db: Session = Depends(get_db)) -> List[CourseOut]:
-	return (
-		db.query(Course)
-		.filter(Course.is_active == True)  # noqa: E712
+async def list_courses(db: AsyncSession = Depends(get_db)) -> List[CourseOut]:
+	stmt = (
+		select(Course)
+		.where(Course.is_active == True)  # noqa: E712
 		.order_by(Course.created_at.desc())
-		.all()
 	)
+	result = await db.execute(stmt)
+	return list(result.scalars().all())
 
 
 @router.get("/me", response_model=List[CourseOut])
-def my_courses(
+async def my_courses(
 	current_user_id: int = Depends(get_current_user_id),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> List[CourseOut]:
 	course_ids = _fetch_user_enrollment_course_ids(current_user_id)
 	if not course_ids:
 		return []
-	return db.query(Course).filter(Course.id.in_(course_ids)).all()
+	stmt = select(Course).where(Course.id.in_(course_ids))
+	result = await db.execute(stmt)
+	return list(result.scalars().all())
 
 
-@router.post("/", response_model=CourseOut, status_code=status.HTTP_201_CREATED)
-def create_course(data: CourseCreate, db: Session = Depends(get_db)) -> CourseOut:
-	if db.query(Course).filter(Course.slug == data.slug).first():
+async def _create_course_record(db: AsyncSession, data: CourseCreate) -> Course:
+	stmt = select(Course).where(Course.slug == data.slug)
+	exists = await db.execute(stmt)
+	if exists.scalars().first():
 		raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Slug already exists")
 
 	course = Course(
@@ -104,23 +109,28 @@ def create_course(data: CourseCreate, db: Session = Depends(get_db)) -> CourseOu
 		is_active=data.is_active,
 	)
 	db.add(course)
-	db.commit()
-	db.refresh(course)
+	await db.commit()
+	await db.refresh(course)
 	return course
 
 
+@router.post("/", response_model=CourseOut, status_code=status.HTTP_201_CREATED)
+async def create_course(data: CourseCreate, db: AsyncSession = Depends(get_db)) -> CourseOut:
+	return await _create_course_record(db, data)
+
+
 @router.post("", response_model=CourseOut, status_code=status.HTTP_201_CREATED)
-def create_course_alias(data: CourseCreate, db: Session = Depends(get_db)) -> CourseOut:
-	return create_course(data, db)
+async def create_course_alias(data: CourseCreate, db: AsyncSession = Depends(get_db)) -> CourseOut:
+	return await _create_course_record(db, data)
 
 
 @router.post("/{course_id}/enroll", response_model=CourseOut, status_code=status.HTTP_201_CREATED)
-def enroll_course(
+async def enroll_course(
 	course_id: int,
 	current_user_id: int = Depends(get_current_user_id),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> CourseOut:
-	course = db.get(Course, course_id)
+	course = await db.get(Course, course_id)
 	if not course or not course.is_active:
 		raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Course not found")
 

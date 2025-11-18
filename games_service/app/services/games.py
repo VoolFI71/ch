@@ -9,7 +9,7 @@ from uuid import UUID
 import chess
 from fastapi import status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import SessionLocal
 from ..models import (
@@ -97,9 +97,9 @@ def build_game_detail(game: Game, moves: Sequence[Move] | None = None) -> GameDe
 	return GameDetail(**data)
 
 
-def _persist_auto_cancel_deadline(game_id: UUID, deadline: datetime | None) -> None:
-	with SessionLocal() as db:
-		db_game = db.get(Game, game_id)
+async def _persist_auto_cancel_deadline(game_id: UUID, deadline: datetime | None) -> None:
+	async with SessionLocal() as db:
+		db_game = await db.get(Game, game_id)
 		if not db_game:
 			return
 		metadata = dict(db_game.metadata_json or {})
@@ -108,20 +108,20 @@ def _persist_auto_cancel_deadline(game_id: UUID, deadline: datetime | None) -> N
 		else:
 			metadata.pop("auto_cancel_deadline", None)
 		db_game.metadata_json = metadata or None
-		db.commit()
+		await db.commit()
 
 
 async def _auto_cancel_job(game_id: UUID) -> None:
 	try:
 		await asyncio.sleep(AUTO_CANCEL_TIMEOUT_SECONDS)
-		with SessionLocal() as db:
-			game = db.get(Game, game_id)
+		async with SessionLocal() as db:
+			game = await db.get(Game, game_id)
 			if not game:
 				return
-			if game.status != GameStatus.CREATED or game.move_count > 0:
+			if game.status != GameStatus.CREATED.value or game.move_count > 0:
 				return
-			db.delete(game)
-			db.commit()
+			await db.delete(game)
+			await db.commit()
 		await game_ws_manager.broadcast(
 			game_id,
 			{
@@ -137,12 +137,12 @@ async def _auto_cancel_job(game_id: UUID) -> None:
 
 async def schedule_auto_cancel(game: Game) -> None:
 	if (
-		game.status != GameStatus.CREATED
+		game.status != GameStatus.CREATED.value
 		or game.move_count > 0
 		or game.white_id is None
 		or game.black_id is None
 	):
-		cancel_auto_cancel(game.id)
+		await cancel_auto_cancel(game.id)
 		return
 	loop = asyncio.get_running_loop()
 	with _AUTO_CANCEL_LOCK:
@@ -151,23 +151,23 @@ async def schedule_auto_cancel(game: Game) -> None:
 		deadline = _utcnow() + timedelta(seconds=AUTO_CANCEL_TIMEOUT_SECONDS)
 		_AUTO_CANCEL_TASKS[game.id] = loop.create_task(_auto_cancel_job(game.id))
 		_AUTO_CANCEL_DEADLINES[game.id] = deadline
-	_persist_auto_cancel_deadline(game.id, deadline)
+	await _persist_auto_cancel_deadline(game.id, deadline)
 
 
-def cancel_auto_cancel(game_id: UUID) -> None:
+async def cancel_auto_cancel(game_id: UUID) -> None:
 	with _AUTO_CANCEL_LOCK:
 		task = _AUTO_CANCEL_TASKS.pop(game_id, None)
 		_AUTO_CANCEL_DEADLINES.pop(game_id, None)
 	if task:
 		task.cancel()
-	_persist_auto_cancel_deadline(game_id, None)
+	await _persist_auto_cancel_deadline(game_id, None)
 
 
 class GameService:
-	def __init__(self, db: Session):
+	def __init__(self, db: AsyncSession):
 		self.db = db
 
-	def create_game(self, *, creator_id: int, payload: CreateGameRequest) -> Game:
+	async def create_game(self, *, creator_id: int, payload: CreateGameRequest) -> Game:
 		board, initial_pos = _initial_board(payload.initial_fen)
 		time_control = payload.time_control.dict() if payload.time_control else None
 		initial_clock = payload.time_control.initial_ms if payload.time_control else 0
@@ -184,7 +184,7 @@ class GameService:
 			black_id=black_id,
 			initial_pos=initial_pos,
 			current_pos=board.fen(),
-			next_turn=SideToMove.WHITE if board.turn == chess.WHITE else SideToMove.BLACK,
+			next_turn=SideToMove.WHITE.value if board.turn == chess.WHITE else SideToMove.BLACK.value,
 			time_control=time_control,
 			move_count=0,
 			white_clock_ms=initial_clock,
@@ -193,11 +193,11 @@ class GameService:
 		)
 
 		self.db.add(game)
-		self.db.commit()
-		self.db.refresh(game)
+		await self.db.commit()
+		await self.db.refresh(game)
 		return game
 
-	def list_games(
+	async def list_games(
 		self,
 		*,
 		statuses: list[GameStatus] | None = None,
@@ -205,21 +205,24 @@ class GameService:
 	) -> list[Game]:
 		stmt = select(Game).order_by(Game.created_at.desc()).limit(limit)
 		if statuses:
-			stmt = stmt.where(Game.status.in_(statuses))
-		return list(self.db.execute(stmt).scalars().all())
+			stmt = stmt.where(Game.status.in_([s.value for s in statuses]))
+		result = await self.db.execute(stmt)
+		return list(result.scalars().all())
 
-	def get_game(self, game_id: UUID) -> Game:
-		game = self.db.get(Game, game_id)
+	async def get_game(self, game_id: UUID) -> Game:
+		game = await self.db.get(Game, game_id)
 		if not game:
 			raise GameServiceError("Game not found", status.HTTP_404_NOT_FOUND)
 		return game
 
-	def get_game_with_moves(self, game_id: UUID, *, limit: int | None = None) -> tuple[Game, list[Move]]:
-		game = self.get_game(game_id)
-		moves = self.get_moves(game_id, limit=limit)
+	async def get_game_with_moves(
+		self, game_id: UUID, *, limit: int | None = None
+	) -> tuple[Game, list[Move]]:
+		game = await self.get_game(game_id)
+		moves = await self.get_moves(game_id, limit=limit)
 		return game, moves
 
-	def get_moves(self, game_id: UUID, *, limit: int | None = None) -> list[Move]:
+	async def get_moves(self, game_id: UUID, *, limit: int | None = None) -> list[Move]:
 		stmt = (
 			select(Move)
 			.where(Move.game_id == game_id)
@@ -227,13 +230,14 @@ class GameService:
 		)
 		if limit is not None:
 			stmt = stmt.limit(limit)
-		moves = list(self.db.execute(stmt).scalars().all())
+		result = await self.db.execute(stmt)
+		moves = list(result.scalars().all())
 		moves.reverse()
 		return moves
 
-	def join_game(self, game_id: UUID, *, player_id: int) -> Game:
-		game = self._lock_game(game_id)
-		if game.status != GameStatus.CREATED:
+	async def join_game(self, game_id: UUID, *, player_id: int) -> Game:
+		game = await self._lock_game(game_id)
+		if game.status != GameStatus.CREATED.value:
 			raise GameServiceError("Game is not open for joining", status.HTTP_409_CONFLICT)
 		if player_id in {game.white_id, game.black_id}:
 			raise GameServiceError("You are already part of this game", status.HTTP_400_BAD_REQUEST)
@@ -244,24 +248,24 @@ class GameService:
 			game.white_id = player_id
 		else:
 			game.black_id = player_id
-		self.db.commit()
-		self.db.refresh(game)
+		await self.db.commit()
+		await self.db.refresh(game)
 		return game
 
-	def make_move(
+	async def make_move(
 		self,
 		game_id: UUID,
 		*,
 		player_id: int,
 		payload: MakeMovePayload,
 	) -> tuple[Game, Move]:
-		game = self._lock_game(game_id)
-		if game.status == GameStatus.FINISHED:
+		game = await self._lock_game(game_id)
+		if game.status == GameStatus.FINISHED.value:
 			raise GameServiceError("Game already finished", status.HTTP_409_CONFLICT)
 		if not game.white_id or not game.black_id:
 			raise GameServiceError("Cannot start until second player joins")
 
-		expected_player = game.white_id if game.next_turn == SideToMove.WHITE else game.black_id
+		expected_player = game.white_id if game.next_turn == SideToMove.WHITE.value else game.black_id
 		if player_id != expected_player:
 			raise GameServiceError("Not your turn", status.HTTP_403_FORBIDDEN)
 
@@ -302,10 +306,10 @@ class GameService:
 		game.move_count = move_index
 		game.white_clock_ms = payload.white_clock_ms
 		game.black_clock_ms = payload.black_clock_ms
-		game.next_turn = SideToMove.BLACK if game.next_turn == SideToMove.WHITE else SideToMove.WHITE
+		game.next_turn = SideToMove.BLACK.value if game.next_turn == SideToMove.WHITE.value else SideToMove.WHITE.value
 
-		if game.status == GameStatus.CREATED:
-			game.status = GameStatus.ACTIVE
+		if game.status == GameStatus.CREATED.value:
+			game.status = GameStatus.ACTIVE.value
 			game.started_at = _utcnow()
 
 		self.db.add(move)
@@ -320,41 +324,41 @@ class GameService:
 			)
 
 		if board.is_checkmate():
-			winner = SideToMove.WHITE if player_id == game.white_id else SideToMove.BLACK
+			winner = SideToMove.WHITE.value if player_id == game.white_id else SideToMove.BLACK.value
 			self._finish_game(
 				game,
 				winner=winner,
-				reason=TerminationReason.CHECKMATE,
+				reason=TerminationReason.CHECKMATE.value,
 				ended_by=player_id,
 			)
 
-		self.db.commit()
-		self.db.refresh(game)
-		self.db.refresh(move)
-		cancel_auto_cancel(game.id)
+		await self.db.commit()
+		await self.db.refresh(game)
+		await self.db.refresh(move)
+		await cancel_auto_cancel(game.id)
 		return game, move
 
-	def resign(self, game_id: UUID, *, player_id: int) -> Game:
-		game = self._lock_game(game_id)
-		if game.status == GameStatus.FINISHED:
+	async def resign(self, game_id: UUID, *, player_id: int) -> Game:
+		game = await self._lock_game(game_id)
+		if game.status == GameStatus.FINISHED.value:
 			raise GameServiceError("Game already finished", status.HTTP_409_CONFLICT)
 		if player_id not in (game.white_id, game.black_id):
 			raise GameServiceError("You are not a participant", status.HTTP_403_FORBIDDEN)
 
-		winner = SideToMove.BLACK if player_id == game.white_id else SideToMove.WHITE
-		self._finish_game(
+		winner = SideToMove.BLACK.value if player_id == game.white_id else SideToMove.WHITE.value
+		await self._finish_game(
 			game,
 			winner=winner,
-			reason=TerminationReason.RESIGNATION,
+			reason=TerminationReason.RESIGNATION.value,
 			ended_by=player_id,
 		)
-		self.db.commit()
-		self.db.refresh(game)
+		await self.db.commit()
+		await self.db.refresh(game)
 		return game
 
-	def timeout(self, game_id: UUID, *, loser_color: SideToMove, requested_by: int) -> Game:
-		game = self._lock_game(game_id)
-		if game.status == GameStatus.FINISHED:
+	async def timeout(self, game_id: UUID, *, loser_color: SideToMove, requested_by: int) -> Game:
+		game = await self._lock_game(game_id)
+		if game.status == GameStatus.FINISHED.value:
 			raise GameServiceError("Game already finished", status.HTTP_409_CONFLICT)
 		if requested_by not in (game.white_id, game.black_id):
 			raise GameServiceError("You are not a participant", status.HTTP_403_FORBIDDEN)
@@ -363,40 +367,41 @@ class GameService:
 		if loser_color == SideToMove.BLACK and game.black_clock_ms > 0:
 			raise GameServiceError("Black clock has not expired")
 
-		winner = SideToMove.BLACK if loser_color == SideToMove.WHITE else SideToMove.WHITE
-		self._finish_game(
+		winner = SideToMove.BLACK.value if loser_color == SideToMove.WHITE else SideToMove.WHITE.value
+		await self._finish_game(
 			game,
 			winner=winner,
-			reason=TerminationReason.TIMEOUT,
+			reason=TerminationReason.TIMEOUT.value,
 			ended_by=requested_by,
 		)
-		self.db.commit()
-		self.db.refresh(game)
+		await self.db.commit()
+		await self.db.refresh(game)
 		return game
 
-	def _finish_game(
+	async def _finish_game(
 		self,
 		game: Game,
 		*,
-		winner: SideToMove | None,
-		reason: TerminationReason,
+		winner: str | None,
+		reason: str,
 		ended_by: int | None,
 	) -> None:
-		cancel_auto_cancel(game.id)
-		game.status = GameStatus.FINISHED
+		await cancel_auto_cancel(game.id)
+		game.status = GameStatus.FINISHED.value
 		game.finished_at = _utcnow()
 		game.termination_reason = reason
 		game.ended_by = ended_by
 		if winner is None:
-			game.result = GameResult.DRAW
+			game.result = GameResult.DRAW.value
 			return
 		game.result = (
-			GameResult.WHITE_WIN if winner == SideToMove.WHITE else GameResult.BLACK_WIN
+			GameResult.WHITE_WIN.value if winner == SideToMove.WHITE.value else GameResult.BLACK_WIN.value
 		)
 
-	def _lock_game(self, game_id: UUID) -> Game:
+	async def _lock_game(self, game_id: UUID) -> Game:
 		stmt = select(Game).where(Game.id == game_id).with_for_update()
-		game = self.db.execute(stmt).scalars().first()
+		result = await self.db.execute(stmt)
+		game = result.scalars().first()
 		if not game:
 			raise GameServiceError("Game not found", status.HTTP_404_NOT_FOUND)
 		return game

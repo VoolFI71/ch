@@ -4,7 +4,8 @@ from typing import List
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..database import get_db
@@ -53,32 +54,33 @@ def _fetch_user_enrolled_course_ids(user_id: int) -> List[int]:
 
 
 @router.get("/", response_model=List[PGNFileOut])
-def list_user_pgn_files(
-	db: Session = Depends(get_db),
+async def list_user_pgn_files(
+	db: AsyncSession = Depends(get_db),
 	user_id: int = Depends(get_current_user_id),
 ) -> List[PGNFileOut]:
 	course_ids = _fetch_user_enrolled_course_ids(user_id)
 	if not course_ids:
 		return []
 
-	lessons = (
-		db.query(Lesson)
+	stmt = (
+		select(Lesson)
 		.join(Course)
-		.filter(
+		.where(
 			Lesson.course_id.in_(course_ids),
 			Lesson.pgn_content.isnot(None),
 			Lesson.pgn_content != "",
 			Course.is_active == True,  # noqa: E712
 		)
 		.order_by(Course.title.asc(), Lesson.order_index.asc())
-		.all()
 	)
+	result = await db.execute(stmt)
+	lessons = result.scalars().all()
 
-	result: List[PGNFileOut] = []
+	output: List[PGNFileOut] = []
 	for lesson in lessons:
 		if lesson.pgn_content is None:
 			continue
-		result.append(
+		output.append(
 			PGNFileOut(
 				id=lesson.id,
 				course_id=lesson.course_id,
@@ -90,6 +92,6 @@ def list_user_pgn_files(
 			)
 		)
 
-	return result
+	return output
 
 

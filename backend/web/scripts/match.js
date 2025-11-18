@@ -1225,7 +1225,8 @@
   }
 
   function loadTheme() {
-    const saved = localStorage.getItem('powerchess-theme');
+    // Всегда используем единый ключ 'theme' для загрузки
+    const saved = localStorage.getItem('theme');
     isDarkTheme = saved === 'dark';
     document.body.classList.toggle('dark', isDarkTheme);
     const icon = document.getElementById('themeIcon');
@@ -1233,11 +1234,12 @@
   }
 
   function toggleTheme() {
+    // Всегда используем единый ключ 'theme' для сохранения
     isDarkTheme = !isDarkTheme;
     document.body.classList.toggle('dark', isDarkTheme);
     const icon = document.getElementById('themeIcon');
     if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
-    localStorage.setItem('powerchess-theme', isDarkTheme ? 'dark' : 'light');
+    localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
   }
 
   function toggleMobileMenu() {
@@ -1311,6 +1313,8 @@
     await loadMatch();
   }
 
+  // Экспортируем локальную функцию toggleTheme
+  // Она будет использовать глобальную из auth.js, если доступна
   window.toggleTheme = toggleTheme;
   window.toggleMobileMenu = toggleMobileMenu;
   window.closeMobileMenu = closeMobileMenu;

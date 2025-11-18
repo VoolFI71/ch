@@ -9,7 +9,6 @@ from sqlalchemy import (
 	BigInteger,
 	CheckConstraint,
 	DateTime,
-	Enum as SQLEnum,
 	ForeignKey,
 	Index,
 	Integer,
@@ -46,13 +45,6 @@ class TerminationReason(str, Enum):
 	TIMEOUT = "TIMEOUT"
 
 
-side_to_move_db_enum = SQLEnum(
-	SideToMove,
-	name="games_side_to_move_enum",
-	values_callable=lambda enum_cls: [member.value for member in enum_cls],
-)
-
-
 class Game(Base):
 	__tablename__ = "games"
 
@@ -63,18 +55,18 @@ class Game(Base):
 	black_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
 	initial_pos: Mapped[str] = mapped_column(Text, nullable=False, default="startpos")
 	current_pos: Mapped[str] = mapped_column(Text, nullable=False)
-	next_turn: Mapped[SideToMove] = mapped_column(
-		side_to_move_db_enum,
-		default=SideToMove.WHITE,
+	next_turn: Mapped[str] = mapped_column(
+		Text,
+		default="w",
 		nullable=False,
 	)
 	time_control: Mapped[dict[str, Any] | None] = mapped_column(
 		JSON, nullable=True, default=None
 	)
 	move_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-	status: Mapped[GameStatus] = mapped_column(
-		SQLEnum(GameStatus, name="games_status_enum"),
-		default=GameStatus.CREATED,
+	status: Mapped[str] = mapped_column(
+		Text,
+		default="CREATED",
 		index=True,
 		nullable=False,
 	)
@@ -84,11 +76,11 @@ class Game(Base):
 	black_clock_ms: Mapped[int] = mapped_column(
 		BigInteger, nullable=False, default=0, server_default="0"
 	)
-	result: Mapped[GameResult | None] = mapped_column(
-		SQLEnum(GameResult, name="games_result_enum"), nullable=True
+	result: Mapped[str | None] = mapped_column(
+		Text, nullable=True
 	)
-	termination_reason: Mapped[TerminationReason | None] = mapped_column(
-		SQLEnum(TerminationReason, name="games_termination_enum"),
+	termination_reason: Mapped[str | None] = mapped_column(
+		Text,
 		nullable=True,
 	)
 	ended_by: Mapped[int | None] = mapped_column(Integer, nullable=True)

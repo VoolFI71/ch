@@ -7,7 +7,7 @@ from sqlalchemy import inspect
 from common import configure_observability
 
 from .config import get_settings
-from .database import engine, get_db
+from .database import get_db, sync_engine
 from .routers import payments_router
 
 
@@ -22,7 +22,7 @@ def _wait_for_tables(tables: tuple[str, ...], timeout: float = 60.0) -> None:
 		return
 	deadline = time.time() + timeout
 	while time.time() < deadline:
-		inspector = inspect(engine)
+		inspector = inspect(sync_engine)
 		if all(inspector.has_table(name) for name in tables):
 			return
 		time.sleep(1)
@@ -37,7 +37,7 @@ def apply_sql_migrations() -> None:
 		sql = sql_file.read_text(encoding="utf-8").strip()
 		if not sql:
 			continue
-		with engine.begin() as conn:
+		with sync_engine.begin() as conn:
 			conn.exec_driver_sql(sql)
 
 

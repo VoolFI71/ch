@@ -6,14 +6,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from common.observability import configure_observability
 
 from .config import get_settings
-from .database import get_db
 
 
 settings = get_settings()
 
 app = FastAPI(title=settings.app_name)
 
-configure_observability(app, settings=settings, get_db=get_db)
+configure_observability(app, settings=settings, get_db=None)
 
 
 # Frontend serving
