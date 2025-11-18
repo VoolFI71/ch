@@ -479,6 +479,8 @@
       boardEl.innerHTML = '<div class="board-empty">Партия не найдена</div>';
       return;
     }
+    
+    console.log('[renderBoard] Отрисовка доски. Выбранная клетка:', state.selectedSquare, 'Доступные ходы:', Array.from(state.availableTargets));
 
     const matrix = getOrientedMatrix();
     const highlightSet = new Set(getHighlightSquares());
@@ -534,6 +536,18 @@
           } else {
             pieceEl.textContent = PIECES[piece] || '';
           }
+          
+          // Добавляем класс для фигур текущего игрока (для hover эффектов)
+          const role = getCurrentUserRole();
+          if (role && pieceBelongsToRole(piece, role)) {
+            pieceEl.classList.add('piece-own');
+            // Проверяем, есть ли ходы для этой фигуры
+            const movesForPiece = state.legalMovesByFrom.get(squareName);
+            if (movesForPiece && movesForPiece.length > 0) {
+              pieceEl.classList.add('piece-movable');
+            }
+          }
+          
           square.appendChild(pieceEl);
         }
         if (rIdx === matrix.length - 1) {
@@ -550,6 +564,17 @@
         }
         square.dataset.square = squareName;
         square.addEventListener('click', () => handleSquareClick(squareName));
+        
+        // Добавляем hover эффект для клеток с фигурами текущего игрока
+        const role = getCurrentUserRole();
+        if (piece && role && pieceBelongsToRole(piece, role)) {
+          const movesForPiece = state.legalMovesByFrom.get(squareName);
+          if (movesForPiece && movesForPiece.length > 0) {
+            square.classList.add('square-hoverable');
+            square.title = 'Кликните, чтобы выбрать фигуру и увидеть возможные ходы';
+          }
+        }
+        
         boardEl.appendChild(square);
       });
     });
@@ -652,15 +677,49 @@
   function updateLegalMoves() {
     state.legalMovesByFrom = new Map();
     resetSelection();
-    if (!state.game) return;
-    if (state.game.status !== 'ACTIVE') return;
+    
+    // Диагностическое логирование
+    console.log('[updateLegalMoves] Начало обновления легальных ходов');
+    
+    if (!state.game) {
+      console.log('[updateLegalMoves] Нет игры');
+      return;
+    }
+    
+    // Показываем ходы для активной игры или если оба игрока присоединились (даже в CREATED)
+    const bothPlayersJoined = state.game.white_id !== null && state.game.white_id !== undefined &&
+                              state.game.black_id !== null && state.game.black_id !== undefined;
+    
+    if (state.game.status !== 'ACTIVE' && !bothPlayersJoined) {
+      console.log('[updateLegalMoves] Игра не активна, статус:', state.game.status, '- ходы не будут показаны');
+      console.log('[updateLegalMoves] Игра станет активной когда оба игрока присоединятся');
+      return;
+    }
+    
+    if (state.game.status === 'CREATED' && bothPlayersJoined) {
+      console.log('[updateLegalMoves] Оба игрока присоединились, показываем возможные ходы (игра еще CREATED)');
+    }
     const utils = window.ChessMoveUtils;
-    if (!utils) return;
+    if (!utils) {
+      console.log('[updateLegalMoves] ChessMoveUtils не доступен');
+      return;
+    }
     const role = getCurrentUserRole();
-    if (!role) return;
+    console.log('[updateLegalMoves] Роль пользователя:', role);
+    if (!role) {
+      console.log('[updateLegalMoves] Пользователь не является игроком');
+      return;
+    }
     const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';
-    if (role !== expectedTurn) return;
+    console.log('[updateLegalMoves] Ожидаемый ход:', expectedTurn, 'Текущая позиция:', state.game.current_pos);
+    if (role !== expectedTurn) {
+      console.log('[updateLegalMoves] Не очередь пользователя. Роль:', role, 'Ожидается:', expectedTurn);
+      return;
+    }
+    
     const { movesByFrom } = utils.generateMoves(state.game.current_pos, role);
+    console.log('[updateLegalMoves] Сгенерировано ходов:', movesByFrom.size);
+    
     movesByFrom.forEach((uciSet, fromSquare) => {
       const entries = [];
       uciSet.forEach((uci) => {
@@ -671,8 +730,11 @@
       });
       if (entries.length) {
         state.legalMovesByFrom.set(fromSquare, entries);
+        console.log(`[updateLegalMoves] Клетка ${fromSquare}: ${entries.length} возможных ходов`);
       }
     });
+    
+    console.log('[updateLegalMoves] Всего клеток с ходами:', state.legalMovesByFrom.size);
   }
 
   function executeMove(fromSquare, toSquare) {
@@ -699,40 +761,76 @@
   }
 
   function handleSquareClick(squareName) {
-    if (!state.game) return;
-    if (state.game.status !== 'ACTIVE') return;
-    if (state.pendingMove) return;
+    console.log('[handleSquareClick] Клик по клетке:', squareName);
+    
+    if (!state.game) {
+      console.log('[handleSquareClick] Нет игры');
+      return;
+    }
+    // Проверяем, можно ли делать ходы (ACTIVE или оба игрока присоединились)
+    const bothPlayersJoined = state.game.white_id !== null && state.game.white_id !== undefined &&
+                              state.game.black_id !== null && state.game.black_id !== undefined;
+    
+    if (state.game.status !== 'ACTIVE' && !bothPlayersJoined) {
+      console.log('[handleSquareClick] Игра не активна, статус:', state.game.status);
+      if (state.game.status === 'CREATED') {
+        showToast('Дождитесь присоединения соперника, чтобы начать игру', 'info');
+      }
+      return;
+    }
+    if (state.pendingMove) {
+      console.log('[handleSquareClick] Ожидается обработка предыдущего хода');
+      return;
+    }
     const role = getCurrentUserRole();
-    if (!role) return;
+    console.log('[handleSquareClick] Роль пользователя:', role);
+    if (!role) {
+      console.log('[handleSquareClick] Пользователь не является игроком');
+      return;
+    }
     const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';
-    if (role !== expectedTurn) return;
+    console.log('[handleSquareClick] Ожидаемый ход:', expectedTurn);
+    if (role !== expectedTurn) {
+      console.log('[handleSquareClick] Не очередь пользователя');
+      return;
+    }
     const square = squareName.toLowerCase();
 
     if (state.selectedSquare && state.availableTargets.has(square)) {
+      console.log('[handleSquareClick] Выполнение хода:', state.selectedSquare, '->', square);
       executeMove(state.selectedSquare, square);
       return;
     }
 
     if (state.selectedSquare === square) {
+      console.log('[handleSquareClick] Снятие выделения с клетки:', square);
       resetSelection();
       renderBoard();
       return;
     }
 
     const moves = state.legalMovesByFrom.get(square);
+    console.log('[handleSquareClick] Ходы для клетки', square, ':', moves ? moves.length : 0);
+    
     if (!moves || !moves.length) {
+      console.log('[handleSquareClick] Нет ходов для клетки:', square);
+      console.log('[handleSquareClick] Все доступные ходы:', Array.from(state.legalMovesByFrom.keys()));
       resetSelection();
       renderBoard();
       return;
     }
 
     const piece = getPieceAtSquare(state.game.current_pos, square);
+    console.log('[handleSquareClick] Фигура на клетке:', piece, 'Роль:', role);
+    
     if (!piece || !pieceBelongsToRole(piece, role)) {
+      console.log('[handleSquareClick] Фигура не принадлежит пользователю или отсутствует');
       resetSelection();
       renderBoard();
       return;
     }
 
+    console.log('[handleSquareClick] Выбор фигуры на клетке:', square, 'Доступные ходы:', moves.map(m => m.to));
     state.selectedSquare = square;
     state.availableTargets = new Set(moves.map((entry) => entry.to));
     renderBoard();
@@ -871,6 +969,7 @@
   }
 
   function applyGameDetail(detail) {
+    console.log('[applyGameDetail] Обновление состояния игры');
     const previousGame = state.game;
     const previousRole = getCurrentUserRole();
     state.game = detail;
@@ -878,11 +977,12 @@
     state.lastStateTimestamp = Date.now();
     state.pendingMove = false;
     const newRole = getCurrentUserRole();
+    console.log('[applyGameDetail] Предыдущая роль:', previousRole, 'Новая роль:', newRole);
     if (newRole !== previousRole) {
       userSetOrientation = false;
     }
     syncAutoCancelDeadline(detail);
-    updateLegalMoves();
+    updateLegalMoves(); // Обновляем легальные ходы при изменении состояния игры
     computeOrientationFromRole();
     updateUI();
     maybeAutoJoin();
@@ -1039,7 +1139,22 @@
       return;
     }
     if (payload.type === 'state' || payload.type === 'game_finished' || payload.type === 'move_made') {
+      const previousStatus = state.game?.status;
+      const previousWhiteId = state.game?.white_id;
+      const previousBlackId = state.game?.black_id;
       applyGameDetail(payload.game);
+      // Если игра только что стала активной, показываем уведомление
+      if (previousStatus === 'CREATED' && payload.game.status === 'ACTIVE') {
+        showToast('Игра началась! Теперь вы можете делать ходы', 'success');
+      }
+      // Если присоединился второй игрок, обновляем ходы
+      const bothJoined = payload.game.white_id && payload.game.black_id;
+      const wasWaiting = !previousWhiteId || !previousBlackId;
+      if (wasWaiting && bothJoined && payload.game.status === 'CREATED') {
+        console.log('[handleWsPayload] Второй игрок присоединился, обновляем возможные ходы');
+        updateLegalMoves();
+        renderBoard();
+      }
     }
   }
 
@@ -1148,8 +1263,11 @@
       showToast('Ходы могут делать только участники партии', 'error');
       return false;
     }
-    if (state.game.status !== 'ACTIVE') {
-      showToast('Партия не активна', 'error');
+    // Разрешаем ходы если игра ACTIVE или оба игрока присоединились (даже в CREATED)
+    const bothPlayersJoined = state.game.white_id !== null && state.game.white_id !== undefined &&
+                              state.game.black_id !== null && state.game.black_id !== undefined;
+    if (state.game.status !== 'ACTIVE' && !bothPlayersJoined) {
+      showToast('Партия не активна. Дождитесь присоединения соперника', 'error');
       return false;
     }
     const expectedTurn = state.game.next_turn === 'w' ? 'white' : 'black';

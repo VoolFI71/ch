@@ -159,6 +159,39 @@
     }
   }
 
+  function validatePassword(password) {
+    if (password.length < 8) {
+      return 'Пароль должен содержать минимум 8 символов';
+    }
+    // Проверка на кириллицу: если есть символы вне ASCII (латиница, цифры, спецсимволы)
+    // Кириллица находится в диапазоне \u0400-\u04FF
+    if (/[\u0400-\u04FF]/.test(password)) {
+      return 'Пароль должен содержать только латиницу, цифры и специальные символы';
+    }
+    return null;
+  }
+
+  function showPasswordError(input, message) {
+    // Удаляем предыдущее сообщение об ошибке
+    const existingError = input.parentElement.querySelector('.password-error');
+    if (existingError) {
+      existingError.remove();
+    }
+
+    if (message) {
+      const errorEl = document.createElement('span');
+      errorEl.className = 'password-error';
+      errorEl.style.cssText = 'display: block; margin-top: 0.5rem; font-size: 0.875rem; color: #ef4444; animation: fadeIn 0.2s ease;';
+      errorEl.textContent = message;
+      input.parentElement.appendChild(errorEl);
+      input.style.borderColor = '#ef4444';
+      input.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.15)';
+    } else {
+      input.style.borderColor = '';
+      input.style.boxShadow = '';
+    }
+  }
+
   async function handleRegisterSubmit(form) {
     clearFeedback(form);
     const username = form.querySelector('input[name="username"]')?.value.trim();
@@ -176,13 +209,18 @@
       return;
     }
 
-    if (password !== confirm) {
-      showFeedback(form, 'Пароли не совпадают');
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      showFeedback(form, passwordError);
+      const passwordInput = form.querySelector('input[name="password"]');
+      if (passwordInput) {
+        showPasswordError(passwordInput, passwordError);
+      }
       return;
     }
 
-    if (password.length < 8) {
-      showFeedback(form, 'Пароль должен содержать минимум 8 символов');
+    if (password !== confirm) {
+      showFeedback(form, 'Пароли не совпадают');
       return;
     }
 
@@ -223,6 +261,16 @@
         handleRegisterSubmit(registerForm);
       });
       registerForm.addEventListener('input', () => clearFeedback(registerForm));
+
+      // Валидация пароля в реальном времени
+      const passwordInput = registerForm.querySelector('input[name="password"]');
+      if (passwordInput) {
+        passwordInput.addEventListener('input', (event) => {
+          const password = event.target.value;
+          const error = validatePassword(password);
+          showPasswordError(passwordInput, error);
+        });
+      }
     }
   }
 

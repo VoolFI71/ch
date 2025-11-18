@@ -54,6 +54,15 @@ body.dark .chess-board {
     filter: brightness(1.05);
 }
 
+.square-hoverable:hover {
+    background: rgba(124, 58, 237, 0.1) !important;
+    cursor: pointer;
+}
+
+.square-hoverable:hover .piece {
+    transform: scale(1.08);
+}
+
 .square.light {
     background: #f0d9b5;
 }
@@ -105,10 +114,28 @@ body.dark .square.dark {
 	justify-content: center;
 	font-size: clamp(54px, 9.5vmin, 140px);
 	line-height: 1;
-	cursor: grab;
+	cursor: default;
 	transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease;
 	user-select: none;
 	-webkit-user-drag: none;
+}
+
+.square .piece.piece-own {
+	cursor: pointer;
+}
+
+.square .piece.piece-movable {
+	cursor: grab;
+}
+
+.square .piece.piece-movable:hover {
+	transform: scale(1.05);
+	filter: brightness(1.1);
+}
+
+.square .piece.piece-own:not(.piece-movable) {
+	opacity: 0.6;
+	cursor: not-allowed;
 }
 
 .square .piece:active {
