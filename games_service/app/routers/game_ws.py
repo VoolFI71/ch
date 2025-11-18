@@ -6,6 +6,9 @@ from uuid import UUID
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
+from common import decode_access_token
+
+from ..config import get_settings
 from ..database import SessionLocal
 from ..models import Game, GameStatus
 from ..realtime import ConnectionInfo, game_ws_manager
@@ -16,7 +19,6 @@ from ..schemas import (
 	WsMoveMadePayload,
 	WsStatePayload,
 )
-from ..security import decode_access_token
 from ..services import (
 	GameService,
 	GameServiceError,
@@ -48,7 +50,10 @@ async def game_socket(
 	user_id: int | None = None
 	if token:
 		try:
-			current_user = decode_access_token(token)
+			settings = get_settings()
+			current_user = decode_access_token(
+				token, settings.jwt_secret, settings.jwt_algorithm
+			)
 		except Exception:
 			await websocket.close(code=4401)
 			return
