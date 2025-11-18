@@ -528,7 +528,12 @@
         if (piece) {
           const pieceEl = document.createElement('span');
           pieceEl.className = 'piece';
-          pieceEl.textContent = PIECES[piece] || '';
+          // Используем SVG фигуры если доступны, иначе fallback на Unicode
+          if (window.getPieceSVG) {
+            pieceEl.innerHTML = window.getPieceSVG(piece);
+          } else {
+            pieceEl.textContent = PIECES[piece] || '';
+          }
           square.appendChild(pieceEl);
         }
         if (rIdx === matrix.length - 1) {
