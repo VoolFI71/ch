@@ -259,10 +259,11 @@ class GameService:
 		player_id: int,
 		payload: MakeMovePayload,
 	) -> tuple[Game, Move]:
-		# Сбрасываем кэш всех объектов Game в сессии, чтобы получить актуальные данные из БД
+		# Сбрасываем кэш всех объектов в сессии, чтобы получить актуальные данные из БД
 		# Это важно, так как другой игрок мог присоединиться в другой транзакции
 		# и объект Game может быть закэширован в текущей сессии
-		await self.db.expire_all()
+		# expire_all() - синхронный метод, не требует await
+		self.db.expire_all()
 		# Теперь блокируем и получаем актуальную версию
 		game = await self._lock_game(game_id)
 		if game.status == GameStatus.FINISHED.value:
