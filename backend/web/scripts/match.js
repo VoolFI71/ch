@@ -34,6 +34,17 @@
   let boardOrientation = 'white';
   let userSetOrientation = false;
 
+  const getPanelRoles = () => {
+    const bottomRole = boardOrientation === 'white' ? 'white' : 'black';
+    const topRole = bottomRole === 'white' ? 'black' : 'white';
+    return { topRole, bottomRole };
+  };
+
+  const getPlayerIdByRole = (role) => {
+    if (!state.game) return null;
+    return role === 'white' ? state.game.white_id : state.game.black_id;
+  };
+
   const playerUsernames = new Map();
   const AUTO_CANCEL_TIMEOUT_MS = 30_000;
   const WS_BASE_DELAY_MS = 1_000;
@@ -124,18 +135,12 @@
       clearInterval(state.autoCancelTimerId);
     }
     setState({ autoCancelTimerId: null, autoCancelDeadline: null }, 'clearAutoCancelTimer');
-    const banner = document.getElementById('autoCancelBanner');
-    const timerEl = document.getElementById('autoCancelTimer');
-    if (banner) banner.style.display = 'none';
-    if (timerEl) timerEl.textContent = '00:30';
+    updateClockDisplays(false);
   }
 
   function updateAutoCancelTimerDisplay() {
-    const banner = document.getElementById('autoCancelBanner');
-    const timerEl = document.getElementById('autoCancelTimer');
-    if (!banner || !timerEl) return;
     if (!state.autoCancelDeadline) {
-      banner.style.display = 'none';
+      updateClockDisplays(false);
       return;
     }
     const remainingMs = state.autoCancelDeadline - Date.now();
@@ -143,9 +148,7 @@
       clearAutoCancelTimer();
       return;
     }
-    const remainingSeconds = Math.ceil(remainingMs / 1000);
-    timerEl.textContent = formatCountdown(remainingSeconds);
-    banner.style.display = '';
+    updateClockDisplays(false);
   }
 
   function setAutoCancelDeadline(deadlineMs) {
@@ -177,6 +180,16 @@
     }, 1000);
     setState({ autoCancelTimerId: timerId }, 'setAutoCancelDeadline:setTimer');
   }
+
+  const getAutoCancelCountdownSeconds = () => {
+    if (!state.autoCancelDeadline || !state.game) return null;
+    const waitingForFirstMove =
+      state.game.status === 'CREATED' && state.game.move_count === 0 && haveBothPlayersJoined();
+    if (!waitingForFirstMove) return null;
+    const remainingMs = state.autoCancelDeadline - Date.now();
+    if (remainingMs <= 0) return 0;
+    return Math.max(0, Math.ceil(remainingMs / 1000));
+  };
 
   function clearWsReconnectTimer() {
     if (state.wsReconnectTimerId) {
@@ -353,6 +366,19 @@
     const blackLabel = document.getElementById('blackPlayerLabel');
     if (blackLabel) {
       blackLabel.textContent = state.game ? labelPlayer(state.game.black_id) : '—';
+    }
+
+    const topLabel = document.getElementById('topPlayerLabel');
+    const bottomLabel = document.getElementById('bottomPlayerLabel');
+    if (topLabel || bottomLabel) {
+      if (!state.game) {
+        if (topLabel) topLabel.textContent = '—';
+        if (bottomLabel) bottomLabel.textContent = '—';
+      } else {
+        const { topRole, bottomRole } = getPanelRoles();
+        if (topLabel) topLabel.textContent = labelPlayer(getPlayerIdByRole(topRole));
+        if (bottomLabel) bottomLabel.textContent = labelPlayer(getPlayerIdByRole(bottomRole));
+      }
     }
   }
 
@@ -623,10 +649,33 @@
   function updateClockDisplays(resetTimer = false) {
     const clocks = getDisplayedClocks(true);
     if (!clocks) return;
+    const autoCountdownSeconds = getAutoCancelCountdownSeconds();
+    const countdownTargetRole =
+      autoCountdownSeconds !== null && state.game ? (state.game.next_turn === 'w' ? 'white' : 'black') : null;
+    const formatWithCountdown = (role, baseMs) => {
+      if (countdownTargetRole && countdownTargetRole === role && autoCountdownSeconds !== null) {
+        return formatClock(autoCountdownSeconds * 1000);
+      }
+      return formatClock(baseMs);
+    };
+
     const whiteEl = document.getElementById('whiteClock');
     const blackEl = document.getElementById('blackClock');
-    if (whiteEl) whiteEl.textContent = formatClock(clocks.white);
-    if (blackEl) blackEl.textContent = formatClock(clocks.black);
+    if (whiteEl) whiteEl.textContent = formatWithCountdown('white', clocks.white);
+    if (blackEl) blackEl.textContent = formatWithCountdown('black', clocks.black);
+    const topClockEl = document.getElementById('topClock');
+    const bottomClockEl = document.getElementById('bottomClock');
+    if (topClockEl || bottomClockEl) {
+      const { topRole, bottomRole } = getPanelRoles();
+      if (topClockEl) {
+        const topValue = topRole === 'white' ? clocks.white : clocks.black;
+        topClockEl.textContent = formatWithCountdown(topRole, topValue);
+      }
+      if (bottomClockEl) {
+        const bottomValue = bottomRole === 'white' ? clocks.white : clocks.black;
+        bottomClockEl.textContent = formatWithCountdown(bottomRole, bottomValue);
+      }
+    }
     maybeAutoDeclareTimeout(clocks);
 
     if (resetTimer) {
@@ -634,8 +683,28 @@
       const timerId = setInterval(() => {
         const tick = getDisplayedClocks(true);
         if (!tick) return;
-        if (whiteEl) whiteEl.textContent = formatClock(tick.white);
-        if (blackEl) blackEl.textContent = formatClock(tick.black);
+        const tickCountdownSeconds = getAutoCancelCountdownSeconds();
+        const tickCountdownTarget =
+          tickCountdownSeconds !== null && state.game ? (state.game.next_turn === 'w' ? 'white' : 'black') : null;
+        const formatTick = (role, baseMs) => {
+          if (tickCountdownTarget && tickCountdownTarget === role && tickCountdownSeconds !== null) {
+            return formatClock(tickCountdownSeconds * 1000);
+          }
+          return formatClock(baseMs);
+        };
+        if (whiteEl) whiteEl.textContent = formatTick('white', tick.white);
+        if (blackEl) blackEl.textContent = formatTick('black', tick.black);
+        if (topClockEl || bottomClockEl) {
+          const { topRole, bottomRole } = getPanelRoles();
+          if (topClockEl) {
+            const topValue = topRole === 'white' ? tick.white : tick.black;
+            topClockEl.textContent = formatTick(topRole, topValue);
+          }
+          if (bottomClockEl) {
+            const bottomValue = bottomRole === 'white' ? tick.white : tick.black;
+            bottomClockEl.textContent = formatTick(bottomRole, bottomValue);
+          }
+        }
         renderActions();
         maybeAutoDeclareTimeout(tick);
       }, 1000);
@@ -962,6 +1031,8 @@
     boardOrientation = boardOrientation === 'white' ? 'black' : 'white';
     userSetOrientation = true;
     renderBoard();
+    updatePlayerLabelsAndTitle();
+    updateClockDisplays(false);
   }
 
   function updateWsIndicator(status) {
