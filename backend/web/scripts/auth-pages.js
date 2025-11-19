@@ -138,17 +138,17 @@
 
   async function handleLoginSubmit(form) {
     clearFeedback(form);
-    const email = form.querySelector('input[name="email"]')?.value.trim();
+    const login = form.querySelector('input[name="login"]')?.value.trim();
     const password = form.querySelector('input[name="password"]')?.value || '';
 
-    if (!email || !password) {
-      showFeedback(form, 'Введите email и пароль');
+    if (!login || !password) {
+      showFeedback(form, 'Введите логин или email и пароль');
       return;
     }
 
     setFormLoading(form, true, 'Входим…');
     try {
-      const token = await postJson('/api/auth/login', { email, password });
+      const token = await postJson('/api/auth/login', { login, password });
       setTokens(token.access_token, token.refresh_token);
       showFeedback(form, 'Готово! Перенаправляем…', 'success');
       redirectAfterSuccess();
@@ -227,7 +227,8 @@
     setFormLoading(form, true, 'Создаём аккаунт…');
     try {
       await postJson('/api/auth/register', { username, email, password });
-      const token = await postJson('/api/auth/login', { email, password });
+      // После регистрации входим используя email (можно использовать и username)
+      const token = await postJson('/api/auth/login', { login: email, password });
       setTokens(token.access_token, token.refresh_token);
       showFeedback(form, 'Аккаунт создан! Перенаправляем…', 'success');
       redirectAfterSuccess();

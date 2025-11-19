@@ -27,7 +27,7 @@ class UserOut(BaseModel):
 
 
 class LoginInput(BaseModel):
-	email: EmailStr
+	login: str = Field(description="Email или логин пользователя")
 	password: str
 
 

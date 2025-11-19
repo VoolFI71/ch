@@ -73,11 +73,14 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)) -> U
 
 @router.post("/login", response_model=Token)
 async def login(data: LoginInput, db: AsyncSession = Depends(get_db)) -> Token:
-	email = data.email.lower()
-	stmt = select(User).where(User.email == email)
+	login_value = data.login.lower().strip()
+	# Пытаемся найти пользователя по email или username
+	stmt = select(User).where(
+		(User.email == login_value) | (User.username == login_value)
+	)
 	user = await db.scalar(stmt)
 	if not user or not verify_password(data.password, user.hashed_password):
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
+		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login or password")
 
 	access = create_access_token(user.id)
 	refresh = await create_refresh_token(db, user.id)
