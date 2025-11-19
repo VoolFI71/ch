@@ -6,24 +6,29 @@
   };
   const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
   const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
-
-  const state = {
-    matchId: null,
-    game: null,
-    moves: [],
-    ws: null,
-    currentUser: null,
-    lastStateTimestamp: null,
-    clockTimer: null,
-    autoJoinAttempted: false,
-    loginPromptShown: false,
-    selectedSquare: null,
-    availableTargets: new Set(),
-    legalMovesByFrom: new Map(),
-    pendingMove: false,
-    autoCancelDeadline: null,
-    autoCancelTimerId: null,
+  const TERMINATION_REASON_LABELS = {
+    CHECKMATE: 'мат',
+    RESIGNATION: 'сдача',
+    TIMEOUT: 'по времени',
   };
+
+  const matchStateModule = window.MatchState;
+  if (!matchStateModule) {
+    throw new Error('MatchState module is not loaded. Ensure match.state.js is included before match.js');
+  }
+  const { state, setState, haveBothPlayersJoined, getCurrentUserRole } = matchStateModule;
+
+  const matchApiModule = window.MatchApi;
+  if (!matchApiModule) {
+    throw new Error('MatchApi module is not loaded. Ensure match.api.js is included before match.js');
+  }
+  const {
+    buildUrl,
+    authedFetch,
+    getAccessToken,
+    clearTokens,
+    refreshAccessToken,
+  } = matchApiModule;
 
   let isDarkTheme = false;
   let boardOrientation = 'white';
@@ -31,86 +36,11 @@
 
   const playerUsernames = new Map();
   const AUTO_CANCEL_TIMEOUT_MS = 30_000;
+  const WS_BASE_DELAY_MS = 1_000;
+  const WS_MAX_DELAY_MS = 30_000;
+  const WS_MAX_RETRY_ATTEMPTS = 6;
+  const AUTH_CLOSE_CODES = new Set([4401, 4403, 4402]);
 
-  const API_BASE = (() => {
-    const { protocol, hostname, port } = window.location;
-    const isLocal = hostname === '127.0.0.1' || hostname === 'localhost';
-    if (isLocal) {
-      return `${protocol}//${hostname}:8080`;
-    }
-    return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
-  })();
-
-  const buildUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    if (path.startsWith('/')) return path;
-    return `${API_BASE}/${path.replace(/^\/+/, '')}`;
-  };
-
-  const getAccessToken = () => {
-    try {
-      return localStorage.getItem('access_token') || '';
-    } catch {
-      return '';
-    }
-  };
-
-  const getRefreshToken = () => {
-    try {
-      return localStorage.getItem('refresh_token') || '';
-    } catch {
-      return '';
-    }
-  };
-
-  const setTokens = (access, refresh) => {
-    try {
-      if (access) localStorage.setItem('access_token', access);
-      if (refresh) localStorage.setItem('refresh_token', refresh);
-    } catch {
-      // ignore
-    }
-  };
-
-  const clearTokens = () => {
-    try {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-    } catch {
-      // ignore
-    }
-  };
-
-  async function authedFetch(path, options = {}) {
-    const headers = new Headers(options.headers || {});
-    const token = getAccessToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-    let response = await fetch(buildUrl(path), { ...options, headers });
-    if (response.status !== 401 && response.status !== 403) return response;
-
-    const rt = getRefreshToken();
-    if (!rt) return response;
-    try {
-      const refreshRes = await fetch(buildUrl('/api/auth/refresh'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: rt }),
-      });
-      if (!refreshRes.ok) return response;
-      const data = await refreshRes.json();
-      setTokens(data.access_token, data.refresh_token);
-      const retryHeaders = new Headers(options.headers || {});
-      const newToken = getAccessToken();
-      if (newToken) retryHeaders.set('Authorization', `Bearer ${newToken}`);
-      if (options.body && !retryHeaders.has('Content-Type')) retryHeaders.set('Content-Type', 'application/json');
-      response = await fetch(buildUrl(path), { ...options, headers: retryHeaders });
-    } catch {
-      return response;
-    }
-    return response;
-  }
 
   function showToast(message, type = 'info') {
     const toast = document.getElementById('gamesToast');
@@ -192,9 +122,8 @@
   function clearAutoCancelTimer() {
     if (state.autoCancelTimerId) {
       clearInterval(state.autoCancelTimerId);
-      state.autoCancelTimerId = null;
     }
-    state.autoCancelDeadline = null;
+    setState({ autoCancelTimerId: null, autoCancelDeadline: null }, 'clearAutoCancelTimer');
     const banner = document.getElementById('autoCancelBanner');
     const timerEl = document.getElementById('autoCancelTimer');
     if (banner) banner.style.display = 'none';
@@ -229,23 +158,84 @@
       return;
     }
     const prev = state.autoCancelDeadline;
-    state.autoCancelDeadline = deadlineMs;
+    setState({ autoCancelDeadline: deadlineMs }, 'setAutoCancelDeadline:deadline');
     if (prev && Math.abs(prev - deadlineMs) < 500) {
       updateAutoCancelTimerDisplay();
       return;
     }
     if (state.autoCancelTimerId) {
       clearInterval(state.autoCancelTimerId);
-      state.autoCancelTimerId = null;
+      setState({ autoCancelTimerId: null }, 'setAutoCancelDeadline:clearTimer');
     }
     updateAutoCancelTimerDisplay();
-    state.autoCancelTimerId = setInterval(() => {
+    const timerId = setInterval(() => {
       if (!state.autoCancelDeadline) {
         clearAutoCancelTimer();
         return;
       }
       updateAutoCancelTimerDisplay();
     }, 1000);
+    setState({ autoCancelTimerId: timerId }, 'setAutoCancelDeadline:setTimer');
+  }
+
+  function clearWsReconnectTimer() {
+    if (state.wsReconnectTimerId) {
+      clearTimeout(state.wsReconnectTimerId);
+      setState({ wsReconnectTimerId: null }, 'clearWsReconnectTimer');
+    }
+  }
+
+  function resetWsRetryState() {
+    clearWsReconnectTimer();
+    setState({ wsRetryCount: 0 }, 'resetWsRetryState');
+  }
+
+  function scheduleWsReconnect() {
+    if (!state.matchId) return;
+    const attempt = state.wsRetryCount || 0;
+    if (attempt >= WS_MAX_RETRY_ATTEMPTS) {
+      showToast('Не удалось восстановить соединение с сервером', 'error');
+      return;
+    }
+    const delay = Math.min(WS_MAX_DELAY_MS, WS_BASE_DELAY_MS * 2 ** attempt);
+    clearWsReconnectTimer();
+    const timerId = setTimeout(() => {
+      setState({ wsReconnectTimerId: null }, 'wsReconnect:timerFired');
+      connectWebSocket(state.matchId, { isReconnect: true });
+    }, delay);
+    setState(
+      {
+        wsRetryCount: attempt + 1,
+        wsReconnectTimerId: timerId,
+      },
+      'scheduleWsReconnect'
+    );
+    if (attempt === 0) {
+      showToast('Соединение потеряно, пытаемся переподключиться…', 'error');
+    }
+  }
+
+  function shouldAttemptWsReconnect(event) {
+    if (!state.matchId) return false;
+    if (!event) return true;
+    // 1000 Normal closure, 1001 Going away
+    if (event.code === 1000 || event.code === 1001) return false;
+    return true;
+  }
+
+  async function handleWsClose(event) {
+    updateWsIndicator('offline');
+    setState({ ws: null }, 'handleWsClose');
+    if (!shouldAttemptWsReconnect(event)) return;
+
+    if (AUTH_CLOSE_CODES.has(event?.code)) {
+      const refreshed = await refreshAccessToken();
+      if (!refreshed) {
+        showToast('Сессия истекла. Войдите снова, чтобы продолжить партию', 'error');
+        return;
+      }
+    }
+    scheduleWsReconnect();
   }
 
   function syncAutoCancelDeadline(detail) {
@@ -319,6 +309,20 @@
     updatePlayerLabelsAndTitle();
   }
 
+  const describeWinner = (game) => {
+    if (!game || game.status !== 'FINISHED') return '—';
+    const reasonLabel = game.termination_reason
+      ? TERMINATION_REASON_LABELS[game.termination_reason] || game.termination_reason.toLowerCase()
+      : null;
+    if (game.result === '1/2-1/2') {
+      return reasonLabel ? `Ничья (${reasonLabel})` : 'Ничья';
+    }
+    const winnerIsWhite = game.result === '1-0';
+    const colorLabel = winnerIsWhite ? 'Белые' : 'Чёрные';
+    const winnerName = titleName(winnerIsWhite ? game.white_id : game.black_id);
+    const suffix = reasonLabel ? ` (${reasonLabel})` : '';
+    return `${colorLabel}: ${winnerName} победили${suffix}`;
+  };
   const labelPlayer = (id) => {
     if (id === null || id === undefined) return '—';
     if (state.currentUser && state.currentUser.id === id) {
@@ -420,9 +424,10 @@
   async function fetchCurrentUser() {
     try {
       const res = await authedFetch('/api/auth/me');
-      state.currentUser = res && res.ok ? await res.json() : null;
+      const currentUser = res && res.ok ? await res.json() : null;
+      setState({ currentUser }, 'fetchCurrentUser:success');
     } catch {
-      state.currentUser = null;
+      setState({ currentUser: null }, 'fetchCurrentUser:error');
     }
     updateAuthPanel();
     updatePlayerLabelsAndTitle();
@@ -492,6 +497,10 @@
       state.availableTargets instanceof Set ? state.availableTargets : new Set();
 
     boardEl.innerHTML = '';
+    const role = getCurrentUserRole();
+    const expectedTurnRole = state.game?.next_turn === 'w' ? 'white' : 'black';
+    const isPlayersTurn = role && role === expectedTurnRole;
+
     matrix.forEach((row, rIdx) => {
       row.forEach((piece, cIdx) => {
         const square = document.createElement('div');
@@ -537,8 +546,8 @@
           }
           
           // Добавляем класс для фигур текущего игрока (для hover эффектов)
-          const role = getCurrentUserRole();
-          if (role && pieceBelongsToRole(piece, role)) {
+          const pieceBelongsToPlayer = role && pieceBelongsToRole(piece, role);
+          if (isPlayersTurn && pieceBelongsToPlayer) {
             pieceEl.classList.add('piece-own');
             // Проверяем, есть ли ходы для этой фигуры
             const movesForPiece = state.legalMovesByFrom.get(squareName);
@@ -565,8 +574,7 @@
         square.addEventListener('click', () => handleSquareClick(squareName));
         
         // Добавляем hover эффект для клеток с фигурами текущего игрока
-        const role = getCurrentUserRole();
-        if (piece && role && pieceBelongsToRole(piece, role)) {
+        if (isPlayersTurn && piece && role && pieceBelongsToRole(piece, role)) {
           const movesForPiece = state.legalMovesByFrom.get(squareName);
           if (movesForPiece && movesForPiece.length > 0) {
             square.classList.add('square-hoverable');
@@ -619,17 +627,48 @@
     const blackEl = document.getElementById('blackClock');
     if (whiteEl) whiteEl.textContent = formatClock(clocks.white);
     if (blackEl) blackEl.textContent = formatClock(clocks.black);
+    maybeAutoDeclareTimeout(clocks);
 
     if (resetTimer) {
       if (state.clockTimer) clearInterval(state.clockTimer);
-      state.clockTimer = setInterval(() => {
+      const timerId = setInterval(() => {
         const tick = getDisplayedClocks(true);
         if (!tick) return;
         if (whiteEl) whiteEl.textContent = formatClock(tick.white);
         if (blackEl) blackEl.textContent = formatClock(tick.black);
         renderActions();
+        maybeAutoDeclareTimeout(tick);
       }, 1000);
+      setState({ clockTimer: timerId }, 'updateClockDisplays:setInterval');
     }
+  }
+
+  function maybeAutoDeclareTimeout(clocks) {
+    if (!state.game || state.game.status !== 'ACTIVE') {
+      if (state.timeoutAutoRequested) {
+        setState({ timeoutAutoRequested: false }, 'autoTimeout:inactive');
+      }
+      return;
+    }
+    const role = getCurrentUserRole();
+    if (!role) {
+      if (state.timeoutAutoRequested) {
+        setState({ timeoutAutoRequested: false }, 'autoTimeout:noRole');
+      }
+      return;
+    }
+    const snapshot = clocks || getDisplayedClocks(true);
+    if (!snapshot) return;
+    const opponentClock = role === 'white' ? snapshot.black : snapshot.white;
+    if (opponentClock > 0) {
+      if (state.timeoutAutoRequested) {
+        setState({ timeoutAutoRequested: false }, 'autoTimeout:clockPositive');
+      }
+      return;
+    }
+    if (state.timeoutAutoRequested) return;
+    setState({ timeoutAutoRequested: true }, 'autoTimeout:trigger');
+    submitTimeoutClaim({ autoTriggered: true });
   }
 
   function renderMoves() {
@@ -653,8 +692,13 @@
   }
 
   function resetSelection() {
-    state.selectedSquare = null;
-    state.availableTargets = new Set();
+    setState(
+      {
+        selectedSquare: null,
+        availableTargets: new Set(),
+      },
+      'resetSelection'
+    );
   }
 
   function pieceBelongsToRole(piece, role) {
@@ -674,7 +718,7 @@
   }
 
   function updateLegalMoves() {
-    state.legalMovesByFrom = new Map();
+    setState({ legalMovesByFrom: new Map() }, 'updateLegalMoves:reset');
     resetSelection();
     
     if (!state.game) {
@@ -682,8 +726,7 @@
     }
     
     // Показываем ходы для активной игры или если оба игрока присоединились (даже в CREATED)
-    const bothPlayersJoined = state.game.white_id !== null && state.game.white_id !== undefined &&
-                              state.game.black_id !== null && state.game.black_id !== undefined;
+    const bothPlayersJoined = haveBothPlayersJoined();
     
     if (state.game.status !== 'ACTIVE' && !bothPlayersJoined) {
       return;
@@ -746,8 +789,7 @@
       return;
     }
     // Проверяем, можно ли делать ходы (ACTIVE или оба игрока присоединились)
-    const bothPlayersJoined = state.game.white_id !== null && state.game.white_id !== undefined &&
-                              state.game.black_id !== null && state.game.black_id !== undefined;
+    const bothPlayersJoined = haveBothPlayersJoined();
     
     if (state.game.status !== 'ACTIVE' && !bothPlayersJoined) {
       if (state.game.status === 'CREATED') {
@@ -794,8 +836,13 @@
       renderBoard();
       return;
     }
-    state.selectedSquare = square;
-    state.availableTargets = new Set(moves.map((entry) => entry.to));
+    setState(
+      {
+        selectedSquare: square,
+        availableTargets: new Set(moves.map((entry) => entry.to)),
+      },
+      'handleSquareClick:select'
+    );
     renderBoard();
   }
 
@@ -812,13 +859,6 @@
     if (!state.currentUser) return false;
     if (state.currentUser.id === state.game.white_id || state.currentUser.id === state.game.black_id) return false;
     return getAvailableSeat(state.game) !== null;
-  };
-
-  const getCurrentUserRole = () => {
-    if (!state.currentUser || !state.game) return null;
-    if (state.currentUser.id === state.game.white_id) return 'white';
-    if (state.currentUser.id === state.game.black_id) return 'black';
-    return null;
   };
 
   const canDeclareTimeout = (role) => {
@@ -885,7 +925,7 @@
 
   function maybeAutoJoin() {
     if (shouldAutoJoin()) {
-      state.autoJoinAttempted = true;
+      setState({ autoJoinAttempted: true }, 'maybeAutoJoin:autoAttempt');
       joinGame(true);
       return;
     }
@@ -898,7 +938,7 @@
     ) {
       return;
     }
-    state.loginPromptShown = true;
+    setState({ loginPromptShown: true }, 'maybeAutoJoin:prompt');
     showToast('Войдите, чтобы занять место соперника', 'error');
   }
 
@@ -938,28 +978,33 @@
     const previousStatus = state.game?.status;
     
     // Обновляем состояние игры
-    state.game = detail;
-    state.moves = detail?.moves || [];
+    setState(
+      {
+        game: detail,
+        moves: detail?.moves || [],
+      },
+      'applyGameDetail:updateGame'
+    );
     
     // Устанавливаем время последнего обновления на основе последнего хода
     // Это важно для правильного вычисления времени на часах при загрузке страницы
+    let lastStateTimestamp = Date.now();
     if (detail.moves && detail.moves.length > 0) {
       // Используем время последнего хода
       const lastMove = detail.moves[detail.moves.length - 1];
       if (lastMove.created_at) {
-        state.lastStateTimestamp = new Date(lastMove.created_at).getTime();
-      } else {
-        state.lastStateTimestamp = Date.now();
+        lastStateTimestamp = new Date(lastMove.created_at).getTime();
       }
     } else if (detail.started_at) {
       // Если ходов нет, но игра началась, используем время начала игры
-      state.lastStateTimestamp = new Date(detail.started_at).getTime();
-    } else {
-      // Если игра еще не началась, используем текущее время
-      state.lastStateTimestamp = Date.now();
+      lastStateTimestamp = new Date(detail.started_at).getTime();
     }
+    setState({ lastStateTimestamp }, 'applyGameDetail:timestamp');
     
-    state.pendingMove = false;
+    setState({ pendingMove: false }, 'applyGameDetail:pending');
+    if (state.timeoutAutoRequested && detail.status !== 'ACTIVE') {
+      setState({ timeoutAutoRequested: false }, 'applyGameDetail:clearAutoTimeout');
+    }
     
     const newRole = getCurrentUserRole();
     const newNextTurn = detail?.next_turn;
@@ -1035,6 +1080,11 @@
       resultEl.textContent = state.game?.result || '—';
     }
 
+    const winnerEl = document.getElementById('gameWinner');
+    if (winnerEl) {
+      winnerEl.textContent = describeWinner(state.game);
+    }
+
     const gameIdField = document.getElementById('gameIdField');
     if (gameIdField) {
       gameIdField.value = state.game?.id || '';
@@ -1054,7 +1104,7 @@
 
   async function loadMatch() {
     if (!state.matchId) {
-      state.game = null;
+      setState({ game: null }, 'loadMatch:noMatch');
       clearAutoCancelTimer();
       updateUI();
       return;
@@ -1068,21 +1118,25 @@
     } catch (err) {
       console.error(err);
       showToast('Не удалось загрузить партию', 'error');
-      state.game = null;
-      state.moves = [];
+      setState({ game: null, moves: [] }, 'loadMatch:error');
       clearAutoCancelTimer();
       updateUI();
     }
   }
 
-  function connectWebSocket(gameId) {
+  function connectWebSocket(gameId, options = {}) {
     if (!gameId) return;
+    const { isReconnect = false } = options;
+    if (!isReconnect) {
+      setState({ wsRetryCount: 0 }, 'connectWebSocket:initial');
+    }
+    clearWsReconnectTimer();
     if (state.ws) {
       state.ws.onopen = null;
       state.ws.onclose = null;
       state.ws.onmessage = null;
       state.ws.close();
-      state.ws = null;
+      setState({ ws: null }, 'connectWebSocket:cleanup');
     }
     updateWsIndicator('offline');
     const token = getAccessToken();
@@ -1090,9 +1144,14 @@
     const url = `${protocol}://${window.location.host}/ws/games/${gameId}${token ? `?token=${encodeURIComponent(token)}` : ''}`;
     try {
       const ws = new WebSocket(url);
-      state.ws = ws;
-      ws.onopen = () => updateWsIndicator('online');
-      ws.onclose = () => updateWsIndicator('offline');
+      setState({ ws }, 'connectWebSocket:init');
+      ws.onopen = () => {
+        updateWsIndicator('online');
+        resetWsRetryState();
+      };
+      ws.onclose = (event) => {
+        handleWsClose(event);
+      };
       ws.onerror = () => updateWsIndicator('offline');
       ws.onmessage = (event) => {
         try {
@@ -1111,7 +1170,7 @@
   function handleWsPayload(payload) {
     if (!payload) return;
     if (payload.type === 'game_cancelled') {
-      state.pendingMove = false;
+      setState({ pendingMove: false }, 'handleWsPayload:cancelled');
       clearAutoCancelTimer();
       showToast('Партия отменена: никто не сделал ход', 'error');
       setTimeout(() => {
@@ -1120,7 +1179,7 @@
       return;
     }
     if (payload.type === 'move_rejected' || payload.type === 'error') {
-      state.pendingMove = false;
+      setState({ pendingMove: false }, 'handleWsPayload:rejected');
       updateLegalMoves();
       renderBoard();
       showToast(payload.message || 'Ход отклонён', 'error');
@@ -1164,7 +1223,7 @@
     if (!state.currentUser) {
       if (autoTriggered) {
         if (!state.loginPromptShown) {
-          state.loginPromptShown = true;
+          setState({ loginPromptShown: true }, 'joinGame:autoTriggerLoginPrompt');
           showToast('Войдите, чтобы занять место соперника', 'error');
         }
       } else {
@@ -1172,7 +1231,7 @@
       }
       return;
     }
-    state.autoJoinAttempted = true;
+    setState({ autoJoinAttempted: true }, 'joinGame:attempt');
     try {
       const res = await authedFetch(gameJoinPath(state.matchId), { method: 'POST' });
       if (!res.ok) throw new Error(await res.text());
@@ -1205,16 +1264,19 @@
     }
   }
 
-  async function declareTimeout(event) {
-    event.preventDefault();
+  async function submitTimeoutClaim({ autoTriggered = false } = {}) {
     if (!state.matchId) return;
     if (!state.currentUser) {
-      showToast('Войдите в аккаунт, чтобы заявить флаг', 'error');
+      if (!autoTriggered) {
+        showToast('Войдите в аккаунт, чтобы заявить флаг', 'error');
+      }
       return;
     }
     const role = getCurrentUserRole();
     if (!role) {
-      showToast('Заявлять флаг могут только участники партии', 'error');
+      if (!autoTriggered) {
+        showToast('Заявлять флаг могут только участники партии', 'error');
+      }
       return;
     }
     const loser = role === 'white' ? 'black' : 'white';
@@ -1226,11 +1288,26 @@
       if (!res.ok) throw new Error(await res.text());
       const detail = await res.json();
       applyGameDetail(detail);
-      showToast('Партия завершена по времени', 'success');
+      showToast(
+        autoTriggered ? 'Время соперника истекло. Партия завершена' : 'Партия завершена по времени',
+        'success'
+      );
     } catch (err) {
       console.error(err);
-      showToast('Не удалось завершить партию по времени', 'error');
+      if (autoTriggered) {
+        setState({ timeoutAutoRequested: false }, 'autoTimeout:failed');
+        showToast('Не удалось автоматически завершить партию по времени', 'error');
+      } else {
+        showToast('Не удалось завершить партию по времени', 'error');
+      }
     }
+  }
+
+  async function declareTimeout(event) {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    await submitTimeoutClaim({ autoTriggered: false });
   }
 
   function computeClocksAfterMove() {
@@ -1240,13 +1317,13 @@
     const increment = state.game.time_control?.increment_ms || 0;
     if (state.game.next_turn === 'w') {
       return {
-        white: Math.max(0, base.white),
-        black: Math.max(0, base.black) + increment,
+        white: Math.max(0, base.white) + increment,
+        black: Math.max(0, base.black),
       };
     }
     return {
-      white: Math.max(0, base.white) + increment,
-      black: Math.max(0, base.black),
+      white: Math.max(0, base.white),
+      black: Math.max(0, base.black) + increment,
     };
   }
 
@@ -1265,8 +1342,7 @@
       return false;
     }
     // Разрешаем ходы если игра ACTIVE или оба игрока присоединились (даже в CREATED)
-    const bothPlayersJoined = state.game.white_id !== null && state.game.white_id !== undefined &&
-                              state.game.black_id !== null && state.game.black_id !== undefined;
+    const bothPlayersJoined = haveBothPlayersJoined();
     
     if (state.game.status !== 'ACTIVE' && !bothPlayersJoined) {
       showToast('Партия не активна. Дождитесь присоединения соперника', 'error');
@@ -1313,7 +1389,7 @@
       client_move_id: `web-${Date.now()}`,
     };
     state.ws.send(JSON.stringify(payload));
-    state.pendingMove = true;
+    setState({ pendingMove: true }, 'attemptMove:pending');
     resetSelection();
     renderBoard();
     return true;
@@ -1349,7 +1425,7 @@
 
   function handleLogout() {
     clearTokens();
-    state.currentUser = null;
+    setState({ currentUser: null }, 'handleLogout');
     updateAuthPanel();
     showToast('Вы вышли из аккаунта');
   }
@@ -1432,7 +1508,7 @@
       closeMobileMenu();
     });
 
-    state.matchId = parseMatchId();
+    setState({ matchId: parseMatchId() }, 'init:matchId');
     if (!state.matchId) {
       setMessageVisible(true, 'Не удалось найти ID партии в URL. Проверьте ссылку.');
       renderBoard();

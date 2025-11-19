@@ -167,6 +167,38 @@ class GameService:
 	def __init__(self, db: AsyncSession):
 		self.db = db
 
+	async def _get_last_activity_timestamp(self, game: Game) -> datetime | None:
+		stmt = (
+			select(Move.created_at)
+			.where(Move.game_id == game.id)
+			.order_by(Move.move_index.desc())
+			.limit(1)
+		)
+		result = await self.db.execute(stmt)
+		last_move_ts = result.scalar_one_or_none()
+		if last_move_ts:
+			return last_move_ts
+		if game.started_at:
+			return game.started_at
+		return game.created_at
+
+	async def _compute_effective_clocks(self, game: Game) -> tuple[int, int]:
+		white = game.white_clock_ms
+		black = game.black_clock_ms
+		if game.status == GameStatus.FINISHED.value:
+			return white, black
+		last_activity = await self._get_last_activity_timestamp(game)
+		if not last_activity:
+			return white, black
+		elapsed_ms = int((_utcnow() - last_activity).total_seconds() * 1000)
+		if elapsed_ms <= 0:
+			return white, black
+		if game.next_turn == SideToMove.WHITE.value:
+			white = max(0, white - elapsed_ms)
+		else:
+			black = max(0, black - elapsed_ms)
+		return white, black
+
 	async def create_game(self, *, creator_id: int, payload: CreateGameRequest) -> Game:
 		board, initial_pos = _initial_board(payload.initial_fen)
 		time_control = payload.time_control.dict() if payload.time_control else None
@@ -368,11 +400,18 @@ class GameService:
 			raise GameServiceError("Game already finished", status.HTTP_409_CONFLICT)
 		if requested_by not in (game.white_id, game.black_id):
 			raise GameServiceError("You are not a participant", status.HTTP_403_FORBIDDEN)
-		if loser_color == SideToMove.WHITE and game.white_clock_ms > 0:
+		effective_white, effective_black = await self._compute_effective_clocks(game)
+		if loser_color == SideToMove.WHITE and effective_white > 0:
 			raise GameServiceError("White clock has not expired")
-		if loser_color == SideToMove.BLACK and game.black_clock_ms > 0:
+		if loser_color == SideToMove.BLACK and effective_black > 0:
 			raise GameServiceError("Black clock has not expired")
 
+		game.white_clock_ms = effective_white
+		game.black_clock_ms = effective_black
+		if loser_color == SideToMove.WHITE:
+			game.white_clock_ms = 0
+		else:
+			game.black_clock_ms = 0
 		winner = SideToMove.BLACK.value if loser_color == SideToMove.WHITE else SideToMove.WHITE.value
 		await self._finish_game(
 			game,

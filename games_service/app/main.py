@@ -7,6 +7,7 @@ from common import configure_observability
 from .config import get_settings
 from .database import get_db, sync_engine
 from .routers import games_router, games_ws_router
+from .watchdog import timeout_watchdog
 
 
 settings = get_settings()
@@ -29,8 +30,14 @@ def apply_sql_migrations() -> None:
 
 
 @app.on_event("startup")
-def run_startup_tasks() -> None:
+async def run_startup_tasks() -> None:
 	apply_sql_migrations()
+	timeout_watchdog.start()
+
+
+@app.on_event("shutdown")
+async def stop_watchdog() -> None:
+	await timeout_watchdog.stop()
 
 
 configure_observability(
