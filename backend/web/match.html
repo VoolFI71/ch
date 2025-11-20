@@ -121,8 +121,8 @@
   </header>
 
   <main class="match-main">
-    <div class="container match-container">
-      <section class="match-board-section">
+    <div class="container match-grid">
+      <div class="match-left">
         <div id="matchMessage" class="empty-state" style="display:none;">
           Партия не найдена или недоступна.
         </div>
@@ -136,7 +136,6 @@
             </div>
           </div>
 
-          <!-- Панель управления под доской -->
           <div class="board-controls">
             <button class="control-btn" id="flipBoardBtn" title="Повернуть доску">
               <i class="fas fa-sync-alt"></i>
@@ -154,10 +153,29 @@
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <aside class="match-sidebar">
-        <div class="player-stack">
+      <div class="match-right">
+        <section class="status-card">
+          <div class="status-row">
+            <div class="status-label">Контроль</div>
+            <div class="status-value" id="gameTimeControl">—</div>
+          </div>
+          <div class="status-row">
+            <div class="status-label">Статус</div>
+            <span class="pill" id="gameStatusBadge">—</span>
+          </div>
+          <div class="status-row">
+            <div class="status-label">Результат</div>
+            <div class="status-value" id="gameResult">—</div>
+          </div>
+          <div class="status-row">
+            <div class="status-label">Победитель</div>
+            <div class="status-value" id="gameWinner">—</div>
+          </div>
+        </section>
+
+        <section class="player-stack">
           <div class="player-bar top">
             <div class="player-info">
               <div class="player-label" id="topPlayerColor">—</div>
@@ -172,34 +190,18 @@
             </div>
             <div class="player-clock" id="bottomClock">05:00</div>
           </div>
-        </div>
+        </section>
 
-        <div class="match-info-card">
-          <div class="info-row">
-            <span class="info-label">Статус</span>
-            <span class="pill" id="gameStatusBadge">—</span>
+        <section class="moves-card">
+          <div class="card-header">
+            <h3>Ходы</h3>
+            <small>Кликните, чтобы увидеть позицию</small>
           </div>
-          <div class="info-row">
-            <span class="info-label">Контроль</span>
-            <span id="gameTimeControl">—</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Результат</span>
-            <span id="gameResult">—</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Победитель</span>
-            <span id="gameWinner">—</span>
-          </div>
-        </div>
-
-        <div class="moves-card">
-          <h3>Ходы</h3>
           <ol class="moves-list" id="movesList"></ol>
-        </div>
+        </section>
 
-        <div class="match-actions" id="gameActions"></div>
-      </aside>
+        <section class="actions-card" id="gameActions"></section>
+      </div>
     </div>
   </main>
 

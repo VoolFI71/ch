@@ -803,21 +803,25 @@
       list.innerHTML = '<li style="justify-content:center;color:rgba(148,163,184,.7);">Ходов пока нет</li>';
       return;
     }
-    const moveCount = getMoveCount();
     const activeIndex = getDisplayedMoveIndex();
     const preserveScroll = isAnalysisMode() ? list.scrollTop : null;
-    list.innerHTML = state.moves
-      .map((move) => `
-        <li class="${move.move_index === activeIndex ? 'active' : ''}" data-move-index="${move.move_index}">
-          <span>#${move.move_index}</span>
-          <span>${move.san || move.uci}</span>
-          <span style="font-size:0.8rem;color:rgba(148,163,184,.8);">${move.player_id ? `ID ${move.player_id}` : '—'}</span>
+    const rows = [];
+    for (let i = 0; i < state.moves.length; i += 2) {
+      const moveNumber = Math.floor(i / 2) + 1;
+      const whiteMove = state.moves[i];
+      const blackMove = state.moves[i + 1];
+      rows.push(`
+        <li class="move-row">
+          <span class="move-label">${moveNumber}.</span>
+          ${renderMoveCell(whiteMove, activeIndex)}
+          ${renderMoveCell(blackMove, activeIndex)}
         </li>
-      `)
-      .join('');
-    list.querySelectorAll('li[data-move-index]').forEach((item) => {
-      item.addEventListener('click', () => {
-        const idx = Number(item.dataset.moveIndex);
+      `);
+    }
+    list.innerHTML = rows.join('');
+    list.querySelectorAll('.move-cell[data-move-index]').forEach((cell) => {
+      cell.addEventListener('click', () => {
+        const idx = Number(cell.dataset.moveIndex);
         if (Number.isNaN(idx)) return;
         focusOnMove(idx);
       });
@@ -825,8 +829,19 @@
     if (preserveScroll !== null) {
       list.scrollTop = preserveScroll;
     } else {
-      list.scrollTop = list.scrollHeight;
+    list.scrollTop = list.scrollHeight;
     }
+  }
+
+  function renderMoveCell(move, activeIndex) {
+    if (!move) {
+      return '<span class="move-cell empty">—</span>';
+    }
+    const label = move.san || move.uci || '…';
+    const isActive = move.move_index === activeIndex;
+    return `<button type="button" class="move-cell${isActive ? ' active' : ''}" data-move-index="${move.move_index}">
+      ${label}
+    </button>`;
   }
 
   function focusOnMove(moveIndex) {
