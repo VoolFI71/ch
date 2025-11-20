@@ -45,6 +45,11 @@
     return role === 'white' ? state.game.white_id : state.game.black_id;
   };
 
+  const getRoleLabel = (role) => {
+    if (!role) return '—';
+    return role === 'white' ? 'Белые' : 'Чёрные';
+  };
+
   const playerUsernames = new Map();
   const AUTO_CANCEL_TIMEOUT_MS = 30_000;
   const WS_BASE_DELAY_MS = 1_000;
@@ -305,10 +310,12 @@
         (data && (data.username || data.display_name || data.name || data.handle || data.login)) || null;
       storeUsername(key, username);
       updatePlayerLabelsAndTitle();
+      updateWinnerDisplay();
       return usernameFromCache(key);
     } catch {
       storeUsername(key, null);
       updatePlayerLabelsAndTitle();
+      updateWinnerDisplay();
       return null;
     }
   }
@@ -346,6 +353,13 @@
     return `ID ${id}`;
   };
 
+  function updateWinnerDisplay() {
+    const winnerEl = document.getElementById('gameWinner');
+    if (winnerEl) {
+      winnerEl.textContent = describeWinner(state.game);
+    }
+  }
+
   function updatePlayerLabelsAndTitle() {
     const matchTitle = document.getElementById('matchTitle');
     if (matchTitle) {
@@ -370,14 +384,20 @@
 
     const topLabel = document.getElementById('topPlayerLabel');
     const bottomLabel = document.getElementById('bottomPlayerLabel');
-    if (topLabel || bottomLabel) {
+    const topColor = document.getElementById('topPlayerColor');
+    const bottomColor = document.getElementById('bottomPlayerColor');
+    if (topLabel || bottomLabel || topColor || bottomColor) {
       if (!state.game) {
         if (topLabel) topLabel.textContent = '—';
         if (bottomLabel) bottomLabel.textContent = '—';
+        if (topColor) topColor.textContent = '—';
+        if (bottomColor) bottomColor.textContent = '—';
       } else {
         const { topRole, bottomRole } = getPanelRoles();
         if (topLabel) topLabel.textContent = labelPlayer(getPlayerIdByRole(topRole));
         if (bottomLabel) bottomLabel.textContent = labelPlayer(getPlayerIdByRole(bottomRole));
+        if (topColor) topColor.textContent = getRoleLabel(topRole);
+        if (bottomColor) bottomColor.textContent = getRoleLabel(bottomRole);
       }
     }
   }
@@ -486,7 +506,39 @@
     });
   };
 
-  const getBoardMatrix = () => parseFenBoard(state.game?.current_pos || DEFAULT_FEN);
+  const getMoveCount = () => state.moves?.length || 0;
+
+  const isAnalysisMode = () => typeof state.analysisCursor === 'number';
+
+  const getDisplayedMoveIndex = () => {
+    const moveCount = getMoveCount();
+    if (moveCount === 0) return 0;
+    if (!isAnalysisMode()) return moveCount;
+    return Math.max(1, Math.min(state.analysisCursor, moveCount));
+  };
+
+  const normalizeFen = (fen) => {
+    if (!fen || fen === 'startpos') return DEFAULT_FEN;
+    return fen;
+  };
+
+  const getLiveFen = () =>
+    normalizeFen(state.game?.current_pos || state.game?.initial_pos || DEFAULT_FEN);
+
+  const getFenForIndex = (index) => {
+    if (!state.game) return DEFAULT_FEN;
+    if (!isAnalysisMode()) {
+      return getLiveFen();
+    }
+    if (index <= 0) {
+      return normalizeFen(state.game.initial_pos);
+    }
+    const move = state.moves?.[index - 1];
+    if (move?.fen_after) return normalizeFen(move.fen_after);
+    return getLiveFen();
+  };
+
+  const getBoardMatrix = () => parseFenBoard(getFenForIndex(getDisplayedMoveIndex()));
 
   const getOrientedMatrix = () => {
     const matrix = getBoardMatrix();
@@ -495,10 +547,12 @@
   };
 
   const getHighlightSquares = () => {
-    const lastMove = state.moves?.[state.moves.length - 1];
-    if (!lastMove || !lastMove.uci || lastMove.uci.length < 4) return [];
-    const from = lastMove.uci.slice(0, 2);
-    const to = lastMove.uci.slice(2, 4);
+    const viewIndex = getDisplayedMoveIndex();
+    if (!viewIndex) return [];
+    const targetMove = state.moves?.[viewIndex - 1];
+    if (!targetMove || !targetMove.uci || targetMove.uci.length < 4) return [];
+    const from = targetMove.uci.slice(0, 2);
+    const to = targetMove.uci.slice(2, 4);
     return [from, to];
   };
 
@@ -513,19 +567,21 @@
     
 
     const matrix = getOrientedMatrix();
+    const displayedFen = getFenForIndex(getDisplayedMoveIndex());
     const highlightSet = new Set(getHighlightSquares());
     const files = boardOrientation === 'white' ? FILES : [...FILES].reverse();
     const ranks = boardOrientation === 'white' ? RANKS : [...RANKS].reverse();
     const utils = window.ChessMoveUtils;
-    const baseBoard = state.game && utils ? utils.parseFen(state.game.current_pos).board : null;
-    const selectedSquare = state.selectedSquare;
+    const baseBoard = utils ? utils.parseFen(displayedFen).board : null;
+    const analysisLocked = isAnalysisMode();
+    const selectedSquare = analysisLocked ? null : state.selectedSquare;
     const targetSquares =
-      state.availableTargets instanceof Set ? state.availableTargets : new Set();
+      !analysisLocked && state.availableTargets instanceof Set ? state.availableTargets : new Set();
 
     boardEl.innerHTML = '';
     const role = getCurrentUserRole();
     const expectedTurnRole = state.game?.next_turn === 'w' ? 'white' : 'black';
-    const isPlayersTurn = role && role === expectedTurnRole;
+    const isPlayersTurn = !analysisLocked && role && role === expectedTurnRole;
 
     matrix.forEach((row, rIdx) => {
       row.forEach((piece, cIdx) => {
@@ -747,17 +803,43 @@
       list.innerHTML = '<li style="justify-content:center;color:rgba(148,163,184,.7);">Ходов пока нет</li>';
       return;
     }
-    const lastId = state.moves.length ? state.moves[state.moves.length - 1].id : null;
+    const moveCount = getMoveCount();
+    const activeIndex = getDisplayedMoveIndex();
+    const preserveScroll = isAnalysisMode() ? list.scrollTop : null;
     list.innerHTML = state.moves
       .map((move) => `
-        <li class="${move.id === lastId ? 'active' : ''}">
+        <li class="${move.move_index === activeIndex ? 'active' : ''}" data-move-index="${move.move_index}">
           <span>#${move.move_index}</span>
           <span>${move.san || move.uci}</span>
           <span style="font-size:0.8rem;color:rgba(148,163,184,.8);">${move.player_id ? `ID ${move.player_id}` : '—'}</span>
         </li>
       `)
       .join('');
-    list.scrollTop = list.scrollHeight;
+    list.querySelectorAll('li[data-move-index]').forEach((item) => {
+      item.addEventListener('click', () => {
+        const idx = Number(item.dataset.moveIndex);
+        if (Number.isNaN(idx)) return;
+        focusOnMove(idx);
+      });
+    });
+    if (preserveScroll !== null) {
+      list.scrollTop = preserveScroll;
+    } else {
+      list.scrollTop = list.scrollHeight;
+    }
+  }
+
+  function focusOnMove(moveIndex) {
+    const moveCount = getMoveCount();
+    if (moveCount === 0) return;
+    const normalized = Math.max(1, Math.min(moveIndex, moveCount));
+    const nextCursor = normalized === moveCount ? null : normalized;
+    if (state.analysisCursor !== nextCursor) {
+      setState({ analysisCursor: nextCursor }, 'focusOnMove');
+      resetSelection();
+    }
+    renderBoard();
+    renderMoves();
   }
 
   function resetSelection() {
@@ -855,6 +937,10 @@
 
   function handleSquareClick(squareName) {
     if (!state.game) {
+      return;
+    }
+    if (isAnalysisMode()) {
+      showToast('Вы просматриваете предыдущий ход. Выберите последний ход, чтобы продолжить партию.', 'info');
       return;
     }
     // Проверяем, можно ли делать ходы (ACTIVE или оба игрока присоединились)
@@ -1056,6 +1142,10 @@
       },
       'applyGameDetail:updateGame'
     );
+    const moveCount = detail?.moves?.length || 0;
+    if (typeof state.analysisCursor === 'number' && state.analysisCursor > moveCount) {
+      setState({ analysisCursor: null }, 'applyGameDetail:clampAnalysis');
+    }
     
     // Устанавливаем время последнего обновления на основе последнего хода
     // Это важно для правильного вычисления времени на часах при загрузке страницы
@@ -1151,10 +1241,7 @@
       resultEl.textContent = state.game?.result || '—';
     }
 
-    const winnerEl = document.getElementById('gameWinner');
-    if (winnerEl) {
-      winnerEl.textContent = describeWinner(state.game);
-    }
+    updateWinnerDisplay();
 
     const gameIdField = document.getElementById('gameIdField');
     if (gameIdField) {
@@ -1468,6 +1555,10 @@
 
   function handleMoveSubmit(event) {
     event.preventDefault();
+    if (isAnalysisMode()) {
+      showToast('Чтобы сделать ход, вернитесь к текущей позиции', 'info');
+      return;
+    }
     const uciInput = document.getElementById('uciInput');
     const promotionInput = document.getElementById('promotionInput');
     const rawUci = (uciInput?.value || '').trim().toLowerCase();

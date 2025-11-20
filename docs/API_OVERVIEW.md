@@ -109,6 +109,7 @@ Protected endpoints expect Bearer tokens. `game_id` is a UUID.
 |---------------|-------------|
 | `POST /api/games/` | Create a game. Body `CreateGameRequest` (FEN/startpos, creator_color, optional metadata, optional time_control `{ initial_ms, increment_ms, type }`). Returns `GameDetail`. |
 | `GET /api/games/?status=ACTIVE&limit=25` | Filter by one or multiple statuses (`status` query can repeat). Response: list of `GameSummary`. |
+| `GET /api/games/history/me?limit=10&offset=0` | Recent games of the authenticated user (newest first). Supports pagination via `offset`. |
 | `GET /api/games/{game_id}` | Full `GameDetail` plus up to `moves_limit` last moves (default 120). |
 | `GET /api/games/{game_id}/moves?limit=200` | Raw move feed (`MoveListResponse`). |
 | `POST /api/games/{game_id}/join` | Occupies the open color seat; returns updated `GameDetail`. |

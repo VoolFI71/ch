@@ -86,6 +86,18 @@ async def list_games(
 	return [build_game_summary(game) for game in games]
 
 
+@router.get("/history/me", response_model=list[GameSummary])
+async def list_my_games(
+	current_user_id: Annotated[int, Depends(get_current_user_id)],
+	limit: Annotated[int, Query(ge=1, le=100)] = 10,
+	offset: Annotated[int, Query(ge=0, le=5000)] = 0,
+	db: AsyncSession = Depends(get_db),
+) -> list[GameSummary]:
+	service = GameService(db)
+	games = await service.list_games_for_user(current_user_id, limit=limit, offset=offset)
+	return [build_game_summary(game) for game in games]
+
+
 @router.get("/{game_id}", response_model=GameDetail)
 async def get_game(
 	game_id: UUID,

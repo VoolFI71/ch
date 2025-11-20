@@ -632,6 +632,179 @@
             animation: fadeIn 0.4s ease-out;
         }
 
+        .history-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .history-header h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .history-header p {
+            color: var(--muted-foreground);
+            max-width: 640px;
+            line-height: 1.5;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .history-card {
+            background: var(--secondary);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 2px solid var(--border);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .history-card:hover {
+            border-color: rgba(124, 58, 237, 0.35);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.18);
+            transform: translateY(-4px);
+        }
+
+        .history-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .history-result {
+            font-weight: 800;
+            font-size: 1.1rem;
+            padding: 0.35rem 1rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .history-result.win {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--green-600);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .history-result.loss {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .history-result.draw {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--foreground);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+        }
+
+        .history-result.pending {
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--blue-600);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .history-date {
+            font-size: 0.95rem;
+            color: var(--muted-foreground);
+        }
+
+        .history-players {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .color-pill {
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .color-pill.white {
+            background: rgba(248, 250, 252, 0.85);
+            color: #0f172a;
+            border: 1px solid rgba(15, 23, 42, 0.2);
+        }
+
+        .color-pill.black {
+            background: rgba(15, 23, 42, 0.85);
+            color: #f8fafc;
+            border: 1px solid rgba(248, 250, 252, 0.2);
+        }
+
+        .opponent-name {
+            color: var(--purple-600);
+        }
+
+        .history-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--muted-foreground);
+            margin-bottom: 1rem;
+        }
+
+        .history-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .history-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted-foreground);
+            border: 2px dashed var(--border);
+            border-radius: 1.5rem;
+        }
+
+        .history-empty.error {
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #ef4444;
+        }
+
+        .history-empty button {
+            margin-top: 1rem;
+        }
+
+        .history-sentinel {
+            text-align: center;
+            padding: 1.25rem;
+            color: var(--muted-foreground);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .history-sentinel.hidden {
+            display: none;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1644,6 +1817,10 @@
                         <i class="fas fa-folder-open"></i>
                         Мои файлы
                     </button>
+                    <button class="tab-button" onclick="switchTab('history')">
+                        <i class="fas fa-chess-board"></i>
+                        История партий
+                    </button>
                     <button class="tab-button" onclick="switchTab('repetition')">
                         <i class="fas fa-brain"></i>
                         Система повторения
@@ -1676,6 +1853,25 @@
                         <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
                             <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                             <div>Загрузка файлов...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Tab -->
+                <div class="tab-content" id="history-tab">
+                    <div class="history-header">
+                        <h3>
+                            <i class="fas fa-chess-board"></i>
+                            История партий
+                        </h3>
+                        <p>
+                            Отслеживайте результаты последних игр, быстро переходите к анализу и делитесь ссылками на лучшие партии.
+                        </p>
+                    </div>
+                    <div class="history-list" id="matchHistoryList" data-limit="50">
+                        <div class="history-empty">
+                            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>
+                            Загрузка истории партий...
                         </div>
                     </div>
                 </div>
@@ -1888,6 +2084,10 @@
             // Load PGN files when switching to files tab
             if (tabName === 'files' && pgnFilesData.length === 0) {
                 loadPGNFiles();
+            }
+
+            if (tabName === 'history' && typeof window.ensureMatchHistoryLoaded === 'function') {
+                window.ensureMatchHistoryLoaded();
             }
         }
 

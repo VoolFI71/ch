@@ -18,6 +18,7 @@
     timeoutAutoRequested: false,
     wsRetryCount: 0,
     wsReconnectTimerId: null,
+    analysisCursor: null,
   });
 
   const state = createInitialState();

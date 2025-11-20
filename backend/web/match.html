@@ -127,52 +127,53 @@
           Партия не найдена или недоступна.
         </div>
 
-        <!-- Верхний игрок (обычно черные) -->
-        <div class="player-bar top">
-          <div class="player-info">
-            <div class="player-name" id="topPlayerLabel">—</div>
+        <div class="board-card">
+          <div class="board-container">
+            <div class="board-wrapper">
+              <div class="board-shell">
+                <div class="chess-board" id="matchBoard"></div>
+              </div>
+            </div>
           </div>
-          <div class="player-clock" id="topClock">05:00</div>
-        </div>
 
-        <!-- Шахматная доска -->
-        <div class="board-container">
-          <div class="board-wrapper">
-            <div class="board-shell">
-              <div class="chess-board" id="matchBoard"></div>
+          <!-- Панель управления под доской -->
+          <div class="board-controls">
+            <button class="control-btn" id="flipBoardBtn" title="Повернуть доску">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="control-btn" id="exportPgnBtn" title="Экспортировать PGN">
+              <i class="fas fa-download"></i> PGN
+            </button>
+            <div class="board-size-control">
+              <button class="size-btn" id="decreaseSize" title="Уменьшить">
+                <i class="fas fa-minus"></i>
+              </button>
+              <button class="size-btn" id="increaseSize" title="Увеличить">
+                <i class="fas fa-plus"></i>
+              </button>
             </div>
           </div>
         </div>
-
-        <!-- Нижний игрок (обычно белые) -->
-        <div class="player-bar bottom">
-          <div class="player-info">
-            <div class="player-name" id="bottomPlayerLabel">—</div>
-          </div>
-          <div class="player-clock" id="bottomClock">05:00</div>
-        </div>
-
-        <!-- Панель управления под доской -->
-        <div class="board-controls">
-          <button class="control-btn" id="flipBoardBtn" title="Повернуть доску">
-            <i class="fas fa-sync-alt"></i>
-          </button>
-          <button class="control-btn" id="exportPgnBtn" title="Экспортировать PGN">
-            <i class="fas fa-download"></i> PGN
-          </button>
-          <div class="board-size-control">
-            <button class="size-btn" id="decreaseSize" title="Уменьшить">
-              <i class="fas fa-minus"></i>
-            </button>
-            <button class="size-btn" id="increaseSize" title="Увеличить">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
-        </div>
-
       </section>
 
       <aside class="match-sidebar">
+        <div class="player-stack">
+          <div class="player-bar top">
+            <div class="player-info">
+              <div class="player-label" id="topPlayerColor">—</div>
+              <div class="player-name" id="topPlayerLabel">—</div>
+            </div>
+            <div class="player-clock" id="topClock">05:00</div>
+          </div>
+          <div class="player-bar bottom">
+            <div class="player-info">
+              <div class="player-label" id="bottomPlayerColor">—</div>
+              <div class="player-name" id="bottomPlayerLabel">—</div>
+            </div>
+            <div class="player-clock" id="bottomClock">05:00</div>
+          </div>
+        </div>
+
         <div class="match-info-card">
           <div class="info-row">
             <span class="info-label">Статус</span>
@@ -185,6 +186,10 @@
           <div class="info-row">
             <span class="info-label">Результат</span>
             <span id="gameResult">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Победитель</span>
+            <span id="gameWinner">—</span>
           </div>
         </div>
 

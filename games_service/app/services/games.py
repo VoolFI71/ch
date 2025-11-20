@@ -8,7 +8,7 @@ from uuid import UUID
 
 import chess
 from fastapi import status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import SessionLocal
@@ -238,6 +238,19 @@ class GameService:
 		stmt = select(Game).order_by(Game.created_at.desc()).limit(limit)
 		if statuses:
 			stmt = stmt.where(Game.status.in_([s.value for s in statuses]))
+		result = await self.db.execute(stmt)
+		return list(result.scalars().all())
+
+	async def list_games_for_user(
+		self, user_id: int, *, limit: int = 50, offset: int = 0
+	) -> list[Game]:
+		stmt = (
+			select(Game)
+			.where(or_(Game.white_id == user_id, Game.black_id == user_id))
+			.order_by(Game.created_at.desc())
+			.offset(offset)
+			.limit(limit)
+		)
 		result = await self.db.execute(stmt)
 		return list(result.scalars().all())
 
