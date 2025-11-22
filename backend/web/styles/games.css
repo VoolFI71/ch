@@ -183,6 +183,15 @@ html.dark::before {
   display: block;
 }
 
+.tab-content {
+  display: none;
+}
+
+.tab-content.active,
+#quick-tab:not(.hidden) {
+  display: block;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1268,6 +1277,17 @@ html.dark .mode-label {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.sidebar-description {
+    color: #475569;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+body.dark .sidebar-description,
+html.dark .sidebar-description {
+    color: #cbd5e1;
 }
 
 /* .card стили уже определены выше (строка 57), но для совместимости добавляем стили для sidebar */
