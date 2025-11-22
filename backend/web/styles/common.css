@@ -205,50 +205,9 @@ html.dark .card:hover {
     50% { transform: scale(1); opacity: 1; }
 }
 
-/* ===== LOGO ===== */
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.3s;
-    position: relative;
-}
-
-.logo:hover {
-    transform: scale(1.05);
-}
-
-.logo-icon {
-    width: 4rem;
-    height: 4rem;
-    background: linear-gradient(135deg, #1f2937, #000000);
-    border-radius: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    box-shadow: 
-        0 10px 40px rgba(0, 0, 0, 0.3),
-        0 0 30px rgba(255, 215, 0, 0.3),
-        inset 0 2px 0 rgba(255, 255, 255, 0.1);
-    border: 3px solid rgba(255, 215, 0, 0.4);
-    animation: logoGlow 3s ease-in-out infinite;
-}
-
-.chess-pattern {
-    position: absolute;
-    inset: 0;
-    opacity: 0.2;
-    background: 
-        linear-gradient(45deg, #ffffff 25%, transparent 25%),
-        linear-gradient(-45deg, #ffffff 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #ffffff 75%),
-        linear-gradient(-45deg, transparent 75%, #ffffff 75%);
-    background-size: 10px 10px;
-    background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
-}
+/* ===== LOGO (Footer only - Header styles in header.css) ===== */
+/* Logo styles for header are in header.css */
+/* These styles are for footer logo only */
 
 .logo-sparkle {
     position: absolute;

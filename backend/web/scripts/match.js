@@ -433,7 +433,7 @@
     if (info) info.style.display = 'none';
     if (infoMobile) infoMobile.style.display = 'none';
 
-    if (state.currentUser) {
+      if (state.currentUser) {
       loginBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
       registerBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
       logoutBtns.forEach((btn) => { if (btn) btn.style.display = 'inline-flex'; });
@@ -1473,15 +1473,20 @@
     const base = getDisplayedClocks(true);
     if (!base) return null;
     const increment = state.game.time_control?.increment_ms || 0;
+    // next_turn указывает на того, кто должен ходить СЛЕДУЮЩИМ
+    // Значит, если next_turn === 'w', то только что ходили чёрные (black)
+    // и инкремент нужно добавить чёрным
     if (state.game.next_turn === 'w') {
+      // Только что ходили чёрные - добавляем инкремент чёрным
       return {
-        white: Math.max(0, base.white) + increment,
-        black: Math.max(0, base.black),
+        white: Math.max(0, base.white),
+        black: Math.max(0, base.black) + increment,
       };
     }
+    // Только что ходили белые - добавляем инкремент белым
     return {
-      white: Math.max(0, base.white),
-      black: Math.max(0, base.black) + increment,
+      white: Math.max(0, base.white) + increment,
+      black: Math.max(0, base.black),
     };
   }
 
@@ -1600,12 +1605,12 @@
       isDarkTheme = document.body.classList.contains('dark');
     } else {
       // Fallback для случаев, когда auth.js не загружен
-      const saved = localStorage.getItem('theme');
-      isDarkTheme = saved === 'dark';
-      document.body.classList.toggle('dark', isDarkTheme);
+    const saved = localStorage.getItem('theme');
+    isDarkTheme = saved === 'dark';
+    document.body.classList.toggle('dark', isDarkTheme);
       document.documentElement.classList.toggle('dark', isDarkTheme);
-      const icon = document.getElementById('themeIcon');
-      if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
     }
   }
 
@@ -1617,12 +1622,12 @@
       isDarkTheme = document.body.classList.contains('dark');
     } else {
       // Fallback для случаев, когда auth.js не загружен
-      isDarkTheme = !isDarkTheme;
-      document.body.classList.toggle('dark', isDarkTheme);
+    isDarkTheme = !isDarkTheme;
+    document.body.classList.toggle('dark', isDarkTheme);
       document.documentElement.classList.toggle('dark', isDarkTheme);
-      const icon = document.getElementById('themeIcon');
-      if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
-      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
+    localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
     }
   }
 

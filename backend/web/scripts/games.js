@@ -13,7 +13,7 @@
     clockTimer: null,
     currentUser: null,
     pendingGameId: new URLSearchParams(window.location.search).get('game'),
-    activeTab: 'waiting',
+    activeTab: 'quick',
   };
   const playerUsernames = new Map();
   const pendingUsernameRequests = new Map();
@@ -63,6 +63,95 @@
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
     } catch {}
+  };
+
+  // Check if user is authenticated
+  const isAuthenticated = () => {
+    const token = getAccessToken();
+    return !!token && token.trim().length > 0;
+  };
+
+  // Check authentication and redirect if needed
+  const requireAuth = (redirectTo = '/login.html') => {
+    if (!isAuthenticated()) {
+      if (typeof window.showToast === 'function') {
+        window.showToast('Войдите в аккаунт, чтобы создать партию', 'error');
+      } else {
+        alert('Войдите в аккаунт, чтобы создать партию');
+      }
+      window.location.href = redirectTo;
+      return false;
+    }
+    return true;
+  };
+
+  // Unified function to create a game
+  const createGame = async (options = {}) => {
+    const {
+      minutes = 5,
+      increment = 0,
+      isRated = false,
+      creatorColor = 'white',
+      initialFen = 'startpos',
+      onSuccess = null,
+      onError = null,
+    } = options;
+
+    if (!requireAuth()) {
+      return null;
+    }
+
+    const payload = {
+      initial_fen: initialFen === 'startpos' ? 'startpos' : initialFen,
+      creator_color: creatorColor,
+      time_control: {
+        initial_ms: Math.max(1, minutes) * 60000,
+        increment_ms: Math.max(0, increment) * 1000,
+        type: 'STANDARD',
+      },
+      metadata: {
+        variant: 'standard',
+        rated: isRated,
+      },
+    };
+
+    try {
+      const res = await authedFetch('/api/games/', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        let errorText = 'Не удалось создать партию';
+        try {
+          const errorData = await res.json();
+          errorText = errorData.detail || errorData.message || errorText;
+        } catch {
+          const text = await res.text();
+          errorText = text || errorText;
+        }
+        throw new Error(errorText);
+      }
+
+      const game = await res.json();
+      
+      if (onSuccess && typeof onSuccess === 'function') {
+        onSuccess(game);
+      }
+      
+      return game;
+    } catch (err) {
+      console.error(err);
+      const errorMessage = err.message || 'Не удалось создать партию';
+      
+      if (onError && typeof onError === 'function') {
+        onError(err, errorMessage);
+      } else if (typeof window.showToast === 'function') {
+        window.showToast(errorMessage, 'error');
+      }
+      
+      return null;
+    }
   };
 
   async function authedFetch(path, options = {}) {
@@ -596,12 +685,17 @@
     const base = getDisplayedClocks(true);
     if (!base) return null;
     const increment = (state.selectedGame.time_control && state.selectedGame.time_control.increment_ms) || 0;
+    // next_turn указывает на того, кто должен ходить СЛЕДУЮЩИМ
+    // Значит, если next_turn === 'w', то только что ходили чёрные (black)
+    // и инкремент нужно добавить чёрным
     if (state.selectedGame.next_turn === 'w') {
+      // Только что ходили чёрные - добавляем инкремент чёрным
       return {
         white: Math.max(0, base.white),
         black: Math.max(0, base.black) + increment,
       };
     }
+    // Только что ходили белые - добавляем инкремент белым
     return {
       white: Math.max(0, base.white) + increment,
       black: Math.max(0, base.black),
@@ -863,8 +957,14 @@
 
   // -------------------- Tabs --------------------------
   function bindTabs() {
+    // Bind old UI tabs (.tab-btn)
     document.querySelectorAll('.tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+    });
+    
+    // Bind new UI tabs (.tab)
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => setActiveTab(tab.dataset.tab));
     });
   }
 
@@ -877,6 +977,26 @@
     document.querySelectorAll('.tab-panel').forEach((panel) => {
       panel.classList.toggle('active', panel.dataset.panel === tab);
     });
+    
+    // Handle new UI tabs (.tab elements)
+    document.querySelectorAll('.tab').forEach((t) => {
+      t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    document.querySelectorAll('.tab-content').forEach((content) => {
+      const targetTab = content.id?.replace('-tab', '');
+      content.style.display = targetTab === tab ? 'block' : 'none';
+    });
+    
+    // Load games when switching to lobby or TV tabs
+    if (tab === 'lobby') {
+      if (typeof window.loadWaitingRoomGames === 'function') {
+        window.loadWaitingRoomGames();
+      }
+    } else if (tab === 'tv') {
+      if (typeof window.loadTVGames === 'function') {
+        window.loadTVGames();
+      }
+    }
   }
 
   // -------------------- Event wiring ------------------
@@ -939,27 +1059,6 @@
     const icon = document.getElementById('themeIcon');
     if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
     localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
-  }
-  
-  function toggleTheme() {
-    // Всегда используем глобальную функцию из auth.js, если доступна
-    // auth.js устанавливает window.toggleTheme синхронно при загрузке
-    if (window.toggleTheme && typeof window.toggleTheme === 'function') {
-      try {
-        // Вызываем функцию из auth.js
-        window.toggleTheme();
-        // Обновляем локальную переменную после переключения
-        setTimeout(() => {
-          isDarkTheme = document.body.classList.contains('dark');
-        }, 0);
-      } catch (error) {
-        console.error('Error calling toggleTheme from auth.js:', error);
-        toggleThemeLocal();
-      }
-    } else {
-      // Fallback на локальную реализацию
-      toggleThemeLocal();
-    }
   }
 
   function toggleMobileMenu() {
@@ -1164,12 +1263,16 @@
   window.joinWaitingGame = joinWaitingGame;
   window.authedFetch = authedFetch;
   window.showToast = showToast;
+  window.isAuthenticated = isAuthenticated;
+  window.getAccessToken = getAccessToken;
+  window.requireAuth = requireAuth;
+  window.createGame = createGame;
 
   // -------------------- Init --------------------------
   document.addEventListener('DOMContentLoaded', () => {
     state.wsStatusEl = document.getElementById('wsStatus');
     bindEvents();
-    setActiveTab('waiting');
+    setActiveTab('quick');
     loadTheme();
     handleHeaderScroll();
     window.addEventListener('scroll', handleHeaderScroll, { passive: true });
@@ -1186,118 +1289,96 @@
 })();
 
 // ===== New UI functionality for games.html =====
-// Tab switching
-const tabs = document.querySelectorAll('.tab');
-const tabContents = document.querySelectorAll('.tab-content');
+// Tab switching is handled inside IIFE via bindTabs() function
 
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        const targetTab = tab.dataset.tab;
-        
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        tabContents.forEach(content => {
-            content.style.display = 'none';
-        });
-        
-        document.getElementById(`${targetTab}-tab`).style.display = 'block';
-    });
-});
+// Initialize UI elements when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Game type toggle
+  document.querySelectorAll('.game-type-toggle').forEach(toggle => {
+      const options = toggle.querySelectorAll('.type-option');
+      options.forEach(option => {
+          option.addEventListener('click', (e) => {
+              e.preventDefault();
+              options.forEach(o => o.classList.remove('active'));
+              option.classList.add('active');
+          });
+      });
+  });
 
-// Game type toggle
-document.querySelectorAll('.game-type-toggle').forEach(toggle => {
-    const options = toggle.querySelectorAll('.type-option');
-    options.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            options.forEach(o => o.classList.remove('active'));
-            option.classList.add('active');
-        });
-    });
-});
+  // Mode card click - Open friend game modal with selected time
+  document.querySelectorAll('.mode-card').forEach(card => {
+      card.addEventListener('click', () => {
+          const time = card.dataset.time;
+          if (!time) return; // Skip custom game button
 
-// Mode card click - Open friend game modal with selected time
-document.querySelectorAll('.mode-card').forEach(card => {
-    card.addEventListener('click', () => {
-        const time = card.dataset.time;
-        if (!time) return; // Skip custom game button
+          // Check authentication
+          if (!window.requireAuth || !window.requireAuth()) {
+              return;
+          }
 
-        // Check authentication
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            if (typeof window.showToast === 'function') {
-                window.showToast('Войдите в аккаунт, чтобы создать партию', 'error');
-            } else {
-                alert('Войдите в аккаунт, чтобы создать партию');
-            }
-            window.location.href = '/login.html';
-            return;
-        }
+          // Parse time control
+          const [minutes, increment] = time.split('+').map(Number);
 
-        // Parse time control
-        const [minutes, increment] = time.split('+').map(Number);
+          // Get friend game modal elements
+          const friendGameModal = document.getElementById('friendGameModal');
+          const friendSetupScreen = document.getElementById('friendSetupScreen');
+          const friendShareScreen = document.getElementById('friendShareScreen');
+          const friendMinutesSlider = document.getElementById('friendMinutesSlider');
+          const friendMinutesValue = document.getElementById('friendMinutesValue');
+          const friendIncrementSlider = document.getElementById('friendIncrementSlider');
+          const friendIncrementValue = document.getElementById('friendIncrementValue');
 
-        // Get friend game modal elements
-        const friendGameModal = document.getElementById('friendGameModal');
-        const friendSetupScreen = document.getElementById('friendSetupScreen');
-        const friendShareScreen = document.getElementById('friendShareScreen');
-        const friendMinutesSlider = document.getElementById('friendMinutesSlider');
-        const friendMinutesValue = document.getElementById('friendMinutesValue');
-        const friendIncrementSlider = document.getElementById('friendIncrementSlider');
-        const friendIncrementValue = document.getElementById('friendIncrementValue');
+          if (!friendGameModal || !friendSetupScreen) return;
 
-        if (!friendGameModal || !friendSetupScreen) return;
+          // Set slider values
+          if (friendMinutesSlider) {
+              friendMinutesSlider.value = minutes;
+              if (friendMinutesValue) friendMinutesValue.textContent = minutes;
+          }
+          if (friendIncrementSlider) {
+              friendIncrementSlider.value = increment || 0;
+              if (friendIncrementValue) friendIncrementValue.textContent = increment || 0;
+          }
 
-        // Set slider values
-        if (friendMinutesSlider) {
-            friendMinutesSlider.value = minutes;
-            if (friendMinutesValue) friendMinutesValue.textContent = minutes;
-        }
-        if (friendIncrementSlider) {
-            friendIncrementSlider.value = increment || 0;
-            if (friendIncrementValue) friendIncrementValue.textContent = increment || 0;
-        }
+          // Open modal and show setup screen
+          friendGameModal.classList.add('active');
+          friendSetupScreen.style.display = 'block';
+          if (friendShareScreen) friendShareScreen.classList.remove('active');
+      });
+  });
 
-        // Open modal and show setup screen
-        friendGameModal.classList.add('active');
-        friendSetupScreen.style.display = 'block';
-        if (friendShareScreen) friendShareScreen.classList.remove('active');
-    });
-});
+  // Custom game modal
+  const customGameBtn = document.getElementById('customGameBtn');
+  const customGameModal = document.getElementById('customGameModal');
+  const closeModal = document.getElementById('closeModal');
 
-// Custom game modal
-const customGameBtn = document.getElementById('customGameBtn');
-const customGameModal = document.getElementById('customGameModal');
-const closeModal = document.getElementById('closeModal');
+  if (customGameBtn && customGameModal) {
+      customGameBtn.addEventListener('click', () => {
+          customGameModal.classList.add('active');
+      });
+  }
 
-if (customGameBtn && customGameModal) {
-    customGameBtn.addEventListener('click', () => {
-        customGameModal.classList.add('active');
-    });
-}
+  if (closeModal) {
+      closeModal.addEventListener('click', () => {
+          customGameModal.classList.remove('active');
+      });
+  }
 
-if (closeModal) {
-    closeModal.addEventListener('click', () => {
-        customGameModal.classList.remove('active');
-    });
-}
+  if (customGameModal) {
+      customGameModal.addEventListener('click', (e) => {
+          if (e.target === customGameModal) {
+              customGameModal.classList.remove('active');
+          }
+      });
+  }
 
-if (customGameModal) {
-    customGameModal.addEventListener('click', (e) => {
-        if (e.target === customGameModal) {
-            customGameModal.classList.remove('active');
-        }
-    });
-}
+  // Friend game modal
+  const friendGameModal = document.getElementById('friendGameModal');
+  const closeFriendModal = document.getElementById('closeFriendModal');
+  const friendSetupScreen = document.getElementById('friendSetupScreen');
+  const friendShareScreen = document.getElementById('friendShareScreen');
 
-// Friend game modal
-const friendGameModal = document.getElementById('friendGameModal');
-const closeFriendModal = document.getElementById('closeFriendModal');
-const friendSetupScreen = document.getElementById('friendSetupScreen');
-const friendShareScreen = document.getElementById('friendShareScreen');
-
-if (closeFriendModal) {
+  if (closeFriendModal) {
     closeFriendModal.addEventListener('click', () => {
         friendGameModal.classList.remove('active');
         // Stop polling when modal is closed
@@ -1305,328 +1386,241 @@ if (closeFriendModal) {
             clearInterval(opponentPollingInterval);
             opponentPollingInterval = null;
         }
+        opponentPollingStartTime = null;
     });
 }
 
-if (friendGameModal) {
-    friendGameModal.addEventListener('click', (e) => {
-        if (e.target === friendGameModal) {
-            friendGameModal.classList.remove('active');
-            // Stop polling when modal is closed
-            if (opponentPollingInterval) {
-                clearInterval(opponentPollingInterval);
-                opponentPollingInterval = null;
-            }
-        }
-    });
-}
+  if (friendGameModal) {
+      friendGameModal.addEventListener('click', (e) => {
+          if (e.target === friendGameModal) {
+              friendGameModal.classList.remove('active');
+              // Stop polling when modal is closed
+              if (opponentPollingInterval) {
+                  clearInterval(opponentPollingInterval);
+                  opponentPollingInterval = null;
+              }
+              opponentPollingStartTime = null;
+          }
+      });
+  }
 
-// Sliders - Custom game
-const minutesSlider = document.getElementById('minutesSlider');
-const minutesValue = document.getElementById('minutesValue');
-const incrementSlider = document.getElementById('incrementSlider');
-const incrementValue = document.getElementById('incrementValue');
+  // Sliders - Custom game
+  const minutesSlider = document.getElementById('minutesSlider');
+  const minutesValue = document.getElementById('minutesValue');
+  const incrementSlider = document.getElementById('incrementSlider');
+  const incrementValue = document.getElementById('incrementValue');
 
-if (minutesSlider && minutesValue) {
-    minutesSlider.addEventListener('input', () => {
-        minutesValue.textContent = minutesSlider.value;
-    });
-}
+  if (minutesSlider && minutesValue) {
+      minutesSlider.addEventListener('input', () => {
+          minutesValue.textContent = minutesSlider.value;
+      });
+  }
 
-if (incrementSlider && incrementValue) {
-    incrementSlider.addEventListener('input', () => {
-        incrementValue.textContent = incrementSlider.value;
-    });
-}
+  if (incrementSlider && incrementValue) {
+      incrementSlider.addEventListener('input', () => {
+          incrementValue.textContent = incrementSlider.value;
+      });
+  }
 
-// Sliders - Friend game
-const friendMinutesSlider = document.getElementById('friendMinutesSlider');
-const friendMinutesValue = document.getElementById('friendMinutesValue');
-const friendIncrementSlider = document.getElementById('friendIncrementSlider');
-const friendIncrementValue = document.getElementById('friendIncrementValue');
+  // Sliders - Friend game
+  const friendMinutesSlider = document.getElementById('friendMinutesSlider');
+  const friendMinutesValue = document.getElementById('friendMinutesValue');
+  const friendIncrementSlider = document.getElementById('friendIncrementSlider');
+  const friendIncrementValue = document.getElementById('friendIncrementValue');
 
-if (friendMinutesSlider && friendMinutesValue) {
-    friendMinutesSlider.addEventListener('input', () => {
-        friendMinutesValue.textContent = friendMinutesSlider.value;
-    });
-}
+  if (friendMinutesSlider && friendMinutesValue) {
+      friendMinutesSlider.addEventListener('input', () => {
+          friendMinutesValue.textContent = friendMinutesSlider.value;
+      });
+  }
 
-if (friendIncrementSlider && friendIncrementValue) {
-    friendIncrementSlider.addEventListener('input', () => {
-        friendIncrementValue.textContent = friendIncrementSlider.value;
-    });
-}
+  if (friendIncrementSlider && friendIncrementValue) {
+      friendIncrementSlider.addEventListener('input', () => {
+          friendIncrementValue.textContent = friendIncrementSlider.value;
+      });
+  }
 
-// Forms - Create Game (Quick Game Tab)
-const createGameForm = document.getElementById('createGameForm');
-if (createGameForm) {
-    createGameForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            if (typeof showToast === 'function') {
-                showToast('Войдите в аккаунт, чтобы создать партию', 'error');
-            } else {
-                alert('Войдите в аккаунт, чтобы создать партию');
-            }
-            window.location.href = '/login.html';
-            return;
-        }
+  // Forms - Create Game (Quick Game Tab)
+  // Обработчик createGameForm находится внутри IIFE (bindEvents -> handleCreateGame)
 
-        const timeControl = document.getElementById('timeControl');
-        const gameType = document.querySelector('#createGameForm .type-option.active');
-        if (!timeControl || !gameType) {
-            showToast('Пожалуйста, выберите контроль времени и тип партии', 'error');
-            return;
-        }
+  const customGameForm = document.getElementById('customGameForm');
+  if (customGameForm && minutesSlider && incrementSlider) {
+      customGameForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const submitBtn = customGameForm.querySelector('button[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
 
-        const timeValue = timeControl.value;
-        if (!timeValue || !timeValue.includes('+')) {
-            showToast('Неверный формат контроля времени', 'error');
-            return;
-        }
+          try {
+              const minutes = parseInt(minutesSlider.value) || 5;
+              const increment = parseInt(incrementSlider.value) || 0;
+              const gameType = document.querySelector('#customGameForm .type-option.active');
+              if (!gameType) {
+                  if (submitBtn) submitBtn.disabled = false;
+                  return;
+              }
 
-        const [minutes, increment] = timeValue.split('+').map(Number);
-        if (isNaN(minutes) || isNaN(increment)) {
-            showToast('Неверный формат контроля времени', 'error');
-            return;
-        }
+              const isRated = gameType.dataset.type === 'rated';
+              
+              const game = await window.createGame({
+                  minutes,
+                  increment,
+                  isRated,
+                  creatorColor: 'white',
+                  initialFen: 'startpos',
+                  onSuccess: (game) => {
+                      if (typeof window.showToast === 'function') {
+                          window.showToast('Партия создана! Ищем соперника...');
+                      }
+                      if (customGameModal) customGameModal.classList.remove('active');
+                      if (game && game.id) {
+                          window.location.href = `/match/${game.id}`;
+                      }
+                  },
+                  onError: (err, message) => {
+                      // Error already handled in createGame
+                  }
+              });
+              
+              if (!game && submitBtn) {
+                  submitBtn.disabled = false;
+              }
+          } catch (err) {
+              console.error(err);
+              if (submitBtn) submitBtn.disabled = false;
+          }
+      });
+  }
 
-        const isRated = gameType.dataset.type === 'rated';
+  const friendGameForm = document.getElementById('friendGameForm');
+  if (friendGameForm && friendMinutesSlider && friendIncrementSlider) {
+      friendGameForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const submitBtn = friendGameForm.querySelector('button[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
 
-        const payload = {
-            initial_fen: 'startpos', // API принимает 'startpos' для стандартного начала
-            creator_color: 'white', // По умолчанию белые
-            time_control: {
-                initial_ms: minutes * 60000,
-                increment_ms: (increment || 0) * 1000,
-                type: 'STANDARD'
-            },
-            metadata: {
-                variant: 'standard',
-                rated: isRated
-            }
-        };
+          try {
+              const minutes = parseInt(friendMinutesSlider.value) || 5;
+              const increment = parseInt(friendIncrementSlider.value) || 0;
+              const gameType = document.querySelector('#friendGameForm .type-option.active');
+              if (!gameType) {
+                  if (submitBtn) submitBtn.disabled = false;
+                  return;
+              }
 
-        try {
-            const submitBtn = createGameForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-
-            const res = await authedFetch('/api/games/', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) {
-                let errorText = 'Не удалось создать партию';
-                try {
-                    const errorData = await res.json();
-                    errorText = errorData.detail || errorData.message || errorText;
-                } catch {
-                    const text = await res.text();
-                    errorText = text || errorText;
-                }
-                throw new Error(errorText);
-            }
-
-            const game = await res.json();
-            showToast('Партия создана! Ищем соперника...');
-            
-            // Переходим на страницу игры
-            if (game && game.id) {
-                window.location.href = `/match/${game.id}`;
-            } else {
-                showToast('Ошибка: партия создана, но ID не получен', 'error');
-            }
-        } catch (err) {
-            console.error(err);
-            showToast('Не удалось создать партию: ' + (err.message || ''), 'error');
-        } finally {
-            const submitBtn = createGameForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = false;
-        }
-    });
-}
-
-const customGameForm = document.getElementById('customGameForm');
-if (customGameForm && minutesSlider && incrementSlider) {
-    customGameForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            if (typeof showToast === 'function') {
-                showToast('Войдите в аккаунт, чтобы создать партию', 'error');
-            } else {
-                alert('Войдите в аккаунт, чтобы создать партию');
-            }
-            window.location.href = '/login.html';
-            return;
-        }
-
-        const minutes = parseInt(minutesSlider.value) || 5;
-        const increment = parseInt(incrementSlider.value) || 0;
-        const gameType = document.querySelector('#customGameForm .type-option.active');
-        if (!gameType) return;
-
-        const isRated = gameType.dataset.type === 'rated';
-        const payload = {
-            initial_fen: 'startpos',
-            creator_color: 'white',
-            time_control: {
-                initial_ms: minutes * 60000,
-                increment_ms: increment * 1000,
-                type: 'STANDARD'
-            },
-            metadata: {
-                variant: 'standard',
-                rated: isRated
-            }
-        };
-
-        try {
-            const submitBtn = customGameForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-
-            const res = await authedFetch('/api/games/', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) {
-                let errorText = 'Не удалось создать партию';
-                try {
-                    const errorData = await res.json();
-                    errorText = errorData.detail || errorData.message || errorText;
-                } catch {
-                    const text = await res.text();
-                    errorText = text || errorText;
-                }
-                throw new Error(errorText);
-            }
-
-            const game = await res.json();
-            showToast('Партия создана! Ищем соперника...');
-            
-            if (customGameModal) customGameModal.classList.remove('active');
-            
-            if (game && game.id) {
-                window.location.href = `/match/${game.id}`;
-            } else {
-                showToast('Ошибка: партия создана, но ID не получен', 'error');
-            }
-        } catch (err) {
-            console.error(err);
-            showToast('Не удалось создать партию: ' + (err.message || ''), 'error');
-        } finally {
-            const submitBtn = customGameForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = false;
-        }
-    });
-}
-
-const friendGameForm = document.getElementById('friendGameForm');
-if (friendGameForm && friendMinutesSlider && friendIncrementSlider) {
-    friendGameForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            if (typeof showToast === 'function') {
-                showToast('Войдите в аккаунт, чтобы создать партию', 'error');
-            } else {
-                alert('Войдите в аккаунт, чтобы создать партию');
-            }
-            window.location.href = '/login.html';
-            return;
-        }
-
-        const minutes = parseInt(friendMinutesSlider.value) || 5;
-        const increment = parseInt(friendIncrementSlider.value) || 0;
-        const gameType = document.querySelector('#friendGameForm .type-option.active');
-        if (!gameType) return;
-
-        const isRated = gameType.dataset.type === 'rated';
-        const payload = {
-            initial_fen: 'startpos',
-            creator_color: 'white',
-            time_control: {
-                initial_ms: minutes * 60000,
-                increment_ms: increment * 1000,
-                type: 'STANDARD'
-            },
-            metadata: {
-                variant: 'standard',
-                rated: isRated
-            }
-        };
-
-        try {
-            const submitBtn = friendGameForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-
-            const res = await authedFetch('/api/games/', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) {
-                let errorText = 'Не удалось создать приглашение';
-                try {
-                    const errorData = await res.json();
-                    errorText = errorData.detail || errorData.message || errorText;
-                } catch {
-                    const text = await res.text();
-                    errorText = text || errorText;
-                }
-                throw new Error(errorText);
-            }
-
-            const game = await res.json();
-            
-            // Update share screen info
-            const shareGameTitle = document.getElementById('shareGameTitle');
-            const shareGameType = document.getElementById('shareGameType');
-            if (shareGameTitle) shareGameTitle.textContent = `Партия ${minutes}+${increment}`;
-            if (shareGameType) shareGameType.textContent = isRated ? 'Рейтинговая партия' : 'Товарищеская партия';
-            
-            // Generate share link
-            const shareLink = document.getElementById('shareLink');
-            if (shareLink && game.id) {
-                shareLink.value = `${window.location.origin}/match/${game.id}`;
-            }
-            
-            // Show share screen
-            if (friendSetupScreen) friendSetupScreen.style.display = 'none';
-            if (friendShareScreen) friendShareScreen.classList.add('active');
-            
-            // Start polling for second player
-            if (game.id) {
-                startWaitingForOpponent(game.id);
-            }
-        } catch (err) {
-            console.error(err);
-            showToast('Не удалось создать партию: ' + (err.message || ''), 'error');
-        } finally {
-            const submitBtn = friendGameForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = false;
-        }
-    });
-}
+              const isRated = gameType.dataset.type === 'rated';
+              
+              const game = await window.createGame({
+                  minutes,
+                  increment,
+                  isRated,
+                  creatorColor: 'white',
+                  initialFen: 'startpos',
+                  onSuccess: (game) => {
+                      // Update share screen info
+                      const shareGameTitle = document.getElementById('shareGameTitle');
+                      const shareGameType = document.getElementById('shareGameType');
+                      if (shareGameTitle) shareGameTitle.textContent = `Партия ${minutes}+${increment}`;
+                      if (shareGameType) shareGameType.textContent = isRated ? 'Рейтинговая партия' : 'Товарищеская партия';
+                      
+                      // Generate share link
+                      const shareLink = document.getElementById('shareLink');
+                      if (shareLink && game.id) {
+                          shareLink.value = `${window.location.origin}/match/${game.id}`;
+                      }
+                      
+                      // Show share screen
+                      if (friendSetupScreen) friendSetupScreen.style.display = 'none';
+                      if (friendShareScreen) friendShareScreen.classList.add('active');
+                      
+                      // Start polling for second player
+                      if (game.id) {
+                          startWaitingForOpponent(game.id);
+                      }
+                  },
+                  onError: (err, message) => {
+                      // Error already handled in createGame
+                      if (submitBtn) submitBtn.disabled = false;
+                  }
+              });
+              
+              if (!game && submitBtn) {
+                  submitBtn.disabled = false;
+              }
+          } catch (err) {
+              console.error(err);
+              if (submitBtn) submitBtn.disabled = false;
+          }
+      });
+  }
 
 // Wait for opponent to join
 let opponentPollingInterval = null;
+let opponentPollingStartTime = null;
+const OPPONENT_POLLING_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 function startWaitingForOpponent(gameId) {
     // Clear any existing polling
     if (opponentPollingInterval) {
         clearInterval(opponentPollingInterval);
+        opponentPollingInterval = null;
     }
+    
+    // Record start time
+    opponentPollingStartTime = Date.now();
     
     // Check every 2 seconds
     opponentPollingInterval = setInterval(async () => {
         try {
+            // Check timeout (10 minutes)
+            const elapsed = Date.now() - opponentPollingStartTime;
+            if (elapsed >= OPPONENT_POLLING_TIMEOUT) {
+                // Stop polling
+                if (opponentPollingInterval) {
+                    clearInterval(opponentPollingInterval);
+                    opponentPollingInterval = null;
+                }
+                opponentPollingStartTime = null;
+                
+                // Show timeout message
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Время ожидания истекло. Партия была удалена.', 'error');
+                }
+                
+                // Close modal if open
+                const friendGameModal = document.getElementById('friendGameModal');
+                if (friendGameModal) {
+                    friendGameModal.classList.remove('active');
+                }
+                
+                return;
+            }
+            
             const res = await window.authedFetch(`/api/games/${gameId}`);
             if (!res.ok) {
-                console.error('Failed to check game status');
+                // Game might have been deleted
+                if (res.status === 404) {
+                    // Stop polling
+                    if (opponentPollingInterval) {
+                        clearInterval(opponentPollingInterval);
+                        opponentPollingInterval = null;
+                    }
+                    opponentPollingStartTime = null;
+                    
+                    // Show message
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Партия была удалена (время ожидания истекло).', 'error');
+                    }
+                    
+                    // Close modal if open
+                    const friendGameModal = document.getElementById('friendGameModal');
+                    if (friendGameModal) {
+                        friendGameModal.classList.remove('active');
+                    }
+                } else {
+                    console.error('Failed to check game status');
+                }
                 return;
             }
             
@@ -1642,6 +1636,7 @@ function startWaitingForOpponent(gameId) {
                     clearInterval(opponentPollingInterval);
                     opponentPollingInterval = null;
                 }
+                opponentPollingStartTime = null;
                 
                 // Redirect to match page
                 window.location.href = `/match/${gameId}`;
@@ -1652,51 +1647,37 @@ function startWaitingForOpponent(gameId) {
     }, 2000);
 }
 
-// Stop polling when modal is closed (handlers added to existing modal handlers below)
+  // Stop polling when modal is closed (handlers added to existing modal handlers above)
 
-// Copy link button
-const copyLinkBtn = document.getElementById('copyLinkBtn');
-if (copyLinkBtn) {
-    copyLinkBtn.addEventListener('click', async () => {
-        const linkInput = document.getElementById('shareLink');
-        if (linkInput) {
-            try {
-                await navigator.clipboard.writeText(linkInput.value);
-                const originalHTML = copyLinkBtn.innerHTML;
-                copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
-                setTimeout(() => {
-                    copyLinkBtn.innerHTML = originalHTML;
-                }, 2000);
-                showToast('Ссылка скопирована');
-            } catch (err) {
-                // Fallback for older browsers
-                linkInput.select();
-                document.execCommand('copy');
-                showToast('Ссылка скопирована');
-            }
-        }
-    });
-}
+  // Copy link button
+  const copyLinkBtn = document.getElementById('copyLinkBtn');
+  if (copyLinkBtn) {
+      copyLinkBtn.addEventListener('click', async () => {
+          const linkInput = document.getElementById('shareLink');
+          if (linkInput) {
+              try {
+                  await navigator.clipboard.writeText(linkInput.value);
+                  const originalHTML = copyLinkBtn.innerHTML;
+                  copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+                  setTimeout(() => {
+                      copyLinkBtn.innerHTML = originalHTML;
+                  }, 2000);
+                  if (typeof window.showToast === 'function') {
+                      window.showToast('Ссылка скопирована');
+                  }
+              } catch (err) {
+                  // Fallback for older browsers
+                  linkInput.select();
+                  document.execCommand('copy');
+                  if (typeof window.showToast === 'function') {
+                      window.showToast('Ссылка скопирована');
+                  }
+              }
+          }
+      });
+  }
+}); // End of DOMContentLoaded
 
 // Functions loadWaitingRoomGames and loadTVGames are now defined inside the IIFE above
-
-// Functions joinWaitingGame, loadWaitingRoomGames and loadTVGames are now defined inside the IIFE above
-
-// Reload games when tab changes - functions are now inside IIFE
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        const targetTab = tab.dataset.tab;
-        
-        // Load games when switching to lobby or TV tabs
-        if (targetTab === 'lobby') {
-            if (typeof window.loadWaitingRoomGames === 'function') {
-                window.loadWaitingRoomGames();
-            }
-        } else if (targetTab === 'tv') {
-            if (typeof window.loadTVGames === 'function') {
-                window.loadTVGames();
-            }
-        }
-    });
-});
+// Tab switching is handled inside IIFE via bindTabs() function
 

@@ -23,26 +23,7 @@
 /* ... existing larger-screen styles remain ... */
 
 /* ===== Mobile Adaptations ===== */
-@media (max-width: 1024px) {
-    .header-content {
-        align-items: center;
-        gap: 0.75rem;
-        flex-wrap: nowrap;
-    }
-
-    .header-actions {
-        margin-left: auto;
-        gap: 0.5rem;
-    }
-
-    .mobile-menu-btn {
-        display: block;
-    }
-
-    .mobile-menu {
-        display: block;
-    }
-}
+/* Header styles moved to header.css */
 
 @media (max-width: 768px) {
     html { font-size: 15px; }
@@ -138,13 +119,13 @@
 @media (max-width: 480px) {
     html { font-size: 14px; }
 
-    .mobile-menu { display: block; }
+    /* Header styles moved to header.css */
     .auth-buttons,
     .user-actions {
         display: none;
     }
 
-    .nav-link::after { display: none; }
+    /* Header styles moved to header.css */
 
     .hero h1 {
         font-size: clamp(2rem, 8vw, 2.5rem);

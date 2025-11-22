@@ -52,22 +52,14 @@ html.dark .spaced-header {
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-    background-size: 100% 100% !important;
-    animation: none !important;
+    color: #3b82f6;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
-/* Улучшенная видимость градиента логотипа в темной теме */
+/* Улучшенная видимость логотипа в темной теме */
 body.dark .logo .gradient-text,
 html.dark .logo .gradient-text {
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
+    color: #60a5fa;
     filter: drop-shadow(0 1px 3px rgba(59, 130, 246, 0.3));
 }
 
@@ -81,7 +73,7 @@ html.dark .logo .gradient-text {
     position: relative;
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    background: #3b82f6;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -105,20 +97,14 @@ html.dark .logo .gradient-text {
 }
 
 .gradient-text {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #3b82f6;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
-/* Улучшенная видимость градиента в темной теме */
+/* Улучшенная видимость в темной теме */
 body.dark .gradient-text,
 html.dark .gradient-text {
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #60a5fa;
     filter: drop-shadow(0 1px 3px rgba(59, 130, 246, 0.3));
 }
 
@@ -184,7 +170,7 @@ html.dark .gradient-text {
 }
 
 .btn-register {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    background: #3b82f6;
     color: white;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -347,6 +333,53 @@ html.dark .nav-link.active {
     .header-actions .btn-register {
         display: none;
     }
+
+    .header-content {
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: nowrap;
+    }
+
+    .header-actions {
+        margin-left: auto;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header,
+    .spaced-header {
+        padding: 0.75rem 0;
+    }
+
+    .header-content,
+    .spaced-header .header-content {
+        gap: 0.5rem;
+    }
+
+    .logo {
+        gap: 0.5rem;
+    }
+
+    .logo .gradient-text {
+        font-size: 1.25rem;
+    }
+
+    .logo .gradient-text + div {
+        font-size: 0.7rem;
+    }
+
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .theme-toggle,
+    .mobile-menu-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
 }
 
 @media (max-width: 640px) {
@@ -362,6 +395,163 @@ html.dark .nav-link.active {
 
     .header-actions {
         gap: 0.5rem;
+    }
+
+    .logo {
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .logo .gradient-text {
+        font-size: 1.1rem;
+    }
+
+    .logo .gradient-text + div {
+        font-size: 0.65rem;
+    }
+
+    .logo-icon {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+    }
+
+    .logo-icon svg[width="32"] {
+        width: 24px;
+        height: 24px;
+    }
+
+    .logo-icon svg[width="14"] {
+        width: 10px;
+        height: 10px;
+        top: 0.2rem;
+        right: 0.2rem;
+    }
+
+    .theme-toggle,
+    .mobile-menu-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+    }
+
+    .mobile-menu {
+        padding: 1rem;
+    }
+
+    .mobile-menu .nav-link {
+        padding: 0.65rem 0.85rem;
+        font-size: 0.95rem;
+    }
+
+    .mobile-menu .btn-login,
+    .mobile-menu .btn-register,
+    .mobile-menu .logout-btn {
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header,
+    .spaced-header {
+        padding: 0.65rem 0;
+    }
+
+    .header-content,
+    .spaced-header .header-content {
+        gap: 0.4rem;
+    }
+
+    .logo {
+        gap: 0.4rem;
+    }
+
+    .logo .gradient-text {
+        font-size: 1rem;
+    }
+
+    .logo .gradient-text + div {
+        font-size: 0.6rem;
+        display: none; /* Скрываем подзаголовок на очень маленьких экранах */
+    }
+
+    .logo-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .logo-icon svg[width="32"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    .logo-icon svg[width="14"] {
+        width: 8px;
+        height: 8px;
+        top: 0.15rem;
+        right: 0.15rem;
+    }
+
+    .theme-toggle,
+    .mobile-menu-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+    }
+
+    .mobile-menu {
+        padding: 0.85rem;
+    }
+
+    .mobile-menu .nav-link {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .mobile-menu .btn-login,
+    .mobile-menu .btn-register,
+    .mobile-menu .logout-btn {
+        padding: 0.6rem 0.85rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .header,
+    .spaced-header {
+        padding: 0.5rem 0;
+    }
+
+    .logo .gradient-text {
+        font-size: 0.95rem;
+    }
+
+    .logo-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .logo-icon svg[width="32"] {
+        width: 18px;
+        height: 18px;
+    }
+
+    .logo-icon svg[width="14"] {
+        width: 7px;
+        height: 7px;
+    }
+
+    .theme-toggle,
+    .mobile-menu-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .mobile-menu {
+        padding: 0.75rem;
     }
 }
 
