@@ -1,8 +1,9 @@
 import asyncio
 import contextlib
 import logging
+from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from .database import SessionLocal
 from .models import Game, GameStatus, SideToMove
@@ -13,6 +14,7 @@ from .services import GameService, GameServiceError, build_game_detail
 LOGGER = logging.getLogger(__name__)
 WATCHDOG_INTERVAL_SECONDS = 15
 RECENT_MOVES_LIMIT = 120
+ABANDONED_GAME_TIMEOUT_MINUTES = 10  # Delete games without second player after 10 minutes
 
 
 class TimeoutWatchdog:
@@ -45,6 +47,8 @@ class TimeoutWatchdog:
 	async def _tick(self) -> None:
 		async with SessionLocal() as db:
 			service = GameService(db)
+			
+			# 1. Check active games for timeout
 			stmt = select(Game).where(Game.status == GameStatus.ACTIVE.value)
 			result = await db.execute(stmt)
 			active_games = result.scalars().all()
@@ -87,6 +91,37 @@ class TimeoutWatchdog:
 					game.id,
 					WsGameFinishedPayload(type="game_finished", game=detail).model_dump(mode="json"),
 				)
+			
+			# 2. Clean up abandoned games (without second player for more than 10 minutes)
+			cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=ABANDONED_GAME_TIMEOUT_MINUTES)
+			stmt = select(Game).where(
+				Game.status == GameStatus.CREATED.value,
+				Game.move_count == 0,
+				or_(Game.white_id.is_(None), Game.black_id.is_(None)),
+				Game.created_at < cutoff_time
+			)
+			result = await db.execute(stmt)
+			abandoned_games = result.scalars().all()
+			
+			deleted_count = 0
+			for game in abandoned_games:
+				try:
+					await db.delete(game)
+					deleted_count += 1
+					LOGGER.info("Deleted abandoned game %s (created at %s, missing player)", game.id, game.created_at)
+					await game_ws_manager.broadcast(
+						game.id,
+						{
+							"type": "game_cancelled",
+							"game_id": str(game.id),
+						},
+					)
+				except Exception:
+					LOGGER.exception("Failed to delete abandoned game %s", game.id)
+			
+			if deleted_count > 0:
+				await db.commit()
+				LOGGER.info("Timeout watchdog deleted %d abandoned game(s)", deleted_count)
 
 
 timeout_watchdog = TimeoutWatchdog()

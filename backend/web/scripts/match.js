@@ -429,24 +429,11 @@
     const mobileUser = document.getElementById('mobileUserActions');
     const mobileAuth = document.getElementById('mobileAuthButtons');
 
-    const displayName = state.currentUser
-      ? state.currentUser.username || `ID ${state.currentUser.id}`
-      : '—';
-
-    const updateUserPill = (el) => {
-      if (!el) return;
-      const textNode = el.querySelector('span');
-      if (state.currentUser) {
-        el.style.display = 'inline-flex';
-        if (textNode) textNode.textContent = displayName;
-      } else {
-        el.style.display = 'none';
-      }
-    };
+    // Hide user info pills (name) on match page
+    if (info) info.style.display = 'none';
+    if (infoMobile) infoMobile.style.display = 'none';
 
     if (state.currentUser) {
-      updateUserPill(info);
-      updateUserPill(infoMobile);
       loginBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
       registerBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
       logoutBtns.forEach((btn) => { if (btn) btn.style.display = 'inline-flex'; });
@@ -455,8 +442,6 @@
       if (mobileUser) mobileUser.style.display = 'flex';
       if (mobileAuth) mobileAuth.style.display = 'none';
     } else {
-      updateUserPill(info);
-      updateUserPill(infoMobile);
       loginBtns.forEach((btn) => { if (btn) btn.style.display = 'inline-flex'; });
       registerBtns.forEach((btn) => { if (btn) btn.style.display = 'inline-flex'; });
       logoutBtns.forEach((btn) => { if (btn) btn.style.display = 'none'; });
@@ -1608,21 +1593,37 @@
   }
 
   function loadTheme() {
-    // Всегда используем единый ключ 'theme' для загрузки
-    const saved = localStorage.getItem('theme');
-    isDarkTheme = saved === 'dark';
-    document.body.classList.toggle('dark', isDarkTheme);
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
+    // Используем глобальную функцию из auth.js, если доступна
+    if (window.loadTheme && typeof window.loadTheme === 'function') {
+      window.loadTheme();
+      // Обновляем локальное состояние после загрузки
+      isDarkTheme = document.body.classList.contains('dark');
+    } else {
+      // Fallback для случаев, когда auth.js не загружен
+      const saved = localStorage.getItem('theme');
+      isDarkTheme = saved === 'dark';
+      document.body.classList.toggle('dark', isDarkTheme);
+      document.documentElement.classList.toggle('dark', isDarkTheme);
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
+    }
   }
 
   function toggleTheme() {
-    // Всегда используем единый ключ 'theme' для сохранения
-    isDarkTheme = !isDarkTheme;
-    document.body.classList.toggle('dark', isDarkTheme);
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
-    localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+    // Используем глобальную функцию из auth.js, если доступна
+    if (window.toggleTheme && typeof window.toggleTheme === 'function') {
+      window.toggleTheme();
+      // Обновляем локальное состояние после переключения
+      isDarkTheme = document.body.classList.contains('dark');
+    } else {
+      // Fallback для случаев, когда auth.js не загружен
+      isDarkTheme = !isDarkTheme;
+      document.body.classList.toggle('dark', isDarkTheme);
+      document.documentElement.classList.toggle('dark', isDarkTheme);
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = isDarkTheme ? 'fas fa-moon' : 'fas fa-sun';
+      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+    }
   }
 
   function toggleMobileMenu() {
@@ -1696,9 +1697,8 @@
     await loadMatch();
   }
 
-  // Экспортируем локальную функцию toggleTheme
-  // Она будет использовать глобальную из auth.js, если доступна
-  window.toggleTheme = toggleTheme;
+  // Экспортируем функции для мобильного меню
+  // toggleTheme не перезаписываем, используем из auth.js
   window.toggleMobileMenu = toggleMobileMenu;
   window.closeMobileMenu = closeMobileMenu;
 

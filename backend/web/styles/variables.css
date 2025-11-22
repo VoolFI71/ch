@@ -3,9 +3,10 @@
 
 :root {
     /* Основные цвета */
-    --primary: #7c3aed;
-    --primary-dark: #6d28d9;
-    --secondary: #3b82f6;
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --primary-dark: #2563eb;
+    --secondary: #64748b;
     --accent: #10b981;
     --gold: #fbbf24;
     
@@ -16,27 +17,31 @@
     --board-dark: #b58863;
     
     /* Фоновые цвета */
-    --bg-light: #fafafa;
-    --bg-dark: #0f0f23;
-    --background: #fafafa;
+    --background: #ffffff;
     --foreground: #0a0a0a;
+    /* Старые переменные для обратной совместимости */
+    --bg-light: var(--background);
+    --bg-dark: #1a1a1a;
     
     /* Цвета карточек */
-    --card-light: #ffffff;
-    --card-dark: #1e1e3f;
     --card: #ffffff;
     --card-foreground: #0a0a0a;
+    /* Старые переменные для обратной совместимости */
+    --card-light: var(--card);
+    --card-dark: #2d2d2d;
     
     /* Текстовые цвета */
-    --text-light: #0a0a0a;
-    --text-dark: #f8fafc;
     --muted: #64748b;
     --muted-foreground: #64748b;
+    /* Старые переменные для обратной совместимости */
+    --text-light: var(--foreground);
+    --text-dark: #f8fafc;
     
     /* Границы */
-    --border-light: #e2e8f0;
-    --border-dark: #334155;
     --border: #e2e8f0;
+    /* Старые переменные для обратной совместимости */
+    --border-light: var(--border);
+    --border-dark: #404040;
     
     /* Дополнительные цвета */
     --purple-100: #f3e8ff;
@@ -64,12 +69,20 @@
 }
 
 /* ===== DARK THEME VARIABLES ===== */
-body.dark {
-    --background: #0f0f23;
+body.dark,
+html.dark,
+html.dark body {
+    --background: #1a1a1a;
     --foreground: #f8fafc;
-    --card: #1e1e3f;
+    --card: #2d2d2d;
     --card-foreground: #f8fafc;
-    --border: #334155;
+    --border: #404040;
+    --muted: #94a3b8;
     --muted-foreground: #94a3b8;
+    /* Старые переменные для обратной совместимости */
+    --bg-dark: #1a1a1a;
+    --card-dark: #2d2d2d;
+    --border-dark: #404040;
+    --text-dark: #f8fafc;
 }
 

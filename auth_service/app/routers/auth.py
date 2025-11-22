@@ -80,7 +80,7 @@ async def login(data: LoginInput, db: AsyncSession = Depends(get_db)) -> Token:
 	)
 	user = await db.scalar(stmt)
 	if not user or not verify_password(data.password, user.hashed_password):
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect login or password")
+		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный логин или пароль")
 
 	access = create_access_token(user.id)
 	refresh = await create_refresh_token(db, user.id)

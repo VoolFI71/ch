@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerChess — Играть</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --primary-light: #a855f7;
+            --gold: #ffd700;
+            --background: #f5f7fa;
+            --foreground: #1a1a1a;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+            --muted-foreground: #4b5563;
+            --success: #10b981;
+            --success-dark: #059669;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+            color: var(--foreground);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--card);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .chess-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
+            background-size: 8px 8px;
+            background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+            border-radius: 12px;
+            opacity: 0.4;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            padding: 0.6rem 1.2rem;
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: rgba(124, 58, 237, 0.08);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(124, 58, 237, 0.12);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-login, .btn-register {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-login {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-login:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        /* ===== TABS ===== */
+        .tabs {
+            background: var(--card);
+            border-bottom: 2px solid var(--border);
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 0;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* ===== GAME MODES ===== */
+        .game-modes {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--foreground);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .modes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .mode-card {
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .mode-card:hover::before {
+            opacity: 1;
+        }
+
+        .mode-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+        }
+
+        .mode-time {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--foreground);
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-label {
+            font-size: 0.9rem;
+            color: var(--muted);
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(124, 58, 237, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--foreground);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* ===== CREATE GAME ===== */
+        .create-game-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .game-type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            background: #f3f4f6;
+            padding: 0.25rem;
+            border-radius: 10px;
+        }
+
+        .type-option {
+            padding: 0.75rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .type-option.active {
+            background: var(--card);
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .time-select {
+            width: 100%;
+            padding: 0.85rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--foreground);
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--card);
+        }
+
+        .time-select:hover,
+        .time-select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .btn-create {
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: var(--card);
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-create i {
+            margin-right: 0.5rem;
+        }
+
+        .btn-friend {
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+            color: var(--card);
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-friend:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 480px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--foreground);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-title i {
+            color: var(--primary);
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e5e7eb;
+            color: var(--foreground);
+        }
+
+        .slider-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .slider-label-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted-foreground);
+        }
+
+        .slider-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 10px;
+            background: linear-gradient(to right, #e5e7eb 0%, rgba(124, 58, 237, 0.2) 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+            transition: all 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.6);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+        }
+
+        .range-slider-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .range-inputs {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .range-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .range-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--foreground);
+            text-align: center;
+        }
+
+        .range-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .rating-display {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+            border-radius: 10px;
+            margin-top: 0.75rem;
+            border: 1px solid rgba(124, 58, 237, 0.15);
+        }
+
+        .rating-text {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .rating-range {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* ===== SHARE LINK SCREEN ===== */
+        .share-screen {
+            display: none;
+        }
+
+        .share-screen.active {
+            display: block;
+        }
+
+        .game-info-banner {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .game-info-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .game-info-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--foreground);
+            margin-bottom: 0.25rem;
+        }
+
+        .game-info-details {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .share-instruction {
+            font-size: 0.95rem;
+            color: var(--muted-foreground);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .link-container {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .link-input {
+            flex: 1;
+            padding: 0.85rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: var(--foreground);
+            background: #f9fafb;
+        }
+
+        .btn-copy {
+            padding: 0.85rem 1.25rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-copy:hover {
+            background: var(--primary-dark);
+        }
+
+        .qr-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            text-align: center;
+        }
+
+        .qr-title {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 3rem;
+        }
+
+        .waiting-opponent {
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .waiting-text {
+            font-size: 0.95rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0.5rem;
+        }
+
+        .waiting-dots {
+            font-size: 1.5rem;
+            color: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== WAITING ROOM ===== */
+        .waiting-room {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .waiting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .waiting-item:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+            transform: translateX(4px);
+        }
+
+        .waiting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .waiting-player {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--foreground);
+        }
+
+        .waiting-time {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .btn-join {
+            padding: 0.6rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: var(--card);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+        }
+
+        .btn-join:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        /* ===== TV MODE ===== */
+        .tv-games {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .tv-game {
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tv-game::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tv-game:hover::before {
+            opacity: 1;
+        }
+
+        .tv-game:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+        }
+
+        .tv-live-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: #ef4444;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            z-index: 1;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .tv-players {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tv-player {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        .tv-time {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nav {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .tabs-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                padding: 1rem 1.5rem;
+                white-space: nowrap;
+            }
+
+            .modes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tv-games {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                padding: 1.5rem;
+            }
+
+            .btn-login, .btn-register {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .link-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <div class="logo-icon">
+                        <div class="chess-pattern"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
+                            <defs>
+                                <linearGradient id="crown-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd700" />
+                                    <stop offset="50%" stop-color="#ffffff" />
+                                    <stop offset="100%" stop-color="#ffd700" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="3" y="16" width="18" height="3" fill="url(#crown-gradient)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#crown-gradient)" stroke="#fff" stroke-width="1"/>
+                            <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
+                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position:absolute;top:0.25rem;right:0.25rem;z-index:3;">
+                            <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.8"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
+                        <div style="font-size: 0.75rem; color: var(--muted); margin-top: -0.25rem;">♔ Шахматная академия</div>
+                    </div>
+                </a>
+                <nav class="nav">
+                    <a href="/games" class="nav-link active">Играть</a>
+                    <a href="/course" class="nav-link">Курсы</a>
+                    <a href="/couch" class="nav-link">Тренеры</a>
+                    <a href="#reviews" class="nav-link">Отзывы</a>
+                    <a href="#tournaments" class="nav-link">Турниры</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn-login">
+                        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                        Войти
+                    </button>
+                    <button class="btn-register">
+                        <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                        Регистрация
+                    </button>
+                    <button class="theme-toggle" title="Переключить тему">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <div class="container">
+            <div class="tabs-container">
+                <button class="tab active" data-tab="quick">
+                    <i class="fas fa-bolt"></i> Быстрая игра
+                </button>
+                <button class="tab" data-tab="lobby">
+                    <i class="fas fa-users"></i> Зал ожидания
+                </button>
+                <button class="tab" data-tab="tv">
+                    <i class="fas fa-tv"></i> TV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="container">
+            <!-- QUICK GAME TAB -->
+            <div class="tab-content" id="quick-tab">
+                <div class="content-grid">
+                    <div class="game-modes">
+                        <h2 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Выберите контроль времени
+                        </h2>
+                        <div class="modes-grid">
+                            <div class="mode-card" data-time="1+0">
+                                <div class="mode-time">1+0</div>
+                                <div class="mode-label">Bullet</div>
+                            </div>
+                            <div class="mode-card" data-time="2+1">
+                                <div class="mode-time">2+1</div>
+                                <div class="mode-label">Bullet</div>
+                            </div>
+                            <div class="mode-card" data-time="3+0">
+                                <div class="mode-time">3+0</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="3+2">
+                                <div class="mode-time">3+2</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="5+0">
+                                <div class="mode-time">5+0</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="5+3">
+                                <div class="mode-time">5+3</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="10+0">
+                                <div class="mode-time">10+0</div>
+                                <div class="mode-label">Rapid</div>
+                            </div>
+                            <div class="mode-card" data-time="10+5">
+                                <div class="mode-time">10+5</div>
+                                <div class="mode-label">Rapid</div>
+                            </div>
+                            <div class="mode-card" data-time="15+10">
+                                <div class="mode-time">15+10</div>
+                                <div class="mode-label">Rapid</div>
+                            </div>
+                            <div class="mode-card" data-time="30+0">
+                                <div class="mode-time">30+0</div>
+                                <div class="mode-label">Classical</div>
+                            </div>
+                            <div class="mode-card" data-time="30+20">
+                                <div class="mode-time">30+20</div>
+                                <div class="mode-label">Classical</div>
+                            </div>
+                            <div class="mode-card" id="customGameBtn">
+                                <div class="mode-time">⚙️</div>
+                                <div class="mode-label">Своя игра</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-plus-circle"></i>
+                                Создать партию
+                            </h3>
+                            <form class="create-game-form" id="createGameForm">
+                                <div class="form-group">
+                                    <label class="form-label">Тип партии</label>
+                                    <div class="game-type-toggle">
+                                        <button type="button" class="type-option active" data-type="rated">Рейтинговая</button>
+                                        <button type="button" class="type-option" data-type="casual">Товарищеская</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Контроль времени</label>
+                                    <select class="time-select" id="timeControl">
+                                        <option value="1+0">1+0 Bullet</option>
+                                        <option value="2+1">2+1 Bullet</option>
+                                        <option value="3+0">3+0 Blitz</option>
+                                        <option value="3+2">3+2 Blitz</option>
+                                        <option value="5+0" selected>5+0 Blitz</option>
+                                        <option value="5+3">5+3 Blitz</option>
+                                        <option value="10+0">10+0 Rapid</option>
+                                        <option value="10+5">10+5 Rapid</option>
+                                        <option value="15+10">15+10 Rapid</option>
+                                        <option value="30+0">30+0 Classical</option>
+                                        <option value="30+20">30+20 Classical</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn-create">
+                                    <i class="fas fa-search"></i>
+                                    Найти соперника
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="card">
+                            <button class="btn-friend" id="playWithFriendBtn">
+                                <i class="fas fa-user-friends"></i>
+                                Сыграть с другом
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOBBY TAB -->
+            <div class="tab-content" id="lobby-tab" style="display: none;">
+                <div class="content-grid">
+                    <div class="game-modes">
+                        <h2 class="section-title">
+                            <i class="fas fa-door-open"></i>
+                            Зал ожидания
+                        </h2>
+                        <div class="waiting-room">
+                            <div class="waiting-item">
+                                <div class="waiting-info">
+                                    <div class="waiting-player">🏆 GrandMaster2024</div>
+                                    <div class="waiting-time">5+0 • Рейтинговая • 2450 ELO</div>
+                                </div>
+                                <button class="btn-join">Принять</button>
+                            </div>
+                            <div class="waiting-item">
+                                <div class="waiting-info">
+                                    <div class="waiting-player">♟️ ChessLover99</div>
+                                    <div class="waiting-time">10+5 • Товарищеская • 2100 ELO</div>
+                                </div>
+                                <button class="btn-join">Принять</button>
+                            </div>
+                            <div class="waiting-item">
+                                <div class="waiting-info">
+                                    <div class="waiting-player">⚡ StrategicKing</div>
+                                    <div class="waiting-time">3+2 • Рейтинговая • 1980 ELO</div>
+                                </div>
+                                <button class="btn-join">Принять</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-plus-circle"></i>
+                                Создать партию
+                            </h3>
+                            <form class="create-game-form">
+                                <div class="form-group">
+                                    <label class="form-label">Тип партии</label>
+                                    <div class="game-type-toggle">
+                                        <button type="button" class="type-option active" data-type="rated">Рейтинговая</button>
+                                        <button type="button" class="type-option" data-type="casual">Товарищеская</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Контроль времени</label>
+                                    <select class="time-select">
+                                        <option value="1+0">1+0 Bullet</option>
+                                        <option value="2+1">2+1 Bullet</option>
+                                        <option value="3+0">3+0 Blitz</option>
+                                        <option value="3+2">3+2 Blitz</option>
+                                        <option value="5+0" selected>5+0 Blitz</option>
+                                        <option value="5+3">5+3 Blitz</option>
+                                        <option value="10+0">10+0 Rapid</option>
+                                        <option value="10+5">10+5 Rapid</option>
+                                        <option value="15+10">15+10 Rapid</option>
+                                        <option value="30+0">30+0 Classical</option>
+                                        <option value="30+20">30+20 Classical</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn-create">
+                                    <i class="fas fa-search"></i>
+                                    Найти соперника
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="card">
+                            <button class="btn-friend" id="playWithFriendBtn2">
+                                <i class="fas fa-user-friends"></i>
+                                Сыграть с другом
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV TAB -->
+            <div class="tab-content" id="tv-tab" style="display: none;">
+                <div class="content-grid">
+                    <div class="game-modes">
+                        <h2 class="section-title">
+                            <i class="fas fa-broadcast-tower"></i>
+                            Живые партии
+                        </h2>
+                        <div class="tv-games">
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ GrandMaster2024 (2450)</div>
+                                    <div class="tv-player">⚫ ChessKing777 (2380)</div>
+                                </div>
+                                <div class="tv-time">5+0 Blitz • Ход 18</div>
+                            </div>
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ StrategicMind (2200)</div>
+                                    <div class="tv-player">⚫ TacticalGenius (2290)</div>
+                                </div>
+                                <div class="tv-time">10+5 Rapid • Ход 12</div>
+                            </div>
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ RookMaster (1980)</div>
+                                    <div class="tv-player">⚫ BishopLover (2050)</div>
+                                </div>
+                                <div class="tv-time">3+2 Blitz • Ход 25</div>
+                            </div>
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ KnightRider (2100)</div>
+                                    <div class="tv-player">⚫ QueenSlayer (2150)</div>
+                                </div>
+                                <div class="tv-time">15+10 Rapid • Ход 8</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-info-circle"></i>
+                                О режиме TV
+                            </h3>
+                            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.6;">
+                                Смотрите партии сильнейших игроков в режиме реального времени. 
+                                Нажмите на любую партию, чтобы начать просмотр.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CUSTOM GAME MODAL -->
+    <div class="modal-overlay" id="customGameModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-cog"></i>
+                    Параметры игры
+                </h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+
+            <form id="customGameForm">
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-label-text">Минут на партию</span>
+                        <span class="slider-value" id="minutesValue">5</span>
+                    </div>
+                    <input type="range" class="slider" id="minutesSlider" min="1" max="60" value="5" step="1">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-label-text">Добавление секунд на ход</span>
+                        <span class="slider-value" id="incrementValue">0</span>
+                    </div>
+                    <input type="range" class="slider" id="incrementSlider" min="0" max="30" value="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Режим игры</label>
+                    <div class="game-type-toggle">
+                        <button type="button" class="type-option" data-type="casual">Товарищеская</button>
+                        <button type="button" class="type-option active" data-type="rated">Рейтинговая</button>
+                    </div>
+                </div>
+
+                <div class="range-slider-group">
+                    <label class="form-label">Рейтинговый фильтр</label>
+                    <div class="range-inputs">
+                        <div class="range-input-wrapper">
+                            <input type="number" class="range-input" id="ratingMin" value="-100" min="-500" max="0" step="50">
+                        </div>
+                        <div class="range-input-wrapper">
+                            <input type="number" class="range-input" id="ratingMax" value="+500" min="0" max="1000" step="50">
+                        </div>
+                    </div>
+                    <div class="rating-display">
+                        <div class="rating-text">Ваш рейтинг: <strong>2000 Blitz</strong></div>
+                        <div class="rating-range" id="ratingRangeDisplay">1900 — 2500</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-create">
+                    <i class="fas fa-search"></i>
+                    Создать запрос на игру
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PLAY WITH FRIEND MODAL -->
+    <div class="modal-overlay" id="friendGameModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-user-friends"></i>
+                    Игра с другом
+                </h2>
+                <button class="modal-close" id="closeFriendModal">&times;</button>
+            </div>
+
+            <div id="friendSetupScreen">
+                <form id="friendGameForm">
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Минут на партию</span>
+                            <span class="slider-value" id="friendMinutesValue">5</span>
+                        </div>
+                        <input type="range" class="slider" id="friendMinutesSlider" min="1" max="60" value="5" step="1">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Добавление секунд на ход</span>
+                            <span class="slider-value" id="friendIncrementValue">0</span>
+                        </div>
+                        <input type="range" class="slider" id="friendIncrementSlider" min="0" max="30" value="0" step="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Режим игры</label>
+                        <div class="game-type-toggle">
+                            <button type="button" class="type-option active" data-type="casual">Товарищеская</button>
+                            <button type="button" class="type-option" data-type="rated">Рейтинговая</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-friend">
+                        <i class="fas fa-link"></i>
+                        Создать приглашение
+                    </button>
+                </form>
+            </div>
+
+            <div id="friendShareScreen" class="share-screen">
+                <div class="game-info-banner">
+                    <div class="game-info-icon">🎯</div>
+                    <div class="game-info-title" id="shareGameTitle">Пуля 1+0</div>
+                    <div class="game-info-details" id="shareGameType">Товарищеская партия</div>
+                </div>
+
+                <div class="share-instruction">
+                    Чтобы пригласить друга, отправьте ему эту ссылку
+                </div>
+
+                <div class="link-container">
+                    <input type="text" class="link-input" id="shareLink" value="https://powerchess.org/challenge/abc123xyz" readonly>
+                    <button class="btn-copy" id="copyLinkBtn">
+                        <i class="fas fa-copy"></i>
+                        Копировать
+                    </button>
+                </div>
+
+                <div class="qr-container">
+                    <div class="qr-title">Или позвольте вашему сопернику отсканировать этот QR-код</div>
+                    <div class="qr-code">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                </div>
+
+                <div class="waiting-opponent">
+                    <div class="waiting-text">С вами сыграет первый, кто перейдёт по этой ссылке.</div>
+                    <div class="waiting-dots">●●●</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                document.getElementById(`${targetTab}-tab`).style.display = 'block';
+            });
+        });
+
+        // Game type toggle
+        document.querySelectorAll('.game-type-toggle').forEach(toggle => {
+            const options = toggle.querySelectorAll('.type-option');
+            options.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    options.forEach(o => o.classList.remove('active'));
+                    option.classList.add('active');
+                });
+            });
+        });
+
+        // Mode card click
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const time = card.dataset.time;
+                if (time) {
+                    alert(`Поиск партии ${time}...`);
+                }
+            });
+        });
+
+        // Custom game modal
+        const customGameBtn = document.getElementById('customGameBtn');
+        const customGameModal = document.getElementById('customGameModal');
+        const closeModal = document.getElementById('closeModal');
+
+        customGameBtn.addEventListener('click', () => {
+            customGameModal.classList.add('active');
+        });
+
+        closeModal.addEventListener('click', () => {
+            customGameModal.classList.remove('active');
+        });
+
+        customGameModal.addEventListener('click', (e) => {
+            if (e.target === customGameModal) {
+                customGameModal.classList.remove('active');
+            }
+        });
+
+        // Friend game modal
+        const playWithFriendBtn = document.getElementById('playWithFriendBtn');
+        const playWithFriendBtn2 = document.getElementById('playWithFriendBtn2');
+        const friendGameModal = document.getElementById('friendGameModal');
+        const closeFriendModal = document.getElementById('closeFriendModal');
+        const friendSetupScreen = document.getElementById('friendSetupScreen');
+        const friendShareScreen = document.getElementById('friendShareScreen');
+
+        playWithFriendBtn.addEventListener('click', () => {
+            friendGameModal.classList.add('active');
+            friendSetupScreen.style.display = 'block';
+            friendShareScreen.classList.remove('active');
+        });
+
+        playWithFriendBtn2.addEventListener('click', () => {
+            friendGameModal.classList.add('active');
+            friendSetupScreen.style.display = 'block';
+            friendShareScreen.classList.remove('active');
+        });
+
+        closeFriendModal.addEventListener('click', () => {
+            friendGameModal.classList.remove('active');
+        });
+
+        friendGameModal.addEventListener('click', (e) => {
+            if (e.target === friendGameModal) {
+                friendGameModal.classList.remove('active');
+            }
+        });
+
+        // Sliders - Custom game
+        const minutesSlider = document.getElementById('minutesSlider');
+        const minutesValue = document.getElementById('minutesValue');
+        const incrementSlider = document.getElementById('incrementSlider');
+        const incrementValue = document.getElementById('incrementValue');
+
+        minutesSlider.addEventListener('input', () => {
+            minutesValue.textContent = minutesSlider.value;
+        });
+
+        incrementSlider.addEventListener('input', () => {
+            incrementValue.textContent = incrementSlider.value;
+        });
+
+        // Sliders - Friend game
+        const friendMinutesSlider = document.getElementById('friendMinutesSlider');
+        const friendMinutesValue = document.getElementById('friendMinutesValue');
+        const friendIncrementSlider = document.getElementById('friendIncrementSlider');
+        const friendIncrementValue = document.getElementById('friendIncrementValue');
+
+        friendMinutesSlider.addEventListener('input', () => {
+            friendMinutesValue.textContent = friendMinutesSlider.value;
+        });
+
+        friendIncrementSlider.addEventListener('input', () => {
+            friendIncrementValue.textContent = friendIncrementSlider.value;
+        });
+
+        // Rating range
+        const ratingMin = document.getElementById('ratingMin');
+        const ratingMax = document.getElementById('ratingMax');
+        const ratingRangeDisplay = document.getElementById('ratingRangeDisplay');
+        const baseRating = 2000;
+
+        function updateRatingDisplay() {
+            const min = parseInt(ratingMin.value);
+            const max = parseInt(ratingMax.value);
+            const displayMin = baseRating + min;
+            const displayMax = baseRating + max;
+            ratingRangeDisplay.textContent = `${displayMin} — ${displayMax}`;
+        }
+
+        ratingMin.addEventListener('input', updateRatingDisplay);
+        ratingMax.addEventListener('input', updateRatingDisplay);
+
+        // Forms
+        document.getElementById('createGameForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const timeControl = document.getElementById('timeControl').value;
+            const gameType = document.querySelector('#createGameForm .type-option.active').dataset.type;
+            alert(`Поиск партии: ${timeControl} (${gameType === 'rated' ? 'Рейтинговая' : 'Товарищеская'})`);
+        });
+
+        document.getElementById('customGameForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const minutes = minutesSlider.value;
+            const increment = incrementSlider.value;
+            const gameType = document.querySelector('#customGameForm .type-option.active').dataset.type;
+            const minRating = parseInt(ratingMin.value);
+            const maxRating = parseInt(ratingMax.value);
+            
+            alert(`Поиск партии: ${minutes}+${increment}\nТип: ${gameType === 'rated' ? 'Рейтинговая' : 'Товарищеская'}\nРейтинг: ${baseRating + minRating} — ${baseRating + maxRating}`);
+            customGameModal.classList.remove('active');
+        });
+
+        document.getElementById('friendGameForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const minutes = friendMinutesSlider.value;
+            const increment = friendIncrementSlider.value;
+            const gameType = document.querySelector('#friendGameForm .type-option.active').dataset.type;
+            
+            // Update share screen info
+            document.getElementById('shareGameTitle').textContent = `Партия ${minutes}+${increment}`;
+            document.getElementById('shareGameType').textContent = gameType === 'rated' ? 'Рейтинговая партия' : 'Товарищеская партия';
+            
+            // Generate random link
+            const randomId = Math.random().toString(36).substring(2, 15);
+            document.getElementById('shareLink').value = `https://powerchess.org/challenge/${randomId}`;
+            
+            // Show share screen
+            friendSetupScreen.style.display = 'none';
+            friendShareScreen.classList.add('active');
+        });
+
+        // Copy link button
+        document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
+            const linkInput = document.getElementById('shareLink');
+            linkInput.select();
+            document.execCommand('copy');
+            
+            const btn = document.getElementById('copyLinkBtn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        });
+
+        // Join buttons
+        document.querySelectorAll('.btn-join').forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert('Присоединение к партии...');
+            });
+        });
+
+        // TV games
+        document.querySelectorAll('.tv-game').forEach(game => {
+            game.addEventListener('click', () => {
+                alert('Просмотр партии...');
+            });
+        });
+    </script>
+</body>
+</html>

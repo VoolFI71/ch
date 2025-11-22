@@ -148,11 +148,30 @@
 
     setFormLoading(form, true, 'Входим…');
     try {
-      const token = await postJson('/api/auth/login', { login, password });
-      setTokens(token.access_token, token.refresh_token);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, password }),
+      });
+
+      if (!response.ok) {
+        const errorMsg = await extractError(response);
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
+      
+      // Проверяем, что ответ содержит нужные поля
+      if (!data || !data.access_token || !data.refresh_token) {
+        console.error('Invalid response format:', data);
+        throw new Error('Неверный формат ответа от сервера');
+      }
+
+      setTokens(data.access_token, data.refresh_token);
       showFeedback(form, 'Готово! Перенаправляем…', 'success');
       redirectAfterSuccess();
     } catch (error) {
+      console.error('Login error:', error);
       showFeedback(form, error.message || 'Не удалось войти');
     } finally {
       setFormLoading(form, false);

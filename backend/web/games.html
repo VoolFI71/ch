@@ -1,310 +1,463 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PowerChess — Игровые партии</title>
-  <!-- Загрузка темы до отрисовки страницы, чтобы избежать мерцания -->
-  <script>
-    (function() {
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerChess — Играть</title>
+    <!-- Загрузка темы до отрисовки страницы, чтобы избежать мерцания -->
+    <script>
       try {
-        const saved = localStorage.getItem('theme');
-        if (saved === 'dark') {
+        if (localStorage.getItem('theme') === 'dark') {
           document.documentElement.classList.add('dark');
           document.body.classList.add('dark');
         }
       } catch {}
-    })();
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/styles/variables.css">
-  <link rel="stylesheet" href="/styles/common.css">
-  <link rel="stylesheet" href="/styles/navigation.css">
-  <link rel="stylesheet" href="/styles/header.css">
-  <link rel="stylesheet" href="/styles/games.css">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Common Styles -->
+    <link rel="stylesheet" href="/styles/variables.css">
+    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="stylesheet" href="/styles/header.css">
+    <link rel="stylesheet" href="/styles/games.css">
 </head>
 <body>
-  <header class="header" id="header">
-    <div class="container">
-      <div class="header-content">
-        <a href="/" class="logo">
-          <div class="logo-icon">
-            <div class="chess-pattern"></div>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2;">
-              <defs>
-                <linearGradient id="games-crown" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#ffd700" />
-                  <stop offset="50%" stop-color="#ffffff" />
-                  <stop offset="100%" stop-color="#ffd700" />
-                </linearGradient>
-              </defs>
-              <rect x="3" y="16" width="18" height="3" fill="url(#games-crown)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
-              <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#games-crown)" stroke="#fff" stroke-width="1"/>
-              <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
-            </svg>
-            <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="position:absolute;top:0.25rem;right:0.25rem;z-index:3;">
-              <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.8"/>
-            </svg>
-            <div class="logo-sparkle"></div>
-            <div class="logo-sparkle"></div>
-            <div class="logo-sparkle"></div>
-            <div class="logo-sparkle"></div>
-          </div>
-          <div>
-            <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;" class="gradient-text">PowerChess</div>
-            <div style="font-size: 0.75rem; color: var(--muted); margin-top: -0.25rem;">♔ Шахматная академия</div>
-          </div>
-        </a>
-        <nav class="nav">
-          <a href="/games" class="nav-link active">Играть</a>
-          <a href="/course" class="nav-link">Курсы</a>
-          <a href="/couch#coaches" class="nav-link">Тренеры</a>
-          <a href="#reviews" class="nav-link">Отзывы</a>
-          <a href="#tournaments" class="nav-link">Турниры</a>
-        </nav>
-        <div class="header-actions">
-          <div class="user-actions" id="userActions" style="display: none;">
-            <button type="button" class="user-pill" id="gamesUserInfo" onclick="window.location.href='/cabinet'">
-              <i class="fas fa-user"></i>
-              <span>—</span>
-            </button>
-            <button type="button" class="btn-login logout-btn" id="gamesLogoutBtn" style="display: none;">
-              <i class="fas fa-sign-out-alt" style="margin-right: 0.4rem;"></i>
-              Выйти
-            </button>
-          </div>
-          <div class="auth-buttons" id="authButtons">
-            <button class="btn-login" id="gamesLoginBtn">
-              <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
-              Войти
-            </button>
-            <button class="btn-register" id="gamesRegisterBtn">
-              <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
-              Регистрация
-            </button>
-          </div>
-          <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
-            <i class="fas fa-sun" id="themeIcon"></i>
-          </button>
-          <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-            <i class="fas fa-bars" id="menuIcon"></i>
-          </button>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <div class="logo-icon">
+                        <div class="chess-pattern"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <defs>
+                                <linearGradient id="crown-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd700" />
+                                    <stop offset="50%" stop-color="#ffffff" />
+                                    <stop offset="100%" stop-color="#ffd700" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="3" y="16" width="18" height="3" fill="url(#crown-gradient)" stroke="#fff" stroke-width="0.5" rx="1.5"/>
+                            <path d="M4 16L3 6L6 11L12 3L18 11L21 6L20 16H4Z" fill="url(#crown-gradient)" stroke="#fff" stroke-width="1"/>
+                            <circle cx="12" cy="9" r="1.5" fill="#e11d48" stroke="#fff" stroke-width="0.5"/>
+                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                            <path d="M7 1L3 7H5L4 11L8 5H6L7 1Z" fill="#ffd700" stroke="#fff" stroke-width="0.8"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="gradient-text">PowerChess</div>
+                        <div>♔ Шахматная академия</div>
+                    </div>
+                </a>
+                <nav class="nav">
+                    <a href="/games" class="nav-link active">Играть</a>
+                    <a href="/course" class="nav-link">Курсы</a>
+                    <a href="/couch" class="nav-link">Тренеры</a>
+                    <a href="#reviews" class="nav-link">Отзывы</a>
+                    <a href="#tournaments" class="nav-link">Турниры</a>
+                </nav>
+                <div class="header-actions">
+                    <div id="authButtons">
+                        <button class="btn-login" id="gamesLoginBtn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Войти
+                        </button>
+                        <button class="btn-register" id="gamesRegisterBtn">
+                            <i class="fas fa-user-plus"></i>
+                            Регистрация
+                        </button>
+                    </div>
+                    <div id="userActions">
+                        <div id="gamesUserInfo">
+                            <span></span>
+                        </div>
+                    </div>
+                    <button class="theme-toggle" title="Переключить тему" id="themeToggleBtn">
+                        <i class="fas fa-sun" id="themeIcon"></i>
+                    </button>
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars" id="menuIcon"></i>
+                    </button>
+                    <button class="btn btn-outline logout-btn" id="gamesLogoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div class="mobile-menu" id="mobileMenu">
+                <div>
+                    <a href="/games" class="nav-link mobile-nav-link">Играть</a>
+                    <a href="/course" class="nav-link mobile-nav-link">Курсы</a>
+                    <a href="/couch" class="nav-link mobile-nav-link">Тренеры</a>
+                    <a href="#reviews" class="nav-link mobile-nav-link">Отзывы</a>
+                    <a href="#tournaments" class="nav-link mobile-nav-link">Турниры</a>
+                    <hr>
+                    <div id="mobileAuthButtons">
+                        <button class="btn-login" id="gamesLoginBtnMobile">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Войти
+                        </button>
+                        <button class="btn-register" id="gamesRegisterBtnMobile">
+                            <i class="fas fa-user-plus"></i>
+                            Регистрация
+                        </button>
+                    </div>
+                    <div id="mobileUserActions">
+                        <div id="gamesUserInfoMobile">
+                            <span></span>
+                        </div>
+                        <button class="btn btn-outline logout-btn" id="gamesLogoutBtnMobile">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Выйти
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="mobile-menu" id="mobileMenu">
-        <div style="display:flex;flex-direction:column;gap:1rem;">
-          <a href="/games" class="nav-link active" style="display:block;" onclick="closeMobileMenu()">Играть</a>
-          <a href="/course" class="nav-link" style="display:block;" onclick="closeMobileMenu()">Курсы</a>
-          <a href="/couch#coaches" class="nav-link" style="display:block;" onclick="closeMobileMenu()">Тренеры</a>
-          <hr style="border: 1px solid var(--border-light); margin: 1rem 0;">
-          <div class="mobile-user-actions" id="mobileUserActions" style="display:none;">
-            <button type="button" class="user-pill" id="gamesUserInfoMobile" style="width:100%;justify-content:center;" onclick="closeMobileMenu(); window.location.href='/cabinet';">
-              <i class="fas fa-user"></i>
-              <span>—</span>
-            </button>
-            <button type="button" class="btn-login logout-btn" id="gamesLogoutBtnMobile" style="width:100%;justify-content:center;margin-top:0.75rem;">
-              <i class="fas fa-sign-out-alt" style="margin-right:0.4rem;"></i>
-              Выйти
-            </button>
-          </div>
-          <div class="mobile-auth" id="mobileAuthButtons">
-            <button class="btn-login" id="gamesLoginBtnMobile" style="width:100%;justify-content:center;">Войти</button>
-            <button class="btn-register" id="gamesRegisterBtnMobile" style="width:100%;justify-content:center;">Регистрация</button>
-          </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <div class="container">
+            <div class="tabs-container">
+                <button class="tab active" data-tab="quick">
+                    <i class="fas fa-bolt"></i> Быстрая игра
+                </button>
+                <button class="tab" data-tab="lobby">
+                    <i class="fas fa-users"></i> Зал ожидания
+                </button>
+                <button class="tab" data-tab="tv">
+                    <i class="fas fa-tv"></i> TV
+                </button>
+            </div>
         </div>
-      </div>
     </div>
-  </header>
 
-<main class="games-main">
-  <section class="games-hero card">
-    <div class="hero-content">
-      <p class="badge badge-primary" style="letter-spacing: 0.08em;">PowerChess Arena</p>
-      <h1>Живые партии и прямые трансляции</h1>
-      <p>Создавайте свои столы, присоединяйтесь к залу ожидания и наблюдайте за лучшими матчами сообщества в реальном времени.</p>
-      <div class="hero-actions">
-        <button class="btn-primary" id="openCreateTab">Создать партию</button>
-        <button class="btn-outline" id="openLiveTab">Смотреть матчи</button>
-      </div>
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="container">
+            <!-- QUICK GAME TAB -->
+            <div class="tab-content" id="quick-tab">
+                <div class="content-grid">
+                    <div class="game-modes">
+                        <h2 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Выберите контроль времени
+                        </h2>
+                        <div class="modes-grid">
+                            <div class="mode-card" data-time="1+0">
+                                <div class="mode-time">1+0</div>
+                                <div class="mode-label">Bullet</div>
+                            </div>
+                            <div class="mode-card" data-time="2+1">
+                                <div class="mode-time">2+1</div>
+                                <div class="mode-label">Bullet</div>
+                            </div>
+                            <div class="mode-card" data-time="3+0">
+                                <div class="mode-time">3+0</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="3+2">
+                                <div class="mode-time">3+2</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="5+0">
+                                <div class="mode-time">5+0</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="5+3">
+                                <div class="mode-time">5+3</div>
+                                <div class="mode-label">Blitz</div>
+                            </div>
+                            <div class="mode-card" data-time="10+0">
+                                <div class="mode-time">10+0</div>
+                                <div class="mode-label">Rapid</div>
+                            </div>
+                            <div class="mode-card" data-time="10+5">
+                                <div class="mode-time">10+5</div>
+                                <div class="mode-label">Rapid</div>
+                            </div>
+                            <div class="mode-card" data-time="15+10">
+                                <div class="mode-time">15+10</div>
+                                <div class="mode-label">Rapid</div>
+                            </div>
+                            <div class="mode-card" data-time="30+0">
+                                <div class="mode-time">30+0</div>
+                                <div class="mode-label">Classical</div>
+                            </div>
+                            <div class="mode-card" data-time="30+20">
+                                <div class="mode-time">30+20</div>
+                                <div class="mode-label">Classical</div>
+                            </div>
+                            <div class="mode-card" id="customGameBtn">
+                                <div class="mode-time">⚙️</div>
+                                <div class="mode-label">Своя игра</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOBBY TAB -->
+            <div class="tab-content" id="lobby-tab" style="display: none;">
+                <div class="content-grid">
+                    <div class="game-modes">
+                        <h2 class="section-title">
+                            <i class="fas fa-door-open"></i>
+                            Зал ожидания
+                        </h2>
+                        <div class="waiting-room">
+                            <div class="waiting-item">
+                                <div class="waiting-info">
+                                    <div class="waiting-player">🏆 GrandMaster2024</div>
+                                    <div class="waiting-time">5+0 • Рейтинговая • 2450 ELO</div>
+                                </div>
+                                <button class="btn-join">Принять</button>
+                            </div>
+                            <div class="waiting-item">
+                                <div class="waiting-info">
+                                    <div class="waiting-player">♟️ ChessLover99</div>
+                                    <div class="waiting-time">10+5 • Товарищеская • 2100 ELO</div>
+                                </div>
+                                <button class="btn-join">Принять</button>
+                            </div>
+                            <div class="waiting-item">
+                                <div class="waiting-info">
+                                    <div class="waiting-player">⚡ StrategicKing</div>
+                                    <div class="waiting-time">3+2 • Рейтинговая • 1980 ELO</div>
+                                </div>
+                                <button class="btn-join">Принять</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV TAB -->
+            <div class="tab-content" id="tv-tab" style="display: none;">
+                <div class="content-grid">
+                    <div class="game-modes">
+                        <h2 class="section-title">
+                            <i class="fas fa-broadcast-tower"></i>
+                            Живые партии
+                        </h2>
+                        <div class="tv-games">
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ GrandMaster2024 (2450)</div>
+                                    <div class="tv-player">⚫ ChessKing777 (2380)</div>
+                                </div>
+                                <div class="tv-time">5+0 Blitz • Ход 18</div>
+                            </div>
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ StrategicMind (2200)</div>
+                                    <div class="tv-player">⚫ TacticalGenius (2290)</div>
+                                </div>
+                                <div class="tv-time">10+5 Rapid • Ход 12</div>
+                            </div>
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ RookMaster (1980)</div>
+                                    <div class="tv-player">⚫ BishopLover (2050)</div>
+                                </div>
+                                <div class="tv-time">3+2 Blitz • Ход 25</div>
+                            </div>
+                            <div class="tv-game">
+                                <div class="tv-live-badge">
+                                    <div class="live-dot"></div>
+                                    LIVE
+                                </div>
+                                <div class="tv-players">
+                                    <div class="tv-player">⚪ KnightRider (2100)</div>
+                                    <div class="tv-player">⚫ QueenSlayer (2150)</div>
+                                </div>
+                                <div class="tv-time">15+10 Rapid • Ход 8</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-info-circle"></i>
+                                О режиме TV
+                            </h3>
+                            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.6;">
+                                Смотрите партии сильнейших игроков в режиме реального времени. 
+                                Нажмите на любую партию, чтобы начать просмотр.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CUSTOM GAME MODAL -->
+    <div class="modal-overlay" id="customGameModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-cog"></i>
+                    Параметры игры
+                </h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+
+            <form id="customGameForm">
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-label-text">Минут на партию</span>
+                        <span class="slider-value" id="minutesValue">5</span>
+                    </div>
+                    <input type="range" class="slider" id="minutesSlider" min="1" max="60" value="5" step="1">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-label-text">Добавление секунд на ход</span>
+                        <span class="slider-value" id="incrementValue">0</span>
+                    </div>
+                    <input type="range" class="slider" id="incrementSlider" min="0" max="30" value="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Режим игры</label>
+                    <div class="game-type-toggle">
+                        <button type="button" class="type-option" data-type="casual">Товарищеская</button>
+                        <button type="button" class="type-option active" data-type="rated">Рейтинговая</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-create">
+                    <i class="fas fa-search"></i>
+                    Создать запрос на игру
+                </button>
+            </form>
+        </div>
     </div>
-    <div class="hero-stats">
-      <div class="stat-pill">
-        <span class="label">Зал ожидания</span>
-        <strong id="statWaiting">0</strong>
-      </div>
-      <div class="stat-pill">
-        <span class="label">Текущие матчи</span>
-        <strong id="statLive">0</strong>
-      </div>
-      <div class="stat-pill">
-        <span class="label">Завершено сегодня</span>
-        <strong id="statFinished">0</strong>
-      </div>
+
+    <!-- PLAY WITH FRIEND MODAL -->
+    <div class="modal-overlay" id="friendGameModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-user-friends"></i>
+                    Игра с другом
+                </h2>
+                <button class="modal-close" id="closeFriendModal">&times;</button>
+            </div>
+
+            <div id="friendSetupScreen">
+                <form id="friendGameForm">
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Минут на партию</span>
+                            <span class="slider-value" id="friendMinutesValue">5</span>
+                        </div>
+                        <input type="range" class="slider" id="friendMinutesSlider" min="1" max="60" value="5" step="1">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Добавление секунд на ход</span>
+                            <span class="slider-value" id="friendIncrementValue">0</span>
+                        </div>
+                        <input type="range" class="slider" id="friendIncrementSlider" min="0" max="30" value="0" step="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Режим игры</label>
+                        <div class="game-type-toggle">
+                            <button type="button" class="type-option active" data-type="casual">Товарищеская</button>
+                            <button type="button" class="type-option" data-type="rated">Рейтинговая</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-friend">
+                        <i class="fas fa-link"></i>
+                        Создать приглашение
+                    </button>
+                </form>
+            </div>
+
+            <div id="friendShareScreen" class="share-screen">
+                <div class="game-info-banner">
+                    <div class="game-info-icon">🎯</div>
+                    <div class="game-info-title" id="shareGameTitle">Пуля 1+0</div>
+                    <div class="game-info-details" id="shareGameType">Товарищеская партия</div>
+                </div>
+
+                <div class="share-instruction">
+                    Чтобы пригласить друга, отправьте ему эту ссылку
+                </div>
+
+                <div class="link-container">
+                    <input type="text" class="link-input" id="shareLink" value="https://powerchess.org/challenge/abc123xyz" readonly>
+                    <button class="btn-copy" id="copyLinkBtn">
+                        <i class="fas fa-copy"></i>
+                        Копировать
+                    </button>
+                </div>
+
+                <div class="qr-container">
+                    <div class="qr-title">Или позвольте вашему сопернику отсканировать этот QR-код</div>
+                    <div class="qr-code">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                </div>
+
+                <div class="waiting-opponent">
+                    <div class="waiting-text">Ожидание второго игрока</div>
+                    <div class="waiting-dots">●●●</div>
+                </div>
+            </div>
+        </div>
     </div>
-  </section>
 
-  <div class="games-grid">
-    <section class="card games-tabs">
-      <div class="tab-controls">
-        <button class="tab-btn active" data-tab="waiting">Зал ожидания</button>
-        <button class="tab-btn" data-tab="live">Текущие матчи</button>
-        <button class="tab-btn" data-tab="create">Создать партию</button>
-      </div>
-
-      <div class="tab-panel active" data-panel="waiting">
-        <div class="panel-heading">
-          <div>
-            <h3>Зал ожидания</h3>
-            <p>Игры, где белые ждут соперника</p>
-          </div>
-          <button class="btn-link" id="refreshWaitingBtn">Обновить</button>
-        </div>
-        <div id="waitingList" class="game-grid">
-          <div class="empty-state">Партии загружаются...</div>
-        </div>
-      </div>
-
-      <div class="tab-panel" data-panel="live">
-        <div class="panel-heading">
-          <div>
-            <h3>Текущие матчи</h3>
-            <p>Подключайтесь и наблюдайте в прямом эфире</p>
-          </div>
-          <button class="btn-link" id="refreshLiveBtn">Обновить</button>
-        </div>
-        <div id="liveList" class="game-grid">
-          <div class="empty-state">Пока нет активных матчей.</div>
-        </div>
-      </div>
-
-      <div class="tab-panel" data-panel="create">
-        <div class="panel-heading">
-          <div>
-            <h3>Создать партию</h3>
-            <p>Настройте контроль времени и пригласите участников</p>
-          </div>
-        </div>
-        <form id="createGameForm" class="create-form">
-          <div class="input-group">
-            <label for="variant">Тип партии</label>
-            <select id="variant" name="variant" required>
-              <option value="standard" selected>Классическая — стартовая позиция</option>
-              <option value="custom">Произвольная FEN</option>
-            </select>
-          </div>
-          <div class="input-group" id="customFenGroup" style="display: none;">
-            <label for="customFen">FEN позиции</label>
-            <textarea id="customFen" name="customFen" rows="2" placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"></textarea>
-          </div>
-          <div class="input-inline">
-            <div class="input-group">
-              <label for="initialMinutes">Базовое время (мин)</label>
-              <input type="number" id="initialMinutes" name="initialMinutes" min="1" max="180" value="5">
-            </div>
-            <div class="input-group">
-              <label for="incrementSeconds">Инкремент (сек)</label>
-              <input type="number" id="incrementSeconds" name="incrementSeconds" min="0" max="60" value="3">
-            </div>
-          </div>
-          <div class="input-group">
-            <label style="margin-bottom:0.35rem;">Ваш цвет</label>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input type="radio" name="creatorColor" value="white" checked>
-                Играть за белых
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="creatorColor" value="black">
-                Играть за чёрных
-              </label>
-            </div>
-          </div>
-          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;">
-            <input type="checkbox" id="ratedFlag" name="ratedFlag">
-            Рейтинговая партия
-          </label>
-          <button type="submit" class="btn-primary" id="createGameBtn">Создать партию</button>
-          <p class="empty-state" id="createGameHint" style="display: none;">Авторизуйтесь, чтобы создавать партии.</p>
-        </form>
-      </div>
-    </section>
-
-    <aside class="card games-detail detail-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
-        <div>
-          <p class="status-label" style="margin-bottom:0.2rem;">Текущая партия</p>
-          <h2 id="detailTitle" style="margin:0;">Детали партии</h2>
-        </div>
-        <span class="ws-indicator ws-offline" id="wsStatus">WS: offline</span>
-      </div>
-
-      <div id="gameDetailEmpty" class="empty-state">
-        Выберите партию, чтобы подключиться к трансляции, либо создайте новую и пригласите соперника.
-      </div>
-
-      <div id="gameDetailPanel" class="hidden">
-        <div class="detail-meta">
-          <div>
-            <div class="status-label">UUID</div>
-            <div class="copy-field">
-              <input type="text" id="gameIdField" readonly>
-              <button class="btn-outline" id="copyGameIdBtn">Скопировать</button>
-            </div>
-          </div>
-          <div>
-            <div class="status-label">Статус</div>
-            <div class="pill" id="gameStatusBadge">—</div>
-          </div>
-          <div>
-            <div class="status-label">Контроль</div>
-            <div id="gameTimeControl">—</div>
-          </div>
-          <div>
-            <div class="status-label">Результат</div>
-            <div id="gameResult">—</div>
-          </div>
-        </div>
-
-        <div class="clock-grid">
-          <div class="clock-widget">
-            <div class="status-label">Белые</div>
-            <div class="value" id="whiteClock">05:00</div>
-            <div id="whitePlayerLabel" class="status" style="color:rgba(248,250,252,0.8);">—</div>
-          </div>
-          <div class="clock-widget">
-            <div class="status-label">Чёрные</div>
-            <div class="value" id="blackClock">05:00</div>
-            <div id="blackPlayerLabel" class="status" style="color:rgba(248,250,252,0.8);">—</div>
-          </div>
-        </div>
-
-        <div class="game-actions" id="gameActions"></div>
-
-        <div>
-          <h3 style="margin-bottom:0.5rem;">Ходы</h3>
-          <ol class="moves-list" id="movesList"></ol>
-        </div>
-
-        <div class="move-form">
-          <div class="status-label">Сделать ход (UCI)</div>
-          <form id="moveForm">
-            <input type="text" id="uciInput" name="uci" placeholder="Например, e2e4 или g7g8q" minlength="4" autocomplete="off">
-            <input type="text" id="promotionInput" name="promotion" placeholder="Промо (qrbn)" maxlength="1" autocomplete="off">
-            <button type="submit" class="btn-primary">Отправить</button>
-          </form>
-          <small style="color:rgba(148,163,184,0.8);">Инкремент добавляется автоматически после вашего хода.</small>
-        </div>
-      </div>
-    </aside>
-  </div>
-</main>
-
-  <div id="gamesToast" class="toast"></div>
-
-  <script src="/scripts/games.js" defer></script>
+    <!-- Common Auth Script (must load first) -->
+    <script src="/scripts/auth.js"></script>
+    <!-- Games Page Script -->
+    <script src="/scripts/games.js"></script>
+    <!-- Initialize event handlers -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Theme toggle button - will be handled by games.js or auth.js
+        // No need to duplicate handler here
+        
+        // Mobile menu button
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        if (mobileMenuBtn) {
+          mobileMenuBtn.addEventListener('click', function() {
+            if (typeof window.toggleMobileMenu === 'function') {
+              window.toggleMobileMenu();
+            }
+          });
+        }
+        
+        // Mobile menu links
+        document.querySelectorAll('.mobile-nav-link').forEach(function(link) {
+          link.addEventListener('click', function() {
+            if (typeof window.closeMobileMenu === 'function') {
+              window.closeMobileMenu();
+            }
+          });
+        });
+      });
+    </script>
 </body>
 </html>
-
